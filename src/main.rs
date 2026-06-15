@@ -25,6 +25,45 @@ fn staleness_days(run_date: &str, obs_date: &str) -> Option<i64> {
     Some((run - obs).num_days())
 }
 
+/// 用 Yahoo 抓一组序列(带新鲜度校验),把结果追加到 records / failures。
+fn fetch_yahoo(
+    yc: &yahoo::YahooClient,
+    list: &[series::YahooSeries],
+    run_date: &str,
+    records: &mut Vec<store::Record>,
+    failures: &mut Vec<(String, String)>,
+) {
+    for y in list {
+        match yc.latest(y.symbol, y.scale) {
+            Ok(q) => {
+                if let Some(age) = staleness_days(run_date, &q.date)
+                    && age > MAX_STALENESS_DAYS
+                {
+                    let msg = format!("数据陈旧:最新观测 {} 距今 {age} 天", q.date);
+                    eprintln!("  ⚠ {:<24} {msg}", y.label);
+                    failures.push((y.symbol.to_string(), msg));
+                    continue;
+                }
+                println!("  ✓ {:<24} {:>10}  {:<7} ({}) [Yahoo]", y.label, q.value, y.unit, q.date);
+                records.push(store::Record {
+                    run_date: run_date.to_string(),
+                    series_id: y.symbol.to_string(),
+                    label: y.label.to_string(),
+                    obs_date: q.date,
+                    value: q.value,
+                    unit: y.unit.to_string(),
+                    source: "Yahoo".to_string(),
+                    note: y.note.to_string(),
+                });
+            }
+            Err(e) => {
+                eprintln!("  ✗ {:<24} 失败: {e}", y.label);
+                failures.push((y.symbol.to_string(), e.to_string()));
+            }
+        }
+    }
+}
+
 fn main() -> Result<()> {
     // 加载 .env(若存在);缺失也无妨,环境变量优先。
     dotenvy::dotenv().ok();
@@ -75,41 +114,16 @@ fn main() -> Result<()> {
         }
     }
 
-    // FRED 整体无数据(典型:key 无效/缺失)→ 回退到免鉴权的 Yahoo 源。
-    // 用各自符号独立记录(口径不与 FRED 行混用),让管道即便没有 FRED key 也能产出真实数据。
-    if records.is_empty() {
-        eprintln!("\nFRED 无可用数据,回退 Yahoo 免鉴权源(限流敏感,放慢请求)…");
-        failures.clear();
-        let yc = yahoo::YahooClient::new()?;
-        for y in series::YAHOO_FALLBACK {
-            match yc.latest(y.symbol, y.scale) {
-                Ok(q) => {
-                    if let Some(age) = staleness_days(&run_date, &q.date)
-                        && age > MAX_STALENESS_DAYS
-                    {
-                        let msg = format!("数据陈旧:最新观测 {} 距今 {age} 天", q.date);
-                        eprintln!("  ⚠ {:<24} {msg}", y.label);
-                        failures.push((y.symbol.to_string(), msg));
-                        continue;
-                    }
-                    println!("  ✓ {:<24} {:>10}  {:<7} ({}) [Yahoo]", y.label, q.value, y.unit, q.date);
-                    records.push(store::Record {
-                        run_date: run_date.clone(),
-                        series_id: y.symbol.to_string(),
-                        label: y.label.to_string(),
-                        obs_date: q.date,
-                        value: q.value,
-                        unit: y.unit.to_string(),
-                        source: "Yahoo".to_string(),
-                        note: y.note.to_string(),
-                    });
-                }
-                Err(e) => {
-                    eprintln!("  ✗ {:<24} 失败: {e}", y.label);
-                    failures.push((y.symbol.to_string(), e.to_string()));
-                }
-            }
-        }
+    // Yahoo:① 每次补 FRED 给不了的指标(真 DXY、黄金);② FRED 全空时再顶上利率/波动/股指。
+    let fred_count = records.len();
+    if fred_count == 0 {
+        eprintln!("\nFRED 无可用数据(检查 FRED_API_KEY)——改用 Yahoo 顶上核心指标。");
+        failures.clear(); // 抑制坏 key 噪声;下方 Yahoo 顶上
+    }
+    let yc = yahoo::YahooClient::new()?;
+    fetch_yahoo(&yc, series::YAHOO_SUPPLEMENT, &run_date, &mut records, &mut failures);
+    if fred_count == 0 {
+        fetch_yahoo(&yc, series::YAHOO_DEGRADED, &run_date, &mut records, &mut failures);
     }
 
     let data_dir = std::path::Path::new("data");
@@ -134,9 +148,9 @@ fn main() -> Result<()> {
         failures.len(),
     );
 
-    // 全部失败 → 非零退出,便于 CI 报警(通常意味着 FRED_API_KEY 无效)。
+    // 全部失败 → 非零退出,便于 CI 报警(通常意味着 FRED_API_KEY 无效且 Yahoo 也不可达)。
     if records.is_empty() {
-        anyhow::bail!("所有序列均抓取失败 —— 多半是 FRED_API_KEY 无效或网络不通");
+        anyhow::bail!("所有数据源均抓取失败 —— 检查 FRED_API_KEY 与网络");
     }
     Ok(())
 }

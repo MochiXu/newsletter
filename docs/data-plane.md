@@ -14,16 +14,25 @@
 
 ### 抓取的序列(`src/series.rs`)
 
+FRED 主源(`CORE_SERIES`):
+
 | 指标 | FRED series_id | 单位 | 说明 |
 |---|---|---|---|
 | 10Y Treasury | `DGS10` | % | |
 | 2Y Treasury | `DGS2` | % | |
 | 2s10s Spread | `T10Y2Y` | % | 10Y 减 2Y |
 | VIX | `VIXCLS` | index | |
-| USD Index (Broad) | `DTWEXBGS` | index | **DXY 代理**:贸易加权美元,口径与 ICE DXY 不同 |
-| Gold (London AM fix) | `GOLDAMGBD228NLBM` | USD/oz | |
+| USD Index (Broad) | `DTWEXBGS` | index | 贸易加权美元(FRED 可靠);≠ ICE 窄口径 DXY |
 
-> DXY/Gold 用 FRED 代理是 M0 的取舍;M1/M2 可换 Stooq/Yahoo 精修盘口口径。
+Yahoo 补充(`YAHOO_SUPPLEMENT`,FRED 给不了的指标,**每次都补**):
+
+| 指标 | Yahoo symbol | 单位 | 说明 |
+|---|---|---|---|
+| USD Index (DXY) | `DX-Y.NYB` | index | ICE 窄口径 DXY(用户口径) |
+| Gold | `GC=F` | USD/oz | COMEX 期货;FRED 伦敦金价序列已下架 |
+
+> 实跑确认 FRED `GOLDAMGBD228NLBM` 已下架(返回 "series does not exist"),故黄金改走 Yahoo;
+> 真 DXY 同理(FRED 只有广义美元 DTWEXBGS)。
 
 ## API 调用
 
@@ -39,16 +48,15 @@
 `without_url()` 剥离含 key 的 URL,因此 key 不会进入错误对象 → 不泄漏到日志、
 提交回仓库的快照或 CI 日志(由代码保证,而非依赖格式化方式)。
 
-## 回退源:Yahoo Finance(免鉴权)
+## Yahoo Finance(免鉴权,补充 + 降级)
 
-当 FRED 整体不可用(缺 key / key 无效)时,自动回退到 Yahoo 的
-`v8/finance/chart/{symbol}`(读 `meta.regularMarketPrice/Time`),让管道没有 FRED key
-也能产出真实数据。
+用 Yahoo 的 `v8/finance/chart/{symbol}`(读 `meta.regularMarketPrice/Time`)。两种用途:
 
-- 回退序列(各自符号**独立记录,不与 FRED 行混用口径**):`^GSPC` S&P500、`^VIX` VIX、
-  `^TNX` 10Y 收益率(现直接报 %,不再 ×10)、`DX-Y.NYB` ICE 窄口径 DXY、`GC=F` COMEX 黄金期货
-- Yahoo 是非官方接口且按 IP 限流(429):客户端带浏览器 UA、请求间留 ~1.3s 间隔、对失败线性退避重试
-- 仅在 FRED 零产出时触发;填入有效 FRED key 后主源即变回 FRED
+- **补充(`YAHOO_SUPPLEMENT`,每次都跑)**:FRED 给不了的指标——真 DXY(`DX-Y.NYB`)、黄金(`GC=F`)。
+- **降级(`YAHOO_DEGRADED`,仅 FRED 零产出时)**:用 Yahoo 顶上 FRED 那部分——`^GSPC`/`^VIX`/`^TNX`(现直接报 %)。
+
+Yahoo 是非官方接口且按 IP 限流(429):客户端带浏览器 UA、请求间留 ~1.3s 间隔、对失败线性退避重试。
+口径**不与 FRED 行混用**(各自符号独立记录)。
 
 ## 存储:git-as-database
 
