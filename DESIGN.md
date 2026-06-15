@@ -68,15 +68,15 @@
 | 平面 | 语言 | 负责 |
 |---|---|---|
 | 数据平面 | **Rust** | fetchers(FRED/Stooq/CFTC/RSS)、并发抓取、写 SQLite;编译成二进制,cron 跑,无人值守可靠 |
-| 智能平面 | **Python** | 读 SQLite + linkage map → 调 Claude(pydantic 结构化四层)→ 渲染 markdown → 发 Telegram |
+| 智能平面 | **Python** | 读数据(M1 读 CSV)+ linkage map → 调 Claude(tool use 强制四层)→ 渲染 markdown → 存 md + 推飞书 |
 | 接缝 | **SQLite `data/brief.db` + `schema.sql`** | 唯一契约;**不走 FFI/PyO3,不走 HTTP service** |
 
 - **Rust**:`reqwest`+`tokio` 抓取,`sqlx`(编译期校验 SQL)写库;数据源全走 FRED+Stooq+Socrata,避开 yfinance 的接口漂移
-- **Python**:`anthropic` SDK + `pydantic`(四层 schema + 强制结构化输出);`prompts/` 下模板运行时读取(改 prompt 不重编译)
+- **Python**:M1 用**纯 stdlib**(`urllib`/`json`/`csv`/`hmac`,零第三方);Claude 用 tool use 强制四层输出;`framework/linkage_map.md` 运行时读取
 - **模型**:日常 `claude-sonnet-4-6`,深度 `claude-opus-4-8`
-- **调度**:**GitHub Actions cron**,顺序跑 `cargo run --release`(Rust 抓数→库)→ `python -m newsletter.brief`(读库→Claude→渲染→推送)
-- **交付**:Python 推 Telegram(它已持有成品);未来若做*交互式* bot(响应 `/brief` 等)再用 Rust `teloxide` 起常驻服务
-- **配置**:`.env`(API keys),Python 侧 `pydantic-settings`
+- **调度**:**GitHub Actions cron**,顺序跑 `cargo run --release`(Rust 抓数)→ `python -m newsletter.brief`(读数据→Claude→渲染→存/推)
+- **交付**:Python 推**飞书机器人**(始终先存本地 md 兜底);Telegram/邮件后续再加,交互式 bot 可再用 Rust `teloxide`
+- **配置**:`.env`(API keys)
 
 **为什么这个接缝好**:流程是线性的一次交接(Rust 写库 → Python 读库),没有进程内调用所以不需要 FFI/maturin 的构建复杂度;而且本地迭代 prompt 时**只跑 Python 半边**、读上次 Rust 落的库快照——既拿到 Rust 的无人值守可靠性,又保住 Python 改 prompt 即时见效的内循环。
 
@@ -96,7 +96,7 @@ newsletter/
       schema.py                # 四层 pydantic 模型
     brief.py                   # 读库 -> 调 Claude -> 渲染
     render.py
-    deliver/telegram.py
+    deliver/feishu.py
   prompts/                     # prompt 模板(运行时读,不重编译)
   data/brief.db                # 接缝(.gitignore)
   .github/workflows/daily.yml  # cargo run --release && python -m newsletter.brief
@@ -104,10 +104,12 @@ newsletter/
 
 > **M0 现状(2026-06-16,代码已落地)**:数据平面用 `reqwest` blocking 抓 6 个 FRED 序列,存为 CSV + markdown 提交回仓库(GitHub Actions 临时 runner 上 SQLite 不持久 → M0 用 git-as-database,SQLite 接缝待 M1);单测覆盖解析与落库。**另加 Yahoo 免鉴权回退源**:在无有效 FRED key 时也用真实数据(S&P/VIX/10Y/DXY/Gold)跑通了管道并提交首个快照。详见 [docs/data-plane.md](docs/data-plane.md)。
 
+> **M1 现状(2026-06-16,代码已就绪)**:智能平面(Python,纯 stdlib)读 `observations.csv` + 传导图 → Claude `emit_brief` 工具强制四层(事实/解读/可证伪假设/影响)→ 存 `data/briefs/<date>.md` + 推飞书。已用真实 M0 数据跑通**回退路径**(无 ANTHROPIC_API_KEY → 仅事实层;无 FEISHU_WEBHOOK → 仅存 md);6 单测过。完整 AI 四层待填 `ANTHROPIC_API_KEY`。详见 [docs/intelligence-plane.md](docs/intelligence-plane.md)。
+
 ## 7. 里程碑
 
-- **M0 · 本周**(代码已就绪)— 数据管道打通。拉 6 个核心数据(10Y/2Y/2s10s/VIX/USD/Gold,**M0 全走 FRED**),存为 CSV + markdown 提交回仓库,每天自动产出快照。✅ 验收:连续 3 天自动出快照(待填入真实 FRED key 跑通)。
-- **M1 · 第 2-3 周** — 第一版每日简报(只给作者)。LLM 把数据 + linkage map → 四层简报,推到私人 Telegram。✅ 作者每天真读,且觉得比刷推特信息量大。
+- **M0 · 本周**(✅ 已跑通真实数据)— 数据管道打通。拉 6 个核心数据(10Y/2Y/2s10s/VIX/USD/Gold,FRED 主源 + Yahoo 补 DXY/黄金),存为 CSV + markdown 提交回仓库。
+- **M1 · 第 2-3 周**(代码已就绪)— 每日四层简报(只给作者)。Python 读数据 + linkage map → Claude 四层简报 → 存本地 md + 推**飞书机器人**(无 key 降级仅事实层;无 webhook 仅存 md)。✅ 验收:作者每天真读、觉得比刷推特信息量大(待填 ANTHROPIC_API_KEY 出完整四层)。
 - **M2 · 第 4-6 周** — 加新闻分类 + 假设追踪日志。发给 5-10 个朋友收反馈。
 - **M3 · 第 2 月** — 接入 A股/港股影响层;固定格式/时间/voice。
 - **M4 · 第 3 月+** — 单资产交易框架生成器、CFTC、dashboard;考虑公开 + 付费墙(¥99-299/月)。
@@ -119,7 +121,7 @@ newsletter/
 1. 首要目标:**先自用 2-3 个月再公开**(dogfood-first)
 2. 关注市场:全球宏观 + 美股 + 加密 + A股/港股(分批,见 §4)
 3. 技术栈:**Rust + Python 混合**——Rust 数据平面 + Python 智能平面,接缝为共享 SQLite(见 §6;现有 Rust 骨架复用)
-4. 首发交付:**Telegram 频道/Bot**
+4. 首发交付:**飞书机器人 webhook**(始终存本地 md 兜底;Telegram 暂不可用,后续再加)
 
 ## 9. 待定 / Open questions
 

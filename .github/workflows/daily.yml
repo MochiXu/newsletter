@@ -33,6 +33,16 @@ jobs:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: cargo run --release --bin fetch
 
+      # M1 智能平面:读数据→(有 key 则)生成四层简报→存 md + (有 webhook 则)推飞书。
+      # ubuntu 自带 python3;纯 stdlib 无需安装。密钥缺失时自动降级,不让 CI 失败。
+      - name: Generate brief (Python)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          FEISHU_SECRET: ${{ secrets.FEISHU_SECRET }}
+        run: PYTHONPATH=py python3 -m newsletter.brief
+
       - name: Commit snapshot
         run: |
           git config user.name "github-actions[bot]"
