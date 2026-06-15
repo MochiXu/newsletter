@@ -1,0 +1,6 @@
+run_date,series_id,label,obs_date,value,unit,source,note
+2026-06-16,^GSPC,S&P 500,2026-06-15,7554.29,index,Yahoo,
+2026-06-16,^VIX,VIX,2026-06-15,16.2,index,Yahoo,
+2026-06-16,^TNX,10Y Treasury,2026-06-15,4.469,%,Yahoo,Yahoo ^TNX 现报收益率本身(%)
+2026-06-16,DX-Y.NYB,"USD Index (DXY, ICE)",2026-06-15,99.685,index,Yahoo,"窄口径 DXY,≠FRED 广义美元"
+2026-06-16,GC=F,Gold (COMEX front),2026-06-15,4332.5,USD/oz,Yahoo,"期货,≠伦敦定盘"

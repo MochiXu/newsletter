@@ -24,3 +24,25 @@ pub const CORE_SERIES: &[Series] = &[
     Series { id: "DTWEXBGS", label: "USD Index (Broad)", unit: "index", note: "DXY 代理:贸易加权美元,口径不同" },
     Series { id: "GOLDAMGBD228NLBM", label: "Gold (London AM fix)", unit: "USD/oz", note: "" },
 ];
+
+/// FRED 整体不可用时(如缺 key/key 无效)的免鉴权回退源(Yahoo Finance)。
+///
+/// 注意:这些是 Yahoo 各自的工具,口径未必与上面的 FRED 序列完全一致——例如
+/// DX-Y.NYB 是 ICE 窄口径 DXY(≈99),≠ FRED 的广义美元指数 DTWEXBGS(≈120);
+/// GC=F 是 COMEX 期货,≠ 伦敦定盘。故以各自符号与标签**独立记录**,不与 FRED 行混用。
+pub struct YahooSeries {
+    pub symbol: &'static str,
+    pub label: &'static str,
+    /// 单位换算系数(如 ^TNX 收益率为真实值 ×10,需 ×0.1)。
+    pub scale: f64,
+    pub unit: &'static str,
+    pub note: &'static str,
+}
+
+pub const YAHOO_FALLBACK: &[YahooSeries] = &[
+    YahooSeries { symbol: "^GSPC", label: "S&P 500", scale: 1.0, unit: "index", note: "" },
+    YahooSeries { symbol: "^VIX", label: "VIX", scale: 1.0, unit: "index", note: "" },
+    YahooSeries { symbol: "^TNX", label: "10Y Treasury", scale: 1.0, unit: "%", note: "Yahoo ^TNX 现报收益率本身(%)" },
+    YahooSeries { symbol: "DX-Y.NYB", label: "USD Index (DXY, ICE)", scale: 1.0, unit: "index", note: "窄口径 DXY,≠FRED 广义美元" },
+    YahooSeries { symbol: "GC=F", label: "Gold (COMEX front)", scale: 1.0, unit: "USD/oz", note: "期货,≠伦敦定盘" },
+];

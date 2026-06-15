@@ -39,6 +39,17 @@
 `without_url()` 剥离含 key 的 URL,因此 key 不会进入错误对象 → 不泄漏到日志、
 提交回仓库的快照或 CI 日志(由代码保证,而非依赖格式化方式)。
 
+## 回退源:Yahoo Finance(免鉴权)
+
+当 FRED 整体不可用(缺 key / key 无效)时,自动回退到 Yahoo 的
+`v8/finance/chart/{symbol}`(读 `meta.regularMarketPrice/Time`),让管道没有 FRED key
+也能产出真实数据。
+
+- 回退序列(各自符号**独立记录,不与 FRED 行混用口径**):`^GSPC` S&P500、`^VIX` VIX、
+  `^TNX` 10Y 收益率(现直接报 %,不再 ×10)、`DX-Y.NYB` ICE 窄口径 DXY、`GC=F` COMEX 黄金期货
+- Yahoo 是非官方接口且按 IP 限流(429):客户端带浏览器 UA、请求间留 ~1.3s 间隔、对失败线性退避重试
+- 仅在 FRED 零产出时触发;填入有效 FRED key 后主源即变回 FRED
+
 ## 存储:git-as-database
 
 M0 跑在 GitHub Actions 临时 runner 上,SQLite 文件不跨运行持久化。因此把数据
@@ -78,6 +89,7 @@ cargo test                     # 离线单测:解析 + CSV 转义
 - [x] 失败文本单行化/截断后再写快照
 - [x] CI:`concurrency` 防并发 + push 失败 rebase 重试
 - [x] 部分序列失败时输出 `::warning::` 注解(CI 可见)
+- [x] Yahoo 免鉴权回退源:无 FRED key 也能产出真实数据(限流退避;口径不与 FRED 混用)
 
 ## 待办 / 后续
 

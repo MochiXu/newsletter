@@ -102,7 +102,7 @@ newsletter/
   .github/workflows/daily.yml  # cargo run --release && python -m newsletter.brief
 ```
 
-> **M0 现状(2026-06-16,代码已落地)**:数据平面用 `reqwest` blocking 抓 6 个 FRED 序列,存为 CSV + markdown 提交回仓库(GitHub Actions 临时 runner 上 SQLite 不持久 → M0 用 git-as-database,SQLite 接缝待 M1);单测覆盖解析与落库。详见 [docs/data-plane.md](docs/data-plane.md)。
+> **M0 现状(2026-06-16,代码已落地)**:数据平面用 `reqwest` blocking 抓 6 个 FRED 序列,存为 CSV + markdown 提交回仓库(GitHub Actions 临时 runner 上 SQLite 不持久 → M0 用 git-as-database,SQLite 接缝待 M1);单测覆盖解析与落库。**另加 Yahoo 免鉴权回退源**:在无有效 FRED key 时也用真实数据(S&P/VIX/10Y/DXY/Gold)跑通了管道并提交首个快照。详见 [docs/data-plane.md](docs/data-plane.md)。
 
 ## 7. 里程碑
 

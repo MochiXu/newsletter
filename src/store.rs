@@ -134,7 +134,11 @@ pub fn write_markdown_snapshot(
             out.push_str(&format!("- `{id}`: {}\n", sanitize_inline(err)));
         }
     }
-    out.push_str(&format!("\n_来源:FRED。run_date={run_date}。_\n"));
+    let mut sources: Vec<&str> = records.iter().map(|r| r.source.as_str()).collect();
+    sources.sort_unstable();
+    sources.dedup();
+    let src = if sources.is_empty() { "—".to_string() } else { sources.join(", ") };
+    out.push_str(&format!("\n_来源:{src}。run_date={run_date}。_\n"));
 
     fs::write(&path, out).with_context(|| format!("写 {} 失败", path.display()))?;
     Ok(())
