@@ -1,7 +1,9 @@
 //! FRED API 客户端(https://fred.stlouisfed.org/docs/api/)。
 //!
-//! 只读「某序列最新一条非缺失观测值」。
-//! 注意:错误信息里**不包含 api_key**(避免泄漏到日志/提交的快照)。
+//! 只读「某序列最近若干条里最新的非缺失观测值」。
+//! 安全:`.send()`/`.text()` 出错时立即 `without_url()`,把含 api_key 的 URL 从
+//! reqwest 错误对象里剥离——因此无论上层用 {e}、{e:#} 还是 {e:?},api_key 都不会
+//! 泄漏到日志或提交回仓库的快照。
 
 use anyhow::{Context, Result, bail};
 use serde::Deserialize;
@@ -60,7 +62,10 @@ impl FredClient {
         Ok(Self { api_key, http })
     }
 
-    /// 取某序列最新的非缺失观测值。
+    /// 取某序列最近若干条里最新的非缺失观测值。
+    ///
+    /// limit 取较大值(40)以越过长假/发布滞后造成的连续缺失;否则若最近少数几条
+    /// 恰好全为 "." 会被误判为「无有效观测」。
     pub fn latest_observation(&self, series_id: &str) -> Result<Observation> {
         let url = format!("{FRED_BASE}/series/observations");
         let resp = self
@@ -71,16 +76,18 @@ impl FredClient {
                 ("api_key", self.api_key.as_str()),
                 ("file_type", "json"),
                 ("sort_order", "desc"),
-                ("limit", "10"),
+                ("limit", "40"),
             ])
             .send()
+            // reqwest::Error 会内嵌含 api_key 的完整 URL;without_url() 剥离之。
+            .map_err(|e| e.without_url())
             .with_context(|| format!("请求 FRED 失败:{series_id}"))?;
 
         let status = resp.status();
-        // 故意只读 text 而非 resp.error_for_status():FRED 把错误原因放在 body,
-        // 且 body 不含 api_key,适合展示。
+        // 只读 text 而非 error_for_status():FRED 把错误原因放在 body(不含 api_key)。
         let body = resp
             .text()
+            .map_err(|e| e.without_url())
             .with_context(|| format!("读取 FRED 响应体失败:{series_id}"))?;
         if !status.is_success() {
             bail!("FRED 返回 {status}({series_id}):{body}");

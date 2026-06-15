@@ -9,11 +9,18 @@ on:
 permissions:
   contents: write
 
+# 防止 cron 偶发双触发 / 手动重跑与定时任务并发推送。
+concurrency:
+  group: daily-macro-snapshot
+  cancel-in-progress: false
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # rebase 重试需要分支历史
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -33,7 +40,16 @@ jobs:
           git add data/
           if git diff --cached --quiet; then
             echo "无新数据,跳过提交"
-          else
-            git commit -m "data: 宏观快照 $(date -u +%Y-%m-%d)"
-            git push
+            exit 0
           fi
+          git commit -m "data: 宏观快照 $(date -u +%Y-%m-%d)"
+          # 若默认分支在运行期间前进,rebase 后重试,避免 non-fast-forward 丢数据。
+          for i in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            echo "push 失败,rebase 后重试 ($i/3)…"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+          done
+          echo "push 连续失败" >&2
+          exit 1

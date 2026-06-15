@@ -4,12 +4,12 @@
 //! 运行持久化。把数据以 CSV/markdown 提交回仓库,等于用 git 当数据库——零基建、
 //! 天然有历史、diff 可读。SQLite 接缝待 M1(Python 进场需要查询历史)再引入。
 //!
-//! - data/observations.csv :机器可读,append-only,git diff 友好
+//! - data/observations.csv :机器可读,按 run_date 幂等写入,git diff 友好
 //! - data/snapshots/<run_date>.md :人类可读的当日快照
 
 use anyhow::{Context, Result};
+use std::collections::HashSet;
 use std::fs;
-use std::io::Write;
 use std::path::Path;
 
 /// 一条最终落库记录。
@@ -49,22 +49,60 @@ fn csv_row(r: &Record) -> String {
     )
 }
 
-/// 追加写 <data_dir>/observations.csv;文件不存在时先写表头。
-pub fn append_csv(data_dir: &Path, records: &[Record]) -> Result<()> {
+/// 把任意错误文本压成安全的单行 markdown 片段(去换行、转义反引号/管道、截断)。
+fn sanitize_inline(s: &str) -> String {
+    let one_line: String = s
+        .chars()
+        .map(|c| if c == '\n' || c == '\r' { ' ' } else { c })
+        .collect();
+    let cleaned = one_line.replace('`', "'").replace('|', "/");
+    let trimmed = cleaned.trim();
+    if trimmed.chars().count() > 300 {
+        let head: String = trimmed.chars().take(300).collect();
+        format!("{head}…")
+    } else {
+        trimmed.to_string()
+    }
+}
+
+/// 幂等写入 <data_dir>/observations.csv(按 run_date 去重)。
+///
+/// 读改写:保留表头 + 历史行,但丢弃与本次相同 run_date 的旧行后再写入,这样同一天
+/// 重跑不会产生重复行;文件缺失或为空时也会正确写出表头。
+pub fn upsert_csv(data_dir: &Path, records: &[Record]) -> Result<()> {
     fs::create_dir_all(data_dir).with_context(|| format!("创建 {} 失败", data_dir.display()))?;
     let csv_path = data_dir.join("observations.csv");
-    let exists = csv_path.exists();
-    let mut file = fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&csv_path)
-        .with_context(|| format!("打开 {} 失败", csv_path.display()))?;
-    if !exists {
-        writeln!(file, "{CSV_HEADER}")?;
+
+    // 本轮要写入的 run_date 集合。
+    let incoming: HashSet<&str> = records.iter().map(|r| r.run_date.as_str()).collect();
+
+    // 读取已有数据行(跳过表头与空行),丢弃 run_date 命中本轮的旧行。
+    let mut kept: Vec<String> = Vec::new();
+    if let Ok(content) = fs::read_to_string(&csv_path) {
+        for line in content.lines().skip(1) {
+            if line.is_empty() {
+                continue;
+            }
+            let run_date = line.split(',').next().unwrap_or("");
+            if !incoming.contains(run_date) {
+                kept.push(line.to_string());
+            }
+        }
+    }
+
+    // 重写:表头 + 保留行 + 本轮新行。
+    let mut out = String::new();
+    out.push_str(CSV_HEADER);
+    out.push('\n');
+    for line in &kept {
+        out.push_str(line);
+        out.push('\n');
     }
     for r in records {
-        writeln!(file, "{}", csv_row(r))?;
+        out.push_str(&csv_row(r));
+        out.push('\n');
     }
+    fs::write(&csv_path, &out).with_context(|| format!("写 {} 失败", csv_path.display()))?;
     Ok(())
 }
 
@@ -93,7 +131,7 @@ pub fn write_markdown_snapshot(
     if !failures.is_empty() {
         out.push_str("\n## 抓取失败\n\n");
         for (id, err) in failures {
-            out.push_str(&format!("- `{id}`: {err}\n"));
+            out.push_str(&format!("- `{id}`: {}\n", sanitize_inline(err)));
         }
     }
     out.push_str(&format!("\n_来源:FRED。run_date={run_date}。_\n"));
@@ -113,12 +151,6 @@ mod tests {
         assert_eq!(csv_field("a\"b"), "\"a\"\"b\"");
     }
 
-    #[test]
-    fn csv_row_has_eight_fields() {
-        let r = sample_record();
-        assert_eq!(csv_row(&r).split(',').count(), 8);
-    }
-
     fn sample_record() -> Record {
         Record {
             run_date: "2026-06-16".into(),
@@ -132,30 +164,44 @@ mod tests {
         }
     }
 
-    /// 成功路径:写出 CSV(含表头)+ 带数据行的 markdown,且重复追加不重复表头。
     #[test]
-    fn writes_csv_header_rows_and_markdown() {
+    fn csv_row_has_eight_fields() {
+        assert_eq!(csv_row(&sample_record()).split(',').count(), 8);
+    }
+
+    #[test]
+    fn sanitize_collapses_and_truncates() {
+        let clean = sanitize_inline("line1\nline2 `code` | pipe");
+        assert!(!clean.contains('\n'));
+        assert!(!clean.contains('`'));
+        assert!(!clean.contains('|'));
+        assert!(sanitize_inline(&"x".repeat(500)).chars().count() <= 301);
+    }
+
+    /// 成功路径 + 幂等:写出带表头与数据行的 CSV/markdown,同 run_date 重写不产生重复。
+    #[test]
+    fn writes_csv_markdown_and_is_idempotent() {
         let dir = std::env::temp_dir().join(format!("nl_store_test_{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         let recs = vec![sample_record()];
 
-        append_csv(&dir, &recs).unwrap();
+        upsert_csv(&dir, &recs).unwrap();
         write_markdown_snapshot(&dir, "2026-06-16", &recs, &[]).unwrap();
 
         let csv = fs::read_to_string(dir.join("observations.csv")).unwrap();
         assert!(csv.starts_with(CSV_HEADER), "首行应为表头");
-        assert!(csv.contains("DGS10"));
-        assert!(csv.contains("4.23"));
+        assert!(csv.contains("DGS10") && csv.contains("4.23"));
 
         let md = fs::read_to_string(dir.join("snapshots/2026-06-16.md")).unwrap();
-        assert!(md.contains("10Y Treasury"));
-        assert!(md.contains("4.23"));
+        assert!(md.contains("10Y Treasury") && md.contains("4.23"));
         assert!(!md.contains("## 抓取失败"), "无失败时不应有失败小节");
 
-        // 再追加一次:表头只出现一次。
-        append_csv(&dir, &recs).unwrap();
+        // 同 run_date 再写一次:幂等——表头与数据行都不重复。
+        upsert_csv(&dir, &recs).unwrap();
         let csv2 = fs::read_to_string(dir.join("observations.csv")).unwrap();
         assert_eq!(csv2.matches(CSV_HEADER).count(), 1, "表头不应重复");
+        let data_rows = csv2.lines().skip(1).filter(|l| !l.is_empty()).count();
+        assert_eq!(data_rows, 1, "同一天重跑不应产生重复行");
 
         let _ = fs::remove_dir_all(&dir);
     }
