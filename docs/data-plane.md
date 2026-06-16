@@ -101,6 +101,8 @@ cargo test                     # 离线单测:解析 + CSV 转义
 
 ## 待办 / 后续
 
+> 全局路线 / 技术债 / 开放问题见 [TODO.md](TODO.md)。
+
 - [ ] 用真实 key 跑通一次(M0 验收:连续 3 天产出快照)
 - [ ] 确认 `GOLDAMGBD228NLBM` 是否仍更新;若被新鲜度校验判为陈旧则换 Stooq/Yahoo
 - [ ] DXY/Gold 换更贴盘口的源(Stooq/Yahoo)
