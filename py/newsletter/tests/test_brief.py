@@ -11,10 +11,12 @@ from pathlib import Path
 
 from newsletter import hypotheses as hyp
 from newsletter import news as news_mod
+from newsletter.brief import _merge_news
 from newsletter.data import Observation, load_latest
 from newsletter.deliver.feishu import _sign
+from newsletter.news import NewsItem
 from newsletter.providers import _extract_json, select_provider
-from newsletter.render import fmt, render_markdown, render_text
+from newsletter.render import data_table, fmt, render_markdown, render_text
 
 _PROVIDER_ENV = [
     "LLM_PROVIDER", "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL",
@@ -170,6 +172,16 @@ class TestNews(unittest.TestCase):
     def test_parse_garbage(self):
         self.assertEqual(news_mod.parse_feed("Src", b"not xml"), [])
 
+    def test_atom_link_prefers_alternate(self):
+        atom = (
+            b'<feed xmlns="http://www.w3.org/2005/Atom"><entry><title>T</title>'
+            b'<link rel="edit" href="http://api/edit/1"/>'
+            b'<link rel="alternate" href="http://site/article/1"/>'
+            b"<summary>s</summary></entry></feed>"
+        )
+        items = news_mod.parse_feed("S", atom)
+        self.assertEqual(items[0].link, "http://site/article/1")  # 取文章页而非编辑端点
+
 
 class TestHypotheses(unittest.TestCase):
     def test_record_new_and_dedupe(self):
@@ -180,6 +192,12 @@ class TestHypotheses(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["status"], "open")
         self.assertEqual(rows[0]["created_date"], "2026-06-16")
+
+    def test_record_new_skips_non_dict(self):
+        rows = []
+        hyp.record_new(rows, "2026-06-16", ["oops 字符串", {"if_then": "若 X 则 Y"}, 42])
+        self.assertEqual(len(rows), 1)  # 非 dict 元素被跳过,不崩溃
+        self.assertEqual(rows[0]["if_then"], "若 X 则 Y")
 
     def test_open_items_and_apply_reviews(self):
         rows = [
@@ -227,6 +245,42 @@ class TestRenderM2Sections(unittest.TestCase):
         self.assertIn("假设复盘", md)
         self.assertIn("已兑现", md)
         self.assertIn("待观察", md)
+
+
+class TestMergeNews(unittest.TestCase):
+    def _items(self):
+        return [
+            NewsItem("S", "Alpha", "l1", "", ""),
+            NewsItem("S", "Beta", "l2", "", ""),
+            NewsItem("S", "Gamma", "l3", "", ""),
+        ]
+
+    def test_merge_by_title_handles_missing_and_reorder(self):
+        # LLM 漏掉 Beta,且顺序打乱(Gamma 在前)——按标题对齐不应错位
+        classified = [
+            {"title": "Gamma", "category": "事实", "summary": "g", "affected_assets": ["x"]},
+            {"title": "Alpha", "category": "解读", "summary": "a", "affected_assets": ["y"]},
+        ]
+        merged = _merge_news(self._items(), classified)
+        self.assertEqual(merged[0]["title"], "Alpha")
+        self.assertEqual(merged[0]["category"], "解读")
+        self.assertNotIn("category", merged[1])  # Beta 未匹配,保持未分类
+        self.assertEqual(merged[2]["title"], "Gamma")
+        self.assertEqual(merged[2]["category"], "事实")
+
+    def test_merge_no_classification(self):
+        merged = _merge_news(self._items(), None)
+        self.assertEqual(len(merged), 3)
+        self.assertTrue(all("category" not in m for m in merged))
+
+
+class TestDataTableEscape(unittest.TestCase):
+    def test_escapes_pipe_and_newline(self):
+        obs = [Observation("d", "id", "lab", "od", 1.0, "u", "FRED", "含 | 竖线\n和换行")]
+        rows = [ln for ln in data_table(obs, with_note=True).splitlines() if ln.startswith("|")]
+        self.assertEqual(len(rows), 3)  # 表头 + 分隔 + 1 数据行(没被换行截断)
+        self.assertNotIn("\n", rows[2])
+        self.assertIn("\\|", rows[2])  # 竖线已转义
 
 
 if __name__ == "__main__":

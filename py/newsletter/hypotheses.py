@@ -41,6 +41,8 @@ def record_new(rows: list[dict], run_date: str, hypotheses: list[dict] | None) -
     """把今天简报里的新假设加入日志(按 created_date+if_then 去重)。"""
     existing = {(r.get("created_date"), r.get("if_then")) for r in rows}
     for h in hypotheses or []:
+        if not isinstance(h, dict):  # LLM 偶尔返回字符串/非对象,跳过防止崩溃
+            continue
         if_then = (h.get("if_then") or "").strip()
         if not if_then or (run_date, if_then) in existing:
             continue

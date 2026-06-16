@@ -188,7 +188,14 @@ class OpenAICompatProvider:
                 "tool_choice": {"type": "function", "function": {"name": tool_name}},
             },
         )
-        msg = body["choices"][0]["message"]
+        # 有的兼容端点(如 MiniMax)把错误放在 HTTP 200 的 base_resp 里,而非用 4xx。
+        base = body.get("base_resp")
+        if isinstance(base, dict) and base.get("status_code") not in (0, None):
+            raise RuntimeError(f"{self.name} 返回错误: {base}")
+        choices = body.get("choices")
+        if not choices:
+            raise RuntimeError(f"{self.name} 响应无 choices: {str(body)[:200]}")
+        msg = choices[0].get("message", {})
         calls = msg.get("tool_calls")
         if calls:
             return json.loads(calls[0]["function"]["arguments"])
@@ -209,7 +216,7 @@ class OpenAICompatProvider:
 # (url, key_env, model_env, default_model)
 PRESETS = {
     "openai": ("https://api.openai.com/v1/chat/completions", "OPENAI_API_KEY", "OPENAI_MODEL", "gpt-4o-mini"),
-    "minimax": ("https://api.minimax.chat/v1/text/chatcompletion_v2", "MINIMAX_API_KEY", "MINIMAX_MODEL", "abab6.5s-chat"),
+    "minimax": ("https://api.minimaxi.com/v1/text/chatcompletion_v2", "MINIMAX_API_KEY", "MINIMAX_MODEL", "MiniMax-M2"),
     "deepseek": ("https://api.deepseek.com/chat/completions", "DEEPSEEK_API_KEY", "DEEPSEEK_MODEL", "deepseek-chat"),
     "moonshot": ("https://api.moonshot.cn/v1/chat/completions", "MOONSHOT_API_KEY", "MOONSHOT_MODEL", "moonshot-v1-8k"),
     "zhipu": ("https://open.bigmodel.cn/api/paas/v4/chat/completions", "ZHIPU_API_KEY", "ZHIPU_MODEL", "glm-4-flash"),
@@ -239,6 +246,8 @@ def _build(name: str):
         key = os.environ.get(key_env)
         if not key:
             return None
+        # 各家域名/模型会变:允许 <NAME>_BASE_URL / <PREFIX>_MODEL 覆盖预设。
+        url = os.environ.get(f"{name.upper()}_BASE_URL") or url
         model = os.environ.get(model_env) or os.environ.get("LLM_MODEL") or default_model
         return OpenAICompatProvider(name, url, key, model)
     return None

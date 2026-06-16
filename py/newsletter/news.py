@@ -53,6 +53,18 @@ def _strip_html(s: str) -> str:
     return s[:300]
 
 
+def _atom_link(entry) -> str:
+    """Atom entry 常有多个 <link>;优先 rel=alternate(或无 rel)的文章链接,而非 self/edit。"""
+    links = [e for e in list(entry) if _local(e.tag) == "link"]
+    for e in links:
+        if e.get("rel") in (None, "", "alternate") and e.get("href"):
+            return e.get("href")
+    for e in links:
+        if e.get("href"):
+            return e.get("href")
+    return ""
+
+
 def parse_feed(source: str, xml_bytes: bytes) -> list[NewsItem]:
     """解析 RSS(channel/item)或 Atom(entry)。无法解析返回 []。"""
     try:
@@ -84,8 +96,7 @@ def parse_feed(source: str, xml_bytes: bytes) -> list[NewsItem]:
         title = _text(_first(en, "title"))
         if not title:
             continue
-        link_el = _first(en, "link")
-        link = (link_el.get("href") if link_el is not None else "") or _text(link_el)
+        link = _atom_link(en) or _text(_first(en, "link"))
         pub = _text(_first(en, "updated")) or _text(_first(en, "published"))
         summ = _text(_first(en, "summary")) or _text(_first(en, "content"))
         items.append(NewsItem(source, title, link, pub, _strip_html(summ)))

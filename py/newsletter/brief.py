@@ -33,12 +33,21 @@ LINKAGE = Path(__file__).resolve().parent / "framework" / "linkage_map.md"
 
 
 def _merge_news(items, classified):
-    """把原始新闻条目与(可能的)分类结果按顺序合并成渲染用 dict 列表。"""
+    """把分类结果按标题(归一化)贴回原始新闻;查不到的保持未分类。
+
+    用标题对齐而非位置下标——LLM 漏条/多条/乱序时不会把分类张冠李戴到错误新闻。
+    """
+    by_title = {}
+    for c in classified or []:
+        if isinstance(c, dict):
+            t = (c.get("title") or "").strip().lower()
+            if t:
+                by_title[t] = c
     out = []
-    for i, it in enumerate(items):
+    for it in items:
         d = {"source": it.source, "title": it.title, "link": it.link}
-        if classified and i < len(classified):
-            c = classified[i]
+        c = by_title.get(it.title.strip().lower())
+        if c:
             d["category"] = c.get("category")
             d["summary"] = c.get("summary")
             d["affected_assets"] = c.get("affected_assets")
@@ -73,11 +82,11 @@ def main() -> int:
         hyp.apply_reviews(open_hyps, reviews, run_date)
         if reviews:
             print(f"✓ 复盘了 {len(reviews)} 条历史假设。")
+        if brief and brief.get("hypotheses"):
+            hyp.record_new(hyp_rows, run_date, brief["hypotheses"])
+        hyp.save(HYP_CSV, hyp_rows)
     except Exception as e:
-        print(f"⚠️ 假设复盘失败,跳过:{e}", file=sys.stderr)
-    if brief and brief.get("hypotheses"):
-        hyp.record_new(hyp_rows, run_date, brief["hypotheses"])
-    hyp.save(HYP_CSV, hyp_rows)
+        print(f"⚠️ 假设追踪失败,跳过:{e}", file=sys.stderr)
 
     # 3) 新闻抓取 + 分类
     news_items, classified = [], None
@@ -85,7 +94,13 @@ def main() -> int:
         try:
             news_items = news_mod.fetch_news()
             classified = news_mod.classify(news_items)
-            print(f"✓ 抓取 {len(news_items)} 条新闻" + ("(已分类)" if classified else "(未分类:无 LLM)"))
+            if classified is None:
+                tag = "(未分类:无 LLM provider)"
+            elif not classified:
+                tag = "(LLM 未给出分类)"
+            else:
+                tag = "(已分类)"
+            print(f"✓ 抓取 {len(news_items)} 条新闻{tag}")
         except Exception as e:
             print(f"⚠️ 新闻抓取/分类失败,跳过:{e}", file=sys.stderr)
     news = _merge_news(news_items, classified)

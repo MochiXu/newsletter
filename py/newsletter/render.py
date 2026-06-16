@@ -16,6 +16,11 @@ def fmt(v: float) -> str:
     return s if s else "0"
 
 
+def _cell(s) -> str:
+    """markdown 表格单元格转义:去换行、转义竖线,避免破坏表格。"""
+    return str(s).replace("\n", " ").replace("\r", " ").replace("|", "\\|").strip()
+
+
 def data_table(obs: list[Observation], with_note: bool = False) -> str:
     head = "| 指标 | 值 | 单位 | 观测日 | 源 |"
     sep = "|---|---:|---|---|---|"
@@ -24,9 +29,9 @@ def data_table(obs: list[Observation], with_note: bool = False) -> str:
         sep += "---|"
     lines = [head, sep]
     for o in obs:
-        row = f"| {o.label} | {fmt(o.value)} | {o.unit} | {o.obs_date} | {o.source} |"
+        row = f"| {_cell(o.label)} | {fmt(o.value)} | {_cell(o.unit)} | {_cell(o.obs_date)} | {_cell(o.source)} |"
         if with_note:
-            row += f" {o.note} |"
+            row += f" {_cell(o.note)} |"
         lines.append(row)
     return "\n".join(lines)
 
