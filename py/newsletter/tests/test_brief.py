@@ -4,13 +4,22 @@
     PYTHONPATH=py python3 -m unittest newsletter.tests.test_brief -v
 """
 
+import os
 import tempfile
 import unittest
 from pathlib import Path
 
 from newsletter.data import Observation, load_latest
 from newsletter.deliver.feishu import _sign
+from newsletter.providers import _extract_json, select_provider
 from newsletter.render import fmt, render_markdown, render_text
+
+_PROVIDER_ENV = [
+    "LLM_PROVIDER", "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL",
+    "ANTHROPIC_API_KEY", "ANTHROPIC_MODEL",
+    "OPENAI_API_KEY", "OPENAI_MODEL",
+    "MINIMAX_API_KEY", "DEEPSEEK_API_KEY", "MOONSHOT_API_KEY", "ZHIPU_API_KEY",
+]
 
 
 def _obs():
@@ -28,7 +37,7 @@ class TestRender(unittest.TestCase):
         md = render_markdown("2026-06-16", _obs(), None)
         self.assertIn("数据快照", md)
         self.assertIn("4.48", md)
-        self.assertIn("ANTHROPIC_API_KEY", md)
+        self.assertIn("仅产出事实层", md)
         self.assertIn("不构成投资建议", md)
 
     def test_full_brief(self):
@@ -76,6 +85,56 @@ class TestFeishuSign(unittest.TestCase):
         self.assertEqual(a, _sign(1700000000, "secret"))
         self.assertNotEqual(a, _sign(1700000001, "secret"))
         self.assertTrue(len(a) > 0)
+
+
+class TestProviders(unittest.TestCase):
+    def setUp(self):
+        # 保存并清空所有 provider 相关 env,保证测试与宿主环境无关、彼此隔离。
+        self._saved = {k: os.environ.pop(k, None) for k in _PROVIDER_ENV}
+
+    def tearDown(self):
+        for k in _PROVIDER_ENV:
+            os.environ.pop(k, None)
+        for k, v in self._saved.items():
+            if v is not None:
+                os.environ[k] = v
+
+    def test_extract_json_plain(self):
+        self.assertEqual(_extract_json('{"a": 1}'), {"a": 1})
+
+    def test_extract_json_fenced(self):
+        self.assertEqual(_extract_json('```json\n{"a": 1}\n```'), {"a": 1})
+
+    def test_extract_json_embedded(self):
+        self.assertEqual(_extract_json('好的:{"a": 1} 以上'), {"a": 1})
+
+    def test_select_none_without_keys(self):
+        self.assertIsNone(select_provider())
+
+    def test_select_openai_preset(self):
+        os.environ["LLM_PROVIDER"] = "openai"
+        os.environ["OPENAI_API_KEY"] = "sk-test"
+        p = select_provider()
+        self.assertIsNotNone(p)
+        self.assertEqual(p.name, "openai")
+        self.assertEqual(p.model, "gpt-4o-mini")
+        self.assertIn("openai.com", p.url)
+
+    def test_select_generic_openai_compat(self):
+        os.environ["LLM_PROVIDER"] = "openai-compat"
+        os.environ["LLM_BASE_URL"] = "https://example.com/v1/chat/completions"
+        os.environ["LLM_API_KEY"] = "k"
+        os.environ["LLM_MODEL"] = "my-model"
+        p = select_provider()
+        self.assertIsNotNone(p)
+        self.assertEqual(p.model, "my-model")
+        self.assertEqual(p.url, "https://example.com/v1/chat/completions")
+
+    def test_auto_detect_prefers_anthropic(self):
+        os.environ["ANTHROPIC_API_KEY"] = "sk-ant"
+        os.environ["OPENAI_API_KEY"] = "sk-oai"
+        p = select_provider()
+        self.assertEqual(p.name, "anthropic")
 
 
 if __name__ == "__main__":

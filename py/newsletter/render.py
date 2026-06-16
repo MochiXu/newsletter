@@ -54,8 +54,8 @@ def render_markdown(run_date: str, obs: list[Observation], brief: dict | None) -
     else:
         parts += [
             "## 解读 / 假设 / 影响层",
-            "> 未配置 `ANTHROPIC_API_KEY`(或 LLM 调用失败),本次仅产出事实层。"
-            "配置后将自动生成 AI 解读 / 可证伪假设 / 资产观察点。",
+            "> 未配置任何 LLM provider(或调用失败),本次仅产出事实层。"
+            "配置 Anthropic / OpenAI / MiniMax 等任一 provider 后,将自动生成 AI 解读 / 可证伪假设 / 资产观察点。",
             "",
         ]
 
@@ -84,6 +84,6 @@ def render_text(run_date: str, obs: list[Observation], brief: dict | None) -> st
             for i in brief["impact"]:
                 lines.append(f"· {i.get('asset', '')}: {i.get('watch', '')}")
     else:
-        lines.append("(未配置 ANTHROPIC_API_KEY,仅事实层)")
+        lines.append("(未配置 LLM provider,仅事实层)")
     lines.append("仅研究参考,不构成投资建议。")
     return "\n".join(lines)

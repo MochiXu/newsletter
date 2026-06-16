@@ -4,8 +4,9 @@
     PYTHONPATH=py python3 -m newsletter.brief
 
 环境变量:
-- ANTHROPIC_API_KEY :生成 AI 解读/假设/影响层;缺失则仅产出事实层
-- ANTHROPIC_MODEL   :可选,默认 claude-sonnet-4-6
+- LLM provider(任一即可,见 providers.py / .env.example):
+    ANTHROPIC_API_KEY / OPENAI_API_KEY / MINIMAX_API_KEY / ...;
+    LLM_PROVIDER 显式选择,缺省按存在的 key 自动探测。都没有则仅产出事实层。
 - FEISHU_WEBHOOK    :可选,配了才推飞书(否则仅存本地 md)
 - FEISHU_SECRET     :可选,飞书签名校验
 """
@@ -41,7 +42,7 @@ def main() -> int:
         print(f"⚠️ LLM 生成失败,退回事实层:{e}", file=sys.stderr)
         brief = None
     if brief is None:
-        print("ℹ️ 未配置 ANTHROPIC_API_KEY(或 LLM 失败):仅产出事实层简报。", file=sys.stderr)
+        print("ℹ️ 未配置任何 LLM provider(或调用失败):仅产出事实层简报。", file=sys.stderr)
 
     # 始终先存本地 md(git-as-database;也是飞书不可用时的兜底)。
     md = render_markdown(run_date, obs, brief)
