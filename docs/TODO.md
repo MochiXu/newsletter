@@ -45,17 +45,19 @@ RSS 抓取 + 分类(事实/解读/影响资产)+ 可证伪假设次日复盘。
 - [ ] 数据校验/告警:某序列连续 N 天缺失或异常跳变时显式报警(现有新鲜度校验 >14 天判陈旧)
 
 ### 智能平面(Python,`py/newsletter/`)
-- [ ] **用真实 LLM key 跑出完整四层 + 新闻分类 + 假设复盘**(目前无 key 走降级;AI 路径未实跑)
+- [x] **用真实 LLM key 跑出完整四层 + 新闻分类 + 假设复盘**(已用 **DeepSeek** 端到端实跑验证)
+- [x] Python 侧自动加载 `.env`(`config.load_dotenv`;Python 无 dotenvy,之前 key 写进 `.env` 也读不到)
+- [x] 新闻分类对齐改为 `index`(模型回填序号),解决 LLM 翻译标题导致的零匹配/全退化为未分类
 - [ ] prompt 迭代与**评测**:建小评测集,比较不同 model/provider 的简报质量
 - [ ] `linkage_map.md` 持续维护:这是核心 IP,需作者每天复盘后修订(飞轮:学到→编码→AI 应用→复盘)
 - [ ] 新闻源扩充 + 质量过滤:`DEFAULT_FEEDS` 现为 Fed/CNBC/MarketWatch;加央行/财经源,去广告/低质
-- [ ] 新闻分类的标题对齐:LLM 改写标题会匹配不上(退化为未分类)——可加「标题相似度」兜底或要求 LLM 回填原标题
 - [ ] 假设复盘质量:LLM 判定 held/invalidated/open 需人工抽查;考虑给「依据数据点」要求
 - [ ] 「偏离预期」需要 consensus / 经济日历预期值——数据源待定(见 §4)
 - [ ] M1 从直接读 CSV 改为读 SQLite 接缝(配合数据平面)
 
 ### 多模型 provider(`providers.py`)
-- [ ] **各家真实 key 各跑一次冒烟**(无 key 时各家 API 形状基于公开文档判断,未实跑)
+- [x] **DeepSeek** 真实 key 端到端冒烟(OpenAI 兼容端点 + function calling 路径验证通过)
+- [ ] 其余各家(Anthropic/OpenAI/MiniMax/Moonshot/Zhipu)真实 key 各跑一次冒烟
 - [ ] **MiniMax**:域名/模型会变(已从 `api.minimax.chat` 更新为 `api.minimaxi.com`、模型 `MiniMax-M2`);
       上线前核对最新域名/模型,必要时用 `MINIMAX_BASE_URL` / `MINIMAX_MODEL` 覆盖;注意部分账户可能需 GroupId
 - [ ] 流式 / 超时 / 重试 / 速率退避(目前一次性请求 + 异常降级)
@@ -78,11 +80,13 @@ RSS 抓取 + 分类(事实/解读/影响资产)+ 可证伪假设次日复盘。
 
 ## 3. 已知局限 / 技术债
 
-- **LLM 路径无 key 未实跑**:四层简报、新闻分类、假设复盘的 LLM 调用,各家 API 形状基于公开
-  规范实现并经对抗式审查,但未用真实 key 端到端验证。上线前需各 provider 冒烟一次。
+- **LLM 路径**:已用 **DeepSeek** 真实 key 端到端验证(四层简报 + 新闻分类 + 假设复盘均跑通)。
+  其余 provider(Anthropic/OpenAI/MiniMax/Moonshot/Zhipu)的 API 形状基于公开规范实现并经对抗式
+  审查,但尚未各自冒烟,上线前需逐一验证。
 - **MiniMax / 其他兼容端点**:域名与模型名随各家更新而漂移;预设可能过期,用 `<NAME>_BASE_URL` /
-  `<NAME>_MODEL` 覆盖。DeepSeek/Moonshot/Zhipu 的预设亦未实测。
-- **新闻分类靠标题对齐**:LLM 若改写标题,该条退化为未分类(不会错位贴到别条——这是有意的安全取舍)。
+  `<NAME>_MODEL` 覆盖。Moonshot/Zhipu 的预设尚未实测(DeepSeek 已实测通过)。
+- **新闻分类靠 `index` 对齐**:模型回填我们给的序号(对翻译/改写标题免疫)。若模型连 index 都填错
+  且标题也对不上,该条退化为未分类(不会错位贴到别条——有意的安全取舍)。
 - **假设复盘依赖 LLM 判断**:held/invalidated/open 的判定质量取决于模型,需人工抽查。
 - **SQLite 接缝尚未引入**:DESIGN 设想 SQLite 作两半接缝,目前实际用 CSV/markdown(git-as-database)。
   够用;复杂查询/大数据量时再引入。
@@ -116,7 +120,8 @@ RSS 抓取 + 分类(事实/解读/影响资产)+ 可证伪假设次日复盘。
 
 ## 6. 近期优先级(next up)
 
-1. 填任一 **LLM provider key** + **FEISHU_WEBHOOK**,各跑一次冒烟,验证完整 AI 路径与推送
-2. 合并分支到 `main`,让每日 cron 真正跑起来,开始积累快照 + 假设追踪记录
+1. ✅ LLM 路径已用 **DeepSeek** 跑通完整 AI 简报;下一步配 **FEISHU_WEBHOOK** 验证推送
+2. 在 GitHub Secrets 配 `FRED_API_KEY` + `DEEPSEEK_API_KEY`(及可选 `FEISHU_WEBHOOK`),
+   合并分支到 `main` 让每日 cron 真正跑起来,开始积累快照 + 假设追踪记录
 3. 持续维护 `linkage_map.md`(每天 5 分钟复盘 → 修订)
 4. M3:接入 A股/港股影响层 + 固定格式,开始发给朋友

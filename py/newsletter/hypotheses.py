@@ -38,7 +38,15 @@ def open_items(rows: list[dict]) -> list[dict]:
 
 
 def record_new(rows: list[dict], run_date: str, hypotheses: list[dict] | None) -> list[dict]:
-    """把今天简报里的新假设加入日志(按 created_date+if_then 去重)。"""
+    """把今天简报里的新假设加入日志。
+
+    **按天幂等**:`run_date` 已记录过假设则整体跳过(首次写入为准),与 `observations.csv`
+    的 run_date 幂等一致。原因:LLM(尤其 temperature>0)每次措辞略有不同,靠 if_then 原文
+    去重挡不住同日重跑/重试产生的近似重复,会让假设池虚胖、复盘对象无限膨胀。
+    同时保留 created_date+if_then 精确去重作为同一批内的兜底。
+    """
+    if any(r.get("created_date") == run_date for r in rows):
+        return rows
     existing = {(r.get("created_date"), r.get("if_then")) for r in rows}
     for h in hypotheses or []:
         if not isinstance(h, dict):  # LLM 偶尔返回字符串/非对象,跳过防止崩溃

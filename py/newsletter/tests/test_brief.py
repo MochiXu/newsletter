@@ -12,6 +12,7 @@ from pathlib import Path
 from newsletter import hypotheses as hyp
 from newsletter import news as news_mod
 from newsletter.brief import _merge_news
+from newsletter.config import load_dotenv
 from newsletter.data import Observation, load_latest
 from newsletter.deliver.feishu import _sign
 from newsletter.news import NewsItem
@@ -193,6 +194,17 @@ class TestHypotheses(unittest.TestCase):
         self.assertEqual(rows[0]["status"], "open")
         self.assertEqual(rows[0]["created_date"], "2026-06-16")
 
+    def test_record_new_idempotent_per_day(self):
+        # 同日重跑:即便 LLM 措辞不同(文本去重挡不住),整天也只记一次,不累积
+        rows = []
+        hyp.record_new(rows, "2026-06-16", [{"if_then": "措辞 A1"}, {"if_then": "措辞 A2"}])
+        self.assertEqual(len(rows), 2)
+        hyp.record_new(rows, "2026-06-16", [{"if_then": "改写后的 B1"}, {"if_then": "改写后的 B2"}])
+        self.assertEqual(len(rows), 2)  # 当天已记录 → 整体跳过
+        # 换一天则正常追加
+        hyp.record_new(rows, "2026-06-17", [{"if_then": "次日假设"}])
+        self.assertEqual(len(rows), 3)
+
     def test_record_new_skips_non_dict(self):
         rows = []
         hyp.record_new(rows, "2026-06-16", ["oops 字符串", {"if_then": "若 X 则 Y"}, 42])
@@ -268,10 +280,62 @@ class TestMergeNews(unittest.TestCase):
         self.assertEqual(merged[2]["title"], "Gamma")
         self.assertEqual(merged[2]["category"], "事实")
 
+    def test_merge_by_index_when_title_translated(self):
+        # 真实 bug:LLM 把英文标题翻译成中文,标题对齐零匹配;index 对齐仍命中
+        classified = [
+            {"index": 1, "title": "阿尔法", "category": "事实", "summary": "a", "affected_assets": ["x"]},
+            {"index": 2, "title": "贝塔", "category": "解读", "summary": "b", "affected_assets": ["y"]},
+            {"index": 3, "title": "伽马", "category": "噪音", "summary": "g", "affected_assets": []},
+        ]
+        merged = _merge_news(self._items(), classified)
+        self.assertEqual([m.get("category") for m in merged], ["事实", "解读", "噪音"])
+        # 原标题保留(用 NewsItem 的,不被模型翻译值污染)
+        self.assertEqual([m["title"] for m in merged], ["Alpha", "Beta", "Gamma"])
+
+    def test_merge_index_out_of_range_ignored(self):
+        # 越界 / 非法 index 不应错位或抛错,退回标题兜底
+        classified = [
+            {"index": 99, "title": "Beta", "category": "事实", "summary": "b", "affected_assets": []},
+            {"index": "x", "title": "Alpha", "category": "解读", "summary": "a", "affected_assets": []},
+        ]
+        merged = _merge_news(self._items(), classified)
+        self.assertEqual(merged[0]["category"], "解读")  # Alpha 经标题兜底
+        self.assertEqual(merged[1]["category"], "事实")  # Beta 经标题兜底
+        self.assertNotIn("category", merged[2])  # Gamma 无匹配
+
     def test_merge_no_classification(self):
         merged = _merge_news(self._items(), None)
         self.assertEqual(len(merged), 3)
         self.assertTrue(all("category" not in m for m in merged))
+
+
+class TestDotenv(unittest.TestCase):
+    def _write(self, text):
+        d = tempfile.mkdtemp()
+        p = Path(d) / ".env"
+        p.write_text(text, encoding="utf-8")
+        return p
+
+    def test_loads_and_strips_quotes_and_export(self):
+        key = "DOTENV_TEST_KEY_A"
+        self.addCleanup(lambda: os.environ.pop(key, None), )
+        p = self._write(f'# comment\n\n{key}="val-1"\nexport {key}2=val-2\n')
+        self.addCleanup(lambda: os.environ.pop(key + "2", None))
+        loaded = load_dotenv(p)
+        self.assertEqual(loaded, 2)
+        self.assertEqual(os.environ[key], "val-1")  # 引号被去掉
+        self.assertEqual(os.environ[key + "2"], "val-2")  # export 前缀被去掉
+
+    def test_does_not_override_existing_env(self):
+        key = "DOTENV_TEST_KEY_B"
+        os.environ[key] = "from-shell"
+        self.addCleanup(lambda: os.environ.pop(key, None))
+        p = self._write(f"{key}=from-file\n")
+        load_dotenv(p)
+        self.assertEqual(os.environ[key], "from-shell")  # shell 优先,文件不覆盖
+
+    def test_missing_file_is_noop(self):
+        self.assertEqual(load_dotenv(Path(tempfile.mkdtemp()) / "nope.env"), 0)
 
 
 class TestDataTableEscape(unittest.TestCase):

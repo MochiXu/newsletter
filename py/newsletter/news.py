@@ -138,7 +138,11 @@ NEWS_SCHEMA = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "title": {"type": "string", "description": "原标题(用于对齐)"},
+                    "index": {
+                        "type": "integer",
+                        "description": "对应输入列表的编号(从 1 开始),用于对齐——务必填准",
+                    },
+                    "title": {"type": "string", "description": "原标题(保持英文原文,不要翻译)"},
                     "category": {
                         "type": "string",
                         "enum": ["事实", "解读", "事实+解读", "噪音"],
@@ -152,7 +156,7 @@ NEWS_SCHEMA = {
                     },
                     "note": {"type": "string", "description": "对资产的方向性影响,简短;非买卖建议"},
                 },
-                "required": ["title", "category", "summary", "affected_assets"],
+                "required": ["index", "title", "category", "summary", "affected_assets"],
             },
         }
     },
@@ -176,7 +180,8 @@ def classify(items: list[NewsItem]) -> list[dict] | None:
         for i, it in enumerate(items)
     )
     user = (
-        "请对以下新闻逐条分类(保持顺序与条数一致,title 用原标题):\n" + listing
+        "请对以下每条新闻分类。每条返回的 index 必须等于该条前面的编号(从 1 开始),"
+        "title 保持英文原文不要翻译,category/summary/note 用中文:\n" + listing
     )
     result = provider.call_structured(
         NEWS_SYSTEM, user, "classify_news", "对新闻逐条分类(事实/解读/影响资产)", NEWS_SCHEMA

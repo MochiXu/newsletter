@@ -19,6 +19,7 @@ from pathlib import Path
 
 from . import hypotheses as hyp
 from . import news as news_mod
+from .config import load_dotenv
 from .data import load_latest
 from .deliver.feishu import push_text
 from .llm import generate_brief
@@ -33,20 +34,29 @@ LINKAGE = Path(__file__).resolve().parent / "framework" / "linkage_map.md"
 
 
 def _merge_news(items, classified):
-    """把分类结果按标题(归一化)贴回原始新闻;查不到的保持未分类。
+    """把分类结果贴回原始新闻:优先按模型回填的 index(从 1 开始)对齐,标题作兜底。
 
-    用标题对齐而非位置下标——LLM 漏条/多条/乱序时不会把分类张冠李戴到错误新闻。
+    index 对齐对「LLM 把英文标题翻译/改写成中文」免疫(标题对齐会因此零匹配,全退化为未
+    分类);且因 index 由模型显式回填、非位置推断,漏条/乱序也不会张冠李戴。两者都对不上的
+    条目保持未分类。
     """
-    by_title = {}
+    by_index, by_title = {}, {}
     for c in classified or []:
-        if isinstance(c, dict):
-            t = (c.get("title") or "").strip().lower()
-            if t:
-                by_title[t] = c
+        if not isinstance(c, dict):
+            continue
+        try:
+            idx = int(c.get("index"))
+        except (TypeError, ValueError):
+            idx = None
+        if idx is not None and 1 <= idx <= len(items):
+            by_index.setdefault(idx, c)
+        t = (c.get("title") or "").strip().lower()
+        if t:
+            by_title.setdefault(t, c)
     out = []
-    for it in items:
+    for i, it in enumerate(items):
         d = {"source": it.source, "title": it.title, "link": it.link}
-        c = by_title.get(it.title.strip().lower())
+        c = by_index.get(i + 1) or by_title.get(it.title.strip().lower())
         if c:
             d["category"] = c.get("category")
             d["summary"] = c.get("summary")
@@ -57,6 +67,9 @@ def _merge_news(items, classified):
 
 
 def main() -> int:
+    # 先加载 .env(Python 侧不像 Rust 有 dotenvy),让 .env 里的 LLM/飞书 key 对本进程可见。
+    load_dotenv(REPO / ".env")
+
     obs = load_latest(DATA_CSV)
     if not obs:
         print(f"无数据:{DATA_CSV} 为空或不存在,请先跑数据平面(cargo run)。", file=sys.stderr)
@@ -77,7 +90,9 @@ def main() -> int:
     # 2) 假设追踪:先复盘历史 open 假设,再登记今天的新假设
     hyp_rows = hyp.load(HYP_CSV)
     try:
-        open_hyps = hyp.open_items(hyp_rows)
+        # 只复盘「往日」的 open 假设(DESIGN:次日起复盘)——今日刚生成的假设不拿今天的
+        # 数据自我验证(循环论证);也让同日重跑不会把当天假设提前判定。
+        open_hyps = [h for h in hyp.open_items(hyp_rows) if h.get("created_date") != run_date]
         reviews = hyp.review(open_hyps, data_block)
         hyp.apply_reviews(open_hyps, reviews, run_date)
         if reviews:

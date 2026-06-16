@@ -11,9 +11,9 @@
 | 里程碑 | 内容 | 状态 |
 |---|---|---|
 | **M0** 数据平面(Rust) | FRED 抓利率/利差/VIX/美元 + Yahoo 补 DXY/黄金 → CSV+markdown | ✅ 已跑通真实数据 |
-| **M1** 智能平面(Python) | 数据 + 宏观传导图 → LLM 四层简报 → 存 md + 推飞书 | ✅ 代码就绪(需 LLM key 出 AI 内容) |
-| **多模型** | LLM 可插拔:Anthropic / OpenAI / MiniMax / DeepSeek / … | ✅ |
-| **M2** | 新闻分类(RSS→事实/解读/影响资产)+ 假设追踪复盘日志 | ✅ |
+| **M1** 智能平面(Python) | 数据 + 宏观传导图 → LLM 四层简报 → 存 md + 推飞书 | ✅ 已用 DeepSeek 跑通完整四层 |
+| **多模型** | LLM 可插拔:Anthropic / OpenAI / MiniMax / DeepSeek / … | ✅(DeepSeek 已实跑) |
+| **M2** | 新闻分类(RSS→事实/解读/影响资产)+ 假设追踪复盘日志 | ✅ 已实跑 |
 | M3 / M4 | A股港股、交易框架生成器、CFTC、dashboard、付费墙 | ⏳ 见 [docs/TODO.md](docs/TODO.md) |
 
 **优雅降级**:没有 LLM key 也能跑——产出事实层数据快照 + 原始新闻标题;没有飞书 webhook 就只
@@ -48,6 +48,7 @@
 src/                       # 数据平面(Rust)
   main.rs  fred.rs  yahoo.rs  series.rs  store.rs
 py/newsletter/             # 智能平面(Python,纯 stdlib)
+  config.py                # 加载 .env(Python 侧无 dotenvy,启动时自读)
   data.py                  # 读 observations.csv
   providers.py             # 多模型 provider(Anthropic / OpenAI 兼容)
   llm.py                   # generate_brief 分发
@@ -57,7 +58,7 @@ py/newsletter/             # 智能平面(Python,纯 stdlib)
   brief.py                 # 入口:编排上面所有
   deliver/feishu.py        # 飞书机器人推送
   framework/linkage_map.md # 核心 IP:人工维护的宏观传导图
-  tests/test_brief.py      # 26 个离线单测
+  tests/test_brief.py      # 32 个离线单测
 data/                      # git-as-database
   observations.csv         # 机器可读时序(append/upsert)
   snapshots/<date>.md      # 每日数据快照(人读)
@@ -91,7 +92,7 @@ cargo test                     # 数据平面单测
 ```bash
 # 先确保 data/observations.csv 已由数据平面生成
 PYTHONPATH=py python3 -m newsletter.brief        # 生成简报 → data/briefs/<date>.md(+推飞书)
-PYTHONPATH=py python3 -m unittest newsletter.tests.test_brief -v   # 26 个离线单测
+PYTHONPATH=py python3 -m unittest newsletter.tests.test_brief -v   # 32 个离线单测
 ```
 
 ## 配置(环境变量)
