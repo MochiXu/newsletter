@@ -45,8 +45,11 @@
 ## 目录结构
 
 ```
-src/                       # 数据平面(Rust)
-  main.rs  fred.rs  yahoo.rs  series.rs  store.rs
+src/                       # 数据平面(Rust),按 schema/源/存储/编排分层
+  main.rs                  # 薄入口:日志初始化、读 Config、调 run()、退出码
+  lib.rs                   # 编排:run() + runner collect_from
+  error.rs config.rs model.rs catalog.rs store.rs
+  source/{mod,fred,yahoo}.rs   # Source trait + FRED/Yahoo 实现(可扩展)
 py/newsletter/             # 智能平面(Python,纯 stdlib)
   config.py                # 加载 .env(Python 侧无 dotenvy,启动时自读)
   data.py                  # 读 observations.csv

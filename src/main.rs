@@ -1,156 +1,36 @@
-//! M0 数据平面入口:从 FRED 抓取核心宏观数据,落地为 CSV + markdown 快照。
+//! 数据平面二进制入口(bin "fetch")。
 //!
-//! 用法:
-//!   把 key 放进 .env(见 .env.example,已 gitignore),然后:
-//!     cargo run --release
-//!   或临时:
-//!     FRED_API_KEY=xxxx cargo run --release
+//! 职责仅限:初始化日志、加载 .env、读 Config、调 `newsletter::run`、按需输出 GitHub Actions
+//! 注解、决定退出码。编排逻辑都在 `lib.rs` 的 `run`。
+//!
+//! 用法:把 key 放进 .env(见 .env.example,已 gitignore),然后 `cargo run --release`;
+//! 或临时 `FRED_API_KEY=xxxx cargo run --release`。日志级别用 `RUST_LOG` 覆盖(默认 info)。
 
-mod fred;
-mod series;
-mod store;
-mod yahoo;
+use newsletter::Config;
 
-use anyhow::{Context, Result};
-use chrono::{Local, NaiveDate};
-
-/// 日频序列若最新观测距 run_date 超过此天数,视为陈旧(疑似停更/长时间中断),
-/// 计入失败而非静默当作「今日最新」。14 天可容纳长假 + 发布滞后。
-const MAX_STALENESS_DAYS: i64 = 14;
-
-/// 最新观测日距 run_date 的天数;任一日期无法解析时返回 None(跳过校验)。
-fn staleness_days(run_date: &str, obs_date: &str) -> Option<i64> {
-    let run = NaiveDate::parse_from_str(run_date, "%Y-%m-%d").ok()?;
-    let obs = NaiveDate::parse_from_str(obs_date, "%Y-%m-%d").ok()?;
-    Some((run - obs).num_days())
-}
-
-/// 用 Yahoo 抓一组序列(带新鲜度校验),把结果追加到 records / failures。
-fn fetch_yahoo(
-    yc: &yahoo::YahooClient,
-    list: &[series::YahooSeries],
-    run_date: &str,
-    records: &mut Vec<store::Record>,
-    failures: &mut Vec<(String, String)>,
-) {
-    for y in list {
-        match yc.latest(y.symbol, y.scale) {
-            Ok(q) => {
-                if let Some(age) = staleness_days(run_date, &q.date)
-                    && age > MAX_STALENESS_DAYS
-                {
-                    let msg = format!("数据陈旧:最新观测 {} 距今 {age} 天", q.date);
-                    eprintln!("  ⚠ {:<24} {msg}", y.label);
-                    failures.push((y.symbol.to_string(), msg));
-                    continue;
-                }
-                println!("  ✓ {:<24} {:>10}  {:<7} ({}) [Yahoo]", y.label, q.value, y.unit, q.date);
-                records.push(store::Record {
-                    run_date: run_date.to_string(),
-                    series_id: y.symbol.to_string(),
-                    label: y.label.to_string(),
-                    obs_date: q.date,
-                    value: q.value,
-                    unit: y.unit.to_string(),
-                    source: "Yahoo".to_string(),
-                    note: y.note.to_string(),
-                });
-            }
-            Err(e) => {
-                eprintln!("  ✗ {:<24} 失败: {e}", y.label);
-                failures.push((y.symbol.to_string(), e.to_string()));
-            }
-        }
-    }
-}
-
-fn main() -> Result<()> {
-    // 加载 .env(若存在);缺失也无妨,环境变量优先。
+fn main() {
+    // 加载 .env(若存在);缺失也无妨,真实环境变量优先(CI 走 Secrets 注入)。
     dotenvy::dotenv().ok();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
+        .format_timestamp_secs()
+        .init();
 
-    let api_key = std::env::var("FRED_API_KEY").context(
-        "缺少环境变量 FRED_API_KEY。把 key 放进 .env(见 .env.example)或导出该变量。\n\
-         申请:https://fred.stlouisfed.org/docs/api/api_key.html",
-    )?;
-
-    let client = fred::FredClient::new(api_key)?;
-    let run_date = Local::now().format("%Y-%m-%d").to_string();
-
-    let mut records = Vec::new();
-    let mut failures: Vec<(String, String)> = Vec::new();
-
-    println!("== 抓取核心宏观数据 (run_date={run_date}) ==");
-    for s in series::CORE_SERIES {
-        match client.latest_observation(s.id) {
-            Ok(obs) => {
-                // 新鲜度防线:停更/长中断的序列不应把旧值静默当「今日最新」。
-                if let Some(age) = staleness_days(&run_date, &obs.date)
-                    && age > MAX_STALENESS_DAYS
-                {
-                    let msg = format!(
-                        "数据陈旧:最新观测 {} 距今 {age} 天(阈值 {MAX_STALENESS_DAYS}),疑似序列停更",
-                        obs.date
-                    );
-                    eprintln!("  ⚠ {:<24} {msg}", s.label);
-                    failures.push((s.id.to_string(), msg));
-                    continue;
-                }
-                println!("  ✓ {:<24} {:>10}  {:<7} ({})", s.label, obs.value, s.unit, obs.date);
-                records.push(store::Record {
-                    run_date: run_date.clone(),
-                    series_id: s.id.to_string(),
-                    label: s.label.to_string(),
-                    obs_date: obs.date,
-                    value: obs.value,
-                    unit: s.unit.to_string(),
-                    source: "FRED".to_string(),
-                    note: s.note.to_string(),
-                });
-            }
-            Err(e) => {
-                eprintln!("  ✗ {:<24} 失败: {e}", s.label);
-                failures.push((s.id.to_string(), e.to_string()));
+    let cfg = Config::from_env();
+    match newsletter::run(&cfg) {
+        Ok(report) => {
+            // GitHub Actions 注解走 stdout(workflow-command 协议),与 env_logger 的 stderr 分离;
+            // 不路由进 log,以免被级别/时间戳前缀破坏。
+            if cfg.github_actions && !report.failures.is_empty() {
+                println!(
+                    "::warning::{} series failed or stale: {}",
+                    report.failures.len(),
+                    report.failures.join(", "),
+                );
             }
         }
-    }
-
-    // Yahoo:① 每次补 FRED 给不了的指标(真 DXY、黄金);② FRED 全空时再顶上利率/波动/股指。
-    let fred_count = records.len();
-    if fred_count == 0 {
-        eprintln!("\nFRED 无可用数据(检查 FRED_API_KEY)——改用 Yahoo 顶上核心指标。");
-        failures.clear(); // 抑制坏 key 噪声;下方 Yahoo 顶上
-    }
-    let yc = yahoo::YahooClient::new()?;
-    fetch_yahoo(&yc, series::YAHOO_SUPPLEMENT, &run_date, &mut records, &mut failures);
-    if fred_count == 0 {
-        fetch_yahoo(&yc, series::YAHOO_DEGRADED, &run_date, &mut records, &mut failures);
-    }
-
-    let data_dir = std::path::Path::new("data");
-    if !records.is_empty() {
-        store::upsert_csv(data_dir, &records).context("写 CSV 失败")?;
-    }
-    store::write_markdown_snapshot(data_dir, &run_date, &records, &failures)
-        .context("写 markdown 快照失败")?;
-
-    if !failures.is_empty() {
-        let ids: Vec<&str> = failures.iter().map(|(id, _)| id.as_str()).collect();
-        eprintln!("⚠️ {} 个序列失败/陈旧:{}", failures.len(), ids.join(", "));
-        // 在 GitHub Actions 里冒泡成 warning 注解(本地不打印这行)。
-        if std::env::var("GITHUB_ACTIONS").is_ok() {
-            println!("::warning::{} 个序列抓取失败或陈旧:{}", failures.len(), ids.join(", "));
+        Err(e) => {
+            log::error!("fatal: {e}");
+            std::process::exit(1);
         }
     }
-
-    println!(
-        "\n完成:{} 成功 / {} 失败。CSV -> data/observations.csv  快照 -> data/snapshots/{run_date}.md",
-        records.len(),
-        failures.len(),
-    );
-
-    // 全部失败 → 非零退出,便于 CI 报警(通常意味着 FRED_API_KEY 无效且 Yahoo 也不可达)。
-    if records.is_empty() {
-        anyhow::bail!("所有数据源均抓取失败 —— 检查 FRED_API_KEY 与网络");
-    }
-    Ok(())
 }

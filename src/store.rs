@@ -1,30 +1,25 @@
 //! M0 存储:git-as-database。
 //!
-//! 为什么不用 SQLite:M0 跑在 GitHub Actions 的临时 runner 上,SQLite 文件不跨
-//! 运行持久化。把数据以 CSV/markdown 提交回仓库,等于用 git 当数据库——零基建、
-//! 天然有历史、diff 可读。SQLite 接缝待 M1(Python 进场需要查询历史)再引入。
+//! 为什么不用 SQLite:M0 跑在 GitHub Actions 的临时 runner 上,SQLite 文件不跨运行持久化。
+//! 把数据以 CSV/markdown 提交回仓库,等于用 git 当数据库——零基建、天然有历史、diff 可读。
+//! SQLite 接缝待后续(需要查询历史时)再引入。
 //!
 //! - data/observations.csv :机器可读,按 run_date 幂等写入,git diff 友好
 //! - data/snapshots/<run_date>.md :人类可读的当日快照
 
-use anyhow::{Context, Result};
 use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 
-/// 一条最终落库记录。
-pub struct Record {
-    pub run_date: String,
-    pub series_id: String,
-    pub label: String,
-    pub obs_date: String,
-    pub value: f64,
-    pub unit: String,
-    pub source: String,
-    pub note: String,
-}
+use crate::error::{Error, Failure, Result};
+use crate::model::Record;
 
 const CSV_HEADER: &str = "run_date,series_id,label,obs_date,value,unit,source,note";
+
+/// 把 io 错误包成带路径的 `Error::Storage`。
+fn storage_err(path: &Path) -> impl Fn(std::io::Error) -> Error + '_ {
+    move |source| Error::Storage { path: path.display().to_string(), source }
+}
 
 /// 对字段做最小 CSV 转义(含逗号/引号/换行时加引号)。
 fn csv_field(s: &str) -> String {
@@ -67,10 +62,10 @@ fn sanitize_inline(s: &str) -> String {
 
 /// 幂等写入 <data_dir>/observations.csv(按 run_date 去重)。
 ///
-/// 读改写:保留表头 + 历史行,但丢弃与本次相同 run_date 的旧行后再写入,这样同一天
-/// 重跑不会产生重复行;文件缺失或为空时也会正确写出表头。
+/// 读改写:保留表头 + 历史行,但丢弃与本次相同 run_date 的旧行后再写入,这样同一天重跑不会
+/// 产生重复行;文件缺失或为空时也会正确写出表头。
 pub fn upsert_csv(data_dir: &Path, records: &[Record]) -> Result<()> {
-    fs::create_dir_all(data_dir).with_context(|| format!("创建 {} 失败", data_dir.display()))?;
+    fs::create_dir_all(data_dir).map_err(storage_err(data_dir))?;
     let csv_path = data_dir.join("observations.csv");
 
     // 本轮要写入的 run_date 集合。
@@ -102,7 +97,7 @@ pub fn upsert_csv(data_dir: &Path, records: &[Record]) -> Result<()> {
         out.push_str(&csv_row(r));
         out.push('\n');
     }
-    fs::write(&csv_path, &out).with_context(|| format!("写 {} 失败", csv_path.display()))?;
+    fs::write(&csv_path, &out).map_err(storage_err(&csv_path))?;
     Ok(())
 }
 
@@ -111,10 +106,10 @@ pub fn write_markdown_snapshot(
     data_dir: &Path,
     run_date: &str,
     records: &[Record],
-    failures: &[(String, String)],
+    failures: &[Failure],
 ) -> Result<()> {
     let snap_dir = data_dir.join("snapshots");
-    fs::create_dir_all(&snap_dir).with_context(|| format!("创建 {} 失败", snap_dir.display()))?;
+    fs::create_dir_all(&snap_dir).map_err(storage_err(&snap_dir))?;
     let path = snap_dir.join(format!("{run_date}.md"));
 
     let mut out = String::new();
@@ -130,8 +125,8 @@ pub fn write_markdown_snapshot(
     }
     if !failures.is_empty() {
         out.push_str("\n## 抓取失败\n\n");
-        for (id, err) in failures {
-            out.push_str(&format!("- `{id}`: {}\n", sanitize_inline(err)));
+        for f in failures {
+            out.push_str(&format!("- `{}`: {}\n", f.series_id, sanitize_inline(&f.message)));
         }
     }
     let mut sources: Vec<&str> = records.iter().map(|r| r.source.as_str()).collect();
@@ -140,7 +135,7 @@ pub fn write_markdown_snapshot(
     let src = if sources.is_empty() { "—".to_string() } else { sources.join(", ") };
     out.push_str(&format!("\n_来源:{src}。run_date={run_date}。_\n"));
 
-    fs::write(&path, out).with_context(|| format!("写 {} 失败", path.display()))?;
+    fs::write(&path, out).map_err(storage_err(&path))?;
     Ok(())
 }
 

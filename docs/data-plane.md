@@ -6,15 +6,45 @@
 
 从数据源抓取核心宏观指标,落地为仓库内的 CSV / markdown,供后续(M1)Python 智能平面读取。
 
+## 模块结构(重构后,面向多数据源扩展)
+
+按「数据 schema / 信息源 / 存储 / 编排」分层,新增数据源成本极低(新建一个文件 + `impl Source`
++ 在 `catalog` 加一张 spec 表 + 在 `run()` 计划里加一行,**不动** trait/错误/新鲜度/存储):
+
+```
+src/
+  error.rs      统一错误类型(thiserror);单一 Error 枚举 + Result 别名 + Failure 结构
+  config.rs     Config::from_env():FRED_API_KEY / data_dir / 新鲜度阈值 / 是否在 CI
+  model.rs      数据 schema:Observation(原始观测)、Record(CSV 接缝,8 列勿改)
+  catalog.rs    序列定义(常量):SeriesSpec + FRED_CORE / YAHOO_SUPPLEMENT / YAHOO_DEGRADED
+  source/
+    mod.rs      Source trait + SourceData + 跨源新鲜度校验(staleness_days / MAX_STALENESS_DAYS)
+    fred.rs     FredSource(impl Source)+ 纯函数 parse_latest(离线单测)
+    yahoo.rs    YahooSource(impl Source,内部 429 退避重试)+ 纯函数 parse_chart(离线单测)
+  store.rs      git-as-database:upsert_csv + write_markdown_snapshot
+  lib.rs        编排:run() 两段式计划 + runner collect_from(跑源→新鲜度→组装 Record→并失败)
+  main.rs       薄入口:env_logger 初始化、读 Config、调 run()、CI 注解、退出码
+```
+
+设计要点:
+- **Source trait 批量粒度**:`fetch(&self, specs) -> SourceData`,源自己决定发几次请求——FRED 每序列一次,
+  未来 CFTC「一次 GET 多行」/ RSS「按 feed 抓」也能套进同一抽象而无冗余请求。
+- **横切逻辑集中**:新鲜度校验、`Record` 组装只在 runner `collect_from` 做一次,所有源流经此处,
+  新增源白拿;源只返回原始观测 + 软失败(`Failure`)。
+- **软/硬错误一个枚举**:源内产生的 = 软(进 `Failure`,run 继续);从 `run()` 冒出的 = 硬(非零退出)。
+- **日志**:`log` 门面 + `env_logger`(默认 INFO,`RUST_LOG` 覆盖);所有运行期字符串英文。
+  GitHub Actions `::warning::` 注解走 stdout(workflow-command 协议),与 logger 的 stderr 分离。
+- **异步友好**:`fetch` 只借用 `&self`/`specs`,未来可平滑改 `async fn` + `join_all`,签名不必反转。
+
 ## M0 范围
 
 - 数据源:**FRED**(单一源 + 单一鉴权,最小化 M0 复杂度)
 - 抓取方式:`reqwest` **blocking**(M0 只有 6 个序列,不需要 async/tokio;序列增多后再上并发)
 - 存储:**git-as-database**(见下),非 SQLite
 
-### 抓取的序列(`src/series.rs`)
+### 抓取的序列(`src/catalog.rs`)
 
-FRED 主源(`CORE_SERIES`):
+FRED 主源(`FRED_CORE`):
 
 | 指标 | FRED series_id | 单位 | 说明 |
 |---|---|---|---|
@@ -41,12 +71,14 @@ Yahoo 补充(`YAHOO_SUPPLEMENT`,FRED 给不了的指标,**每次都补**):
 取最近 40 条里最新的一条非缺失观测(FRED 用 `"."` 表示缺失);limit 取大以越过
 长假/发布滞后造成的连续缺失,避免误判「无有效观测」。
 
-**新鲜度校验**:`main.rs` 比对最新观测日与 `run_date`,若超过 `MAX_STALENESS_DAYS`
-(14 天)则视为陈旧、计入失败——防止一条停更/长时间中断的序列把旧值静默当「今日最新」。
+**新鲜度校验**:runner `collect_from`(`lib.rs`)比对最新观测日与 `run_date`,若超过
+`MAX_STALENESS_DAYS`(14 天,`source/mod.rs`)则视为陈旧、计入失败——防止一条停更/长时间中断的
+序列把旧值静默当「今日最新」。校验集中在 runner 一处,所有源(含未来新增源)统一适用。
 
-**安全**:`api_key` 只通过 query 参数传递;`.send()`/`.text()` 出错时立即
-`without_url()` 剥离含 key 的 URL,因此 key 不会进入错误对象 → 不泄漏到日志、
-提交回仓库的快照或 CI 日志(由代码保证,而非依赖格式化方式)。
+**安全**:`api_key` 只通过 query 参数传递;`.send()`/`.text()` 出错时立即 `without_url()` 剥离含
+key 的 URL,**再据此构造 `Error::Http`**。`error.rs` 故意不给 `reqwest::Error` 实现 `#[from]`,因此
+`?` 无法把仍含 key 的原始错误偷渡进来——这是唯一构造路径,key 无论 `{e}`/`{e:#}`/`{e:?}` 都不泄漏到
+日志、提交回仓库的快照或 CI 日志(由编译期保证 + 离线回归测试 `http_error_strips_api_key`)。
 
 ## Yahoo Finance(免鉴权,补充 + 降级)
 
@@ -75,10 +107,12 @@ SQLite 接缝(DESIGN §6 的契约)待 **M1** Python 需要查询历史时再引
 ```bash
 # 本地:把 key 放进 .env(见 .env.example),然后
 cargo run --release            # = cargo run --release --bin fetch
-cargo test                     # 离线单测:解析 + CSV 转义
+RUST_LOG=newsletter=debug cargo run --release   # 看 Yahoo 重试/退避等详细日志
+cargo test                     # 离线单测:解析 + CSV 转义 + 新鲜度 + api_key 不泄漏
+cargo clippy --all-targets     # 静态检查(应无告警)
 ```
 
-环境变量:`FRED_API_KEY`(必需)。
+环境变量:`FRED_API_KEY`(必需);`RUST_LOG`(可选,默认 `info`)。
 
 ## 调度(`.github/workflows/daily.yml`)
 
@@ -98,6 +132,8 @@ cargo test                     # 离线单测:解析 + CSV 转义
 - [x] CI:`concurrency` 防并发 + push 失败 rebase 重试
 - [x] 部分序列失败时输出 `::warning::` 注解(CI 可见)
 - [x] Yahoo 免鉴权回退源:无 FRED key 也能产出真实数据(限流退避;口径不与 FRED 混用)
+- [x] 重构为模块化、面向多源扩展:`Source` trait 统一 FRED/Yahoo;`thiserror` 取代 anyhow;
+      `log`+`env_logger` 日志门面;运行期字符串英文;`#[from] reqwest::Error` 禁用 + 离线回归测试守 api_key
 
 ## 待办 / 后续
 
