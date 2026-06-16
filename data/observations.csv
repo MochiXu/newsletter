@@ -6,3 +6,10 @@ run_date,series_id,label,obs_date,value,unit,source,note
 2026-06-16,DTWEXBGS,USD Index (Broad),2026-06-12,119.5073,index,FRED,"贸易加权美元,FRED 可靠;真 DXY 见 Yahoo 补充"
 2026-06-16,DX-Y.NYB,"USD Index (DXY, ICE)",2026-06-15,99.662,index,Yahoo,"窄口径 DXY,用户口径"
 2026-06-16,GC=F,Gold (COMEX front),2026-06-15,4335.2,USD/oz,Yahoo,"FRED 伦敦金价序列已下架,改用期货"
+2026-06-17,DGS10,10Y Treasury,2026-06-12,4.48,%,FRED,
+2026-06-17,DGS2,2Y Treasury,2026-06-12,4.09,%,FRED,
+2026-06-17,T10Y2Y,2s10s Spread,2026-06-15,0.4,%,FRED,10Y 减 2Y
+2026-06-17,VIXCLS,VIX,2026-06-15,16.2,index,FRED,
+2026-06-17,DTWEXBGS,USD Index (Broad),2026-06-12,119.5073,index,FRED,"贸易加权美元,FRED 可靠;真 DXY 见 Yahoo 补充"
+2026-06-17,DX-Y.NYB,"USD Index (DXY, ICE)",2026-06-16,99.48,index,Yahoo,"窄口径 DXY,用户口径"
+2026-06-17,GC=F,Gold (COMEX front),2026-06-16,4364.9,USD/oz,Yahoo,"FRED 伦敦金价序列已下架,改用期货"
