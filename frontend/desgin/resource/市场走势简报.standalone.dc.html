@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<template id="__bundler_thumbnail" data-bg-color="#16130f">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#16130f"/>
+    <rect x="430" y="150" width="340" height="560" rx="6" fill="#221c15" stroke="#3c3326" stroke-width="2"/>
+    <text x="600" y="250" font-family="monospace" font-size="34" fill="#ece2cf" text-anchor="middle" letter-spacing="2">MACRO BRIEF</text>
+    <line x1="470" y1="290" x2="730" y2="290" stroke="#3c3326" stroke-width="2" stroke-dasharray="6 6"/>
+    <polyline points="470,420 510,400 550,430 590,390 630,410 670,360 710,380" fill="none" stroke="#5bc486" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="470,520 510,540 550,500 590,545 630,515 670,560 710,535" fill="none" stroke="#e8694e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="470" y="640" width="260" height="26" fill="#ece2cf" opacity="0.7"/>
+    <circle cx="600" cy="120" r="14" fill="#e0824a"/>
+  </svg>
+</template>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="./briefs-global.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+ --sans:"Noto Sans SC","IBM Plex Sans",system-ui,-apple-system,sans-serif;
+ --bg:#e7ddc9; --paper:#fdfaf2; --paper2:#f3ebd9; --ink:#2b2018; --ink2:#8a785b; --faint:#d6c9af; --hair:#ece2cd; --accent:#c0612f; --up:#2f7d50; --down:#c0432a; --blue:#3a6ea5; --shadow:0 20px 50px -26px rgba(70,48,18,.55);
+}
+@media (prefers-color-scheme:dark){
+ :root{ --bg:#16130f; --paper:#221c15; --paper2:#2b241b; --ink:#ece2cf; --ink2:#9a8a6f; --faint:#3c3326; --hair:#2c2618; --accent:#e0824a; --up:#5bc486; --down:#e8694e; --blue:#7aa6dd; --shadow:0 26px 60px -30px rgba(0,0,0,.78); }
+}
+[data-theme="light"]{ --bg:#e7ddc9; --paper:#fdfaf2; --paper2:#f3ebd9; --ink:#2b2018; --ink2:#8a785b; --faint:#d6c9af; --hair:#ece2cd; --accent:#c0612f; --up:#2f7d50; --down:#c0432a; --blue:#3a6ea5; --shadow:0 20px 50px -26px rgba(70,48,18,.55); }
+[data-theme="dark"]{ --bg:#16130f; --paper:#221c15; --paper2:#2b241b; --ink:#ece2cf; --ink2:#9a8a6f; --faint:#3c3326; --hair:#2c2618; --accent:#e0824a; --up:#5bc486; --down:#e8694e; --blue:#7aa6dd; --shadow:0 26px 60px -30px rgba(0,0,0,.78); }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+button{font-family:inherit;outline:none}
+@keyframes receiptIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes mbpulse{0%,100%{opacity:.5}50%{opacity:.85}}
+</style>
+</helmet>
+<div ref="{{ rootRef }}" data-theme="{{ themeMode }}" style="min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sans);padding:32px 22px 64px;transition:background .35s ease,color .35s ease">
+ <div style="max-width:1060px;margin:0 auto">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:0 2px">
+   <div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2.5px;color:var(--accent)">DAILY MACRO BRIEF</div>
+    <div style="font-size:27px;font-weight:700;letter-spacing:-.5px;color:var(--ink);margin-top:6px">市场走势简报</div>
+    <div style="font-size:12.5px;color:var(--ink2);margin-top:5px">AI 生成 · 金融数据抓取 + 走势研判 · 每个交易日一刊</div>
+   </div>
+   <div style="display:flex;align-items:center;gap:11px">
+    <span style="font-family:var(--mono);font-size:10px;color:var(--ink2);letter-spacing:1px">主题</span>
+    <div style="display:flex;gap:2px;padding:3px;background:var(--paper2);border-radius:9px">
+     <button style="{{ tabAuto }}" onClick="{{ onAuto }}">自动</button>
+     <button style="{{ tabLight }}" onClick="{{ onLight }}">浅色</button>
+     <button style="{{ tabDark }}" onClick="{{ onDark }}">深色</button>
+    </div>
+   </div>
+  </div>
+
+  <div style="border-top:1px solid var(--hair);margin:20px 0 24px"></div>
+
+  <div style="display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap">
+
+   <div style="flex:1 1 230px;max-width:288px;min-width:206px">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--ink2);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+     <span>TIMELINE</span><span>时间线</span>
+     <span style="flex:1;border-top:1px dashed var(--faint)"></span>
+    </div>
+    <sc-if value="{{ loaded }}" hint-placeholder-val="{{ true }}">
+     <div style="position:relative">
+      <div style="position:absolute;left:9px;top:10px;bottom:10px;width:2px;background:var(--hair);border-radius:2px"></div>
+      <sc-for list="{{ timeline }}" as="d" hint-placeholder-count="6">
+       <button style="{{ d.rowStyle }}" onMouseEnter="{{ d.onEnter }}" onMouseLeave="{{ d.onLeave }}" onClick="{{ d.onClick }}">
+        <span style="{{ d.dotStyle }}"></span>
+        <span style="display:flex;align-items:baseline">
+         <span style="{{ d.dateStyle }}">{{ d.dateShort }}</span>
+         <span style="{{ d.wdStyle }}">{{ d.weekday }}</span>
+        </span>
+        <span style="{{ d.hlStyle }}">{{ d.headline }}</span>
+       </button>
+      </sc-for>
+     </div>
+     <div style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);letter-spacing:.5px;margin-top:14px;padding-left:6px;opacity:.85">悬停预览 · 点击锁定</div>
+    </sc-if>
+   </div>
+
+   <div style="flex:2 1 440px;display:flex;justify-content:center;min-width:300px">
+    <sc-if value="{{ notLoaded }}" hint-placeholder-val="{{ true }}">
+     <div style="width:min(440px,100%);height:560px;background:var(--paper);box-shadow:var(--shadow);animation:mbpulse 1.4s ease-in-out infinite"></div>
+    </sc-if>
+    <sc-if value="{{ loaded }}" hint-placeholder-val="{{ true }}">
+     <div ref="{{ receiptRef }}" style="position:relative;width:min(442px,100%);background:var(--paper);box-shadow:var(--shadow)">
+
+      <sc-if value="{{ texture }}" hint-placeholder-val="{{ true }}">
+       <div style="position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(var(--faint) .5px,transparent .6px);background-size:5px 5px;opacity:.28"></div>
+      </sc-if>
+
+      <div style="height:9px;background-image:radial-gradient(circle 5px at 7px 0px,var(--bg) 99%,transparent 100%);background-repeat:repeat-x;background-size:14px 9px"></div>
+
+      <div style="position:relative;padding:14px 28px 4px">
+
+       <div style="text-align:center;padding-top:4px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--ink2)">宏观简报 · MACRO BRIEF</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:1px;color:var(--ink);margin-top:7px">{{ date }}</div>
+        <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink2);margin-top:6px">{{ weekday }} · 第 {{ issue }} 刊 · {{ time }}</div>
+       </div>
+
+       <div style="border-top:1px dashed var(--faint);margin:14px 0"></div>
+
+       <div style="font-size:14.5px;line-height:1.55;font-weight:600;color:var(--ink);text-wrap:pretty">{{ headline }}</div>
+
+       <div style="display:flex;align-items:center;gap:8px;margin:20px 0 12px">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">MARKET DATA</span>
+        <span style="font-size:11px;color:var(--ink2)">当日指标</span>
+        <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+       </div>
+
+       <sc-for list="{{ metrics }}" as="m" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:52px 1fr 66px 50px;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--hair)">
+         <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.3px">{{ m.label }}</span>
+         <span style="display:block;min-width:0;height:26px">
+          <sc-if value="{{ sparks }}" hint-placeholder-val="{{ true }}">
+           <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="width:100%;height:26px;display:block;overflow:visible">
+            <polyline points="{{ m.points }}" style="{{ m.lineStyle }}"></polyline>
+            <circle cx="{{ m.dotX }}" cy="{{ m.dotY }}" r="2.4" style="{{ m.dotFill }}"></circle>
+           </svg>
+          </sc-if>
+         </span>
+         <span style="font-family:var(--mono);font-size:12.5px;color:var(--ink);text-align:right">{{ m.valueText }}</span>
+         <span style="{{ m.changeStyle }}">{{ m.changeText }}</span>
+        </div>
+       </sc-for>
+
+       <div style="display:flex;align-items:center;gap:8px;margin:22px 0 4px">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">AI BRIEF</span>
+        <span style="font-size:11px;color:var(--ink2)">四层简报</span>
+        <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+       </div>
+
+       <div style="display:flex;align-items:center;gap:7px;margin:14px 0 7px">
+        <span style="width:8px;height:8px;border-radius:2px;background:var(--ink2)"></span>
+        <span style="font-family:var(--mono);font-size:9.5px;letter-spacing:1.2px;color:var(--ink2)">FACTS</span>
+        <span style="font-size:11px;color:var(--ink);font-weight:600">事实层</span>
+       </div>
+       <sc-for list="{{ facts }}" as="f" hint-placeholder-count="3">
+        <div style="display:flex;gap:8px;font-size:12.5px;line-height:1.55;color:var(--ink);margin-bottom:5px">
+         <span style="color:var(--ink2);flex:0 0 auto;font-family:var(--mono)">›</span>
+         <span style="text-wrap:pretty">{{ f }}</span>
+        </div>
+       </sc-for>
+
+       <div style="display:flex;align-items:center;gap:7px;margin:15px 0 7px">
+        <span style="width:8px;height:8px;border-radius:2px;background:var(--accent)"></span>
+        <span style="font-family:var(--mono);font-size:9.5px;letter-spacing:1.2px;color:var(--ink2)">INTERPRETATION</span>
+        <span style="font-size:11px;color:var(--ink);font-weight:600">解读层</span>
+       </div>
+       <sc-for list="{{ reads }}" as="r" hint-placeholder-count="2">
+        <div style="display:flex;gap:8px;font-size:12.5px;line-height:1.55;color:var(--ink);margin-bottom:5px">
+         <span style="color:var(--accent);flex:0 0 auto;font-family:var(--mono)">—</span>
+         <span style="text-wrap:pretty">{{ r }}</span>
+        </div>
+       </sc-for>
+
+       <div style="display:flex;align-items:center;gap:7px;margin:15px 0 7px">
+        <span style="width:8px;height:8px;border-radius:2px;background:var(--blue)"></span>
+        <span style="font-family:var(--mono);font-size:9.5px;letter-spacing:1.2px;color:var(--ink2)">HYPOTHESIS</span>
+        <span style="font-size:11px;color:var(--ink);font-weight:600">假设层</span>
+       </div>
+       <sc-for list="{{ hypotheses }}" as="h" hint-placeholder-count="2">
+        <div style="background:var(--paper2);border-radius:4px;padding:9px 11px;margin-bottom:6px">
+         <div style="font-size:12.5px;line-height:1.5;color:var(--ink);font-weight:500;text-wrap:pretty">{{ h.ifThen }}</div>
+         <div style="font-size:10.5px;line-height:1.45;color:var(--ink2);margin-top:5px;display:flex;gap:6px">
+          <span style="font-family:var(--mono);color:var(--down);flex:0 0 auto">✕ 失效</span>
+          <span style="text-wrap:pretty">{{ h.invalidation }}</span>
+         </div>
+        </div>
+       </sc-for>
+
+       <div style="display:flex;align-items:center;gap:7px;margin:15px 0 7px">
+        <span style="width:8px;height:8px;border-radius:2px;background:var(--up)"></span>
+        <span style="font-family:var(--mono);font-size:9.5px;letter-spacing:1.2px;color:var(--ink2)">IMPACT</span>
+        <span style="font-size:11px;color:var(--ink);font-weight:600">影响层</span>
+       </div>
+       <sc-for list="{{ impacts }}" as="im" hint-placeholder-count="3">
+        <div style="display:flex;align-items:baseline;gap:8px;font-size:12px;line-height:1.5;margin-bottom:5px">
+         <span style="{{ im.dirStyle }}">{{ im.dirChar }}</span>
+         <span style="font-family:var(--mono);font-size:11px;color:var(--ink);flex:0 0 auto">{{ im.asset }}</span>
+         <span style="color:var(--ink2);text-wrap:pretty">{{ im.watch }}</span>
+        </div>
+       </sc-for>
+
+       <sc-if value="{{ hasReviews }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:8px;margin:22px 0 12px">
+         <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+         <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">REVIEW</span>
+         <span style="font-size:11px;color:var(--ink2)">假设复盘</span>
+         <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+        </div>
+        <sc-for list="{{ reviews }}" as="rv" hint-placeholder-count="2">
+         <div style="display:flex;gap:9px;margin-bottom:10px">
+          <span style="{{ rv.markStyle }}">{{ rv.markChar }}</span>
+          <div style="flex:1;min-width:0">
+           <div style="font-size:12px;line-height:1.45;color:var(--ink);text-wrap:pretty">{{ rv.ifThen }}</div>
+           <div style="display:flex;gap:8px;align-items:baseline;margin-top:3px;flex-wrap:wrap">
+            <span style="{{ rv.statusStyle }}">{{ rv.statusLabel }}</span>
+            <span style="font-size:10.5px;color:var(--ink2);line-height:1.4">{{ rv.note }}</span>
+           </div>
+          </div>
+         </div>
+        </sc-for>
+       </sc-if>
+
+       <div style="display:flex;align-items:center;gap:8px;margin:22px 0 6px">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">NEWS</span>
+        <span style="font-size:11px;color:var(--ink2)">新闻分类</span>
+        <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+       </div>
+       <sc-for list="{{ news }}" as="n" hint-placeholder-count="3">
+        <div style="padding:9px 0;border-bottom:1px dashed var(--hair)">
+         <div style="display:flex;gap:8px;align-items:flex-start">
+          <span style="{{ n.catStyle }}">{{ n.catLabel }}</span>
+          <span style="{{ n.titleStyle }}">{{ n.title }}</span>
+          <span style="{{ n.dirStyle }}">{{ n.dirChar }}</span>
+         </div>
+         <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap">
+          <span style="font-family:var(--mono);font-size:9.5px;color:var(--ink2)">{{ n.source }}</span>
+          <sc-for list="{{ n.assets }}" as="a" hint-placeholder-count="2">
+           <span style="font-family:var(--mono);font-size:9px;color:var(--ink2);border:1px solid var(--hair);border-radius:3px;padding:1px 5px">{{ a }}</span>
+          </sc-for>
+         </div>
+        </div>
+       </sc-for>
+
+       <div style="border-top:1px dashed var(--faint);margin:20px 0 0"></div>
+       <div style="text-align:center;font-family:var(--mono);font-size:9.5px;color:var(--ink2);letter-spacing:.6px;margin-top:13px;line-height:1.7">本简报仅供研究 · 非投资建议<br>NOT INVESTMENT ADVICE</div>
+       <div style="height:30px;margin:14px 0 7px;opacity:.82;background-image:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 9px,var(--ink) 9px 11px,transparent 11px 13px)"></div>
+       <div style="text-align:center;font-family:var(--mono);font-size:9.5px;color:var(--ink2);letter-spacing:1px">★ {{ date }} · GEN {{ model }} ★</div>
+
+      </div>
+
+      <div style="height:9px;background-image:radial-gradient(circle 5px at 7px 9px,var(--bg) 99%,transparent 100%);background-repeat:repeat-x;background-size:14px 9px"></div>
+     </div>
+    </sc-if>
+   </div>
+
+  </div>
+ </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:920},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#fa5700&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showSparklines&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;paperTexture&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { briefs: [], loaded: false, selectedIdx: 0, hoverIdx: null, themeMode: 'auto' };
+
+  componentDidMount() {
+    try { const t = localStorage.getItem('mb_theme'); if (t) this.setState({ themeMode: t }); } catch (e) {}
+    if (window.__MB_BRIEFS) this.setState({ briefs: window.__MB_BRIEFS, model: window.__MB_MODEL, loaded: true });
+    this.applyAccent();
+  }
+
+  componentDidUpdate() {
+    this.applyAccent();
+    const na = this.activeIndex();
+    if (this._prevActive != null && this._prevActive !== na && this.receiptEl) {
+      const el = this.receiptEl;
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = 'receiptIn .42s cubic-bezier(.22,.61,.36,1) both';
+    }
+    this._prevActive = na;
+  }
+
+  applyAccent() {
+    const a = this.props.accent;
+    const el = this.rootEl;
+    if (!el) return;
+    if (a) el.style.setProperty('--accent', a);
+    else el.style.removeProperty('--accent');
+  }
+
+  setTheme(mode) {
+    this.setState({ themeMode: mode });
+    try { localStorage.setItem('mb_theme', mode); } catch (e) {}
+  }
+
+  activeIndex() {
+    return this.state.hoverIdx != null ? this.state.hoverIdx : this.state.selectedIdx;
+  }
+
+  makeSpark(seed, change) {
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    let s = h;
+    const rnd = () => {
+      s = (s + 0x6D2B79F5) >>> 0;
+      let t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    const N = 18, vals = [];
+    let v = 0;
+    const drift = (change > 0 ? 1 : change < 0 ? -1 : 0) * 0.16;
+    for (let i = 0; i < N; i++) { v += (rnd() - 0.5) * 0.95 + drift; vals.push(v); }
+    const min = Math.min.apply(null, vals), max = Math.max.apply(null, vals), range = (max - min) || 1;
+    const W = 100, H = 30, pad = 4;
+    const pts = vals.map((val, i) => {
+      const x = pad + (W - 2 * pad) * i / (N - 1);
+      const y = H - pad - (H - 2 * pad) * (val - min) / range;
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    });
+    const lp = pts[pts.length - 1].split(',');
+    return { points: pts.join(' '), dotX: +lp[0], dotY: +lp[1] };
+  }
+
+  fmtVal(m) {
+    const v = m.value;
+    if (m.kind === 'yield') return v.toFixed(2) + '%';
+    if (m.kind === 'spread') return Math.round(v * 100) + 'bp';
+    if (m.kind === 'index') return v.toFixed(1);
+    if (m.kind === 'price') return v.toLocaleString('en-US');
+    return '' + v;
+  }
+
+  fmtChg(m) {
+    const c = m.change, s = c > 0 ? '+' : '';
+    if (m.kind === 'yield' || m.kind === 'spread') return s + Math.round(c * 100) + 'bp';
+    if (m.kind === 'index') return s + c.toFixed(1);
+    if (m.kind === 'price') return s + Math.round(c);
+    return s + c;
+  }
+
+  renderVals() {
+    const S = this.state;
+    const ink2 = 'var(--ink2)', up = 'var(--up)', down = 'var(--down)', accent = 'var(--accent)';
+    const colorFor = c => c > 0 ? up : c < 0 ? down : ink2;
+    const dirInfo = d => d === 'up' ? { ch: '↑', col: up } : d === 'down' ? { ch: '↓', col: down } : { ch: '·', col: ink2 };
+    const toneCol = t => t === 'risk-on' ? up : t === 'risk-off' ? down : ink2;
+    const tab = active => ({
+      padding: '5px 13px', fontSize: '11px', fontFamily: 'var(--mono)', letterSpacing: '.5px',
+      border: 'none', borderRadius: '7px', cursor: 'pointer',
+      background: active ? 'var(--paper)' : 'transparent',
+      color: active ? 'var(--ink)' : 'var(--ink2)',
+      boxShadow: active ? '0 1px 3px rgba(0,0,0,.14)' : 'none', transition: 'all .18s'
+    });
+
+    const tm = S.themeMode;
+    const ai = this.activeIndex();
+
+    const timeline = S.briefs.map((b, i) => {
+      const isA = i === ai;
+      const dot = toneCol(b.tone);
+      return {
+        dateShort: b.date.slice(5).replace('-', '.'),
+        weekday: b.weekday,
+        headline: b.headline,
+        rowStyle: { position: 'relative', display: 'block', width: '100%', textAlign: 'left', border: 'none', background: isA ? 'var(--paper2)' : 'transparent', borderRadius: '8px', padding: '9px 12px 9px 30px', marginBottom: '1px', cursor: 'pointer', transition: 'background .18s, opacity .18s', opacity: isA ? 1 : 0.6 },
+        dotStyle: { position: 'absolute', left: '9px', top: '14px', width: isA ? '11px' : '8px', height: isA ? '11px' : '8px', transform: 'translateX(-50%)', borderRadius: '50%', background: dot, boxShadow: isA ? ('0 0 0 3px var(--paper2), 0 0 0 4.5px ' + accent) : '0 0 0 3px var(--paper)', transition: 'all .2s' },
+        dateStyle: { fontFamily: 'var(--mono)', fontSize: '12.5px', fontWeight: 600, color: isA ? 'var(--ink)' : 'var(--ink2)', letterSpacing: '.3px' },
+        wdStyle: { fontFamily: 'var(--mono)', fontSize: '10px', color: 'var(--ink2)', marginLeft: '7px' },
+        hlStyle: { fontSize: '11.5px', lineHeight: 1.4, marginTop: '3px', color: isA ? 'var(--ink)' : 'var(--ink2)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+        onEnter: () => this.setState({ hoverIdx: i }),
+        onLeave: () => this.setState({ hoverIdx: null }),
+        onClick: () => this.setState({ selectedIdx: i, hoverIdx: null }),
+      };
+    });
+
+    const view = {
+      loaded: S.loaded, notLoaded: !S.loaded, timeline, model: S.model || 'DeepSeek', themeMode: tm,
+      tabAuto: tab(tm === 'auto'), tabLight: tab(tm === 'light'), tabDark: tab(tm === 'dark'),
+      onAuto: () => this.setTheme('auto'), onLight: () => this.setTheme('light'), onDark: () => this.setTheme('dark'),
+      sparks: this.props.showSparklines ?? true,
+      texture: this.props.paperTexture ?? true,
+      rootRef: el => { this.rootEl = el; this.applyAccent(); },
+      receiptRef: el => { this.receiptEl = el; },
+    };
+
+    const b = S.briefs[ai];
+    if (b) {
+      const metrics = b.metrics.map(m => {
+        const sp = this.makeSpark(b.date + m.key, m.change);
+        const col = colorFor(m.change);
+        return {
+          label: m.label, valueText: this.fmtVal(m), changeText: this.fmtChg(m),
+          changeStyle: { fontFamily: 'var(--mono)', fontSize: '12px', textAlign: 'right', color: col },
+          lineStyle: { fill: 'none', stroke: col, strokeWidth: '1.5', strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' },
+          dotFill: { fill: col }, points: sp.points, dotX: sp.dotX, dotY: sp.dotY
+        };
+      });
+      const reviews = (b.reviews || []).map(r => {
+        const map = r.status === 'held' ? { ch: '✓', col: up, lab: '已兑现' } : r.status === 'invalidated' ? { ch: '✕', col: down, lab: '已失效' } : { ch: '○', col: accent, lab: '待观察' };
+        return {
+          ifThen: r.ifThen, note: r.note, markChar: map.ch, statusLabel: map.lab,
+          markStyle: { flex: '0 0 auto', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: map.col, border: ('1.5px solid ' + map.col), marginTop: '1px' },
+          statusStyle: { fontFamily: 'var(--mono)', fontSize: '9.5px', color: map.col, letterSpacing: '.5px' }
+        };
+      });
+      const catMap = {
+        fact: { lab: '事实', col: 'var(--ink)', bg: 'var(--paper2)', bd: 'var(--faint)' },
+        read: { lab: '解读', col: 'var(--accent)', bg: 'transparent', bd: 'var(--accent)' },
+        both: { lab: '事实+解读', col: 'var(--blue)', bg: 'transparent', bd: 'var(--blue)' },
+        noise: { lab: '噪音', col: 'var(--ink2)', bg: 'transparent', bd: 'var(--faint)' }
+      };
+      const news = b.news.map(n => {
+        const c = catMap[n.cat] || catMap.fact, di = dirInfo(n.dir);
+        return {
+          title: n.title, source: n.source, assets: n.assets, catLabel: c.lab,
+          catStyle: { flex: '0 0 auto', fontFamily: 'var(--mono)', fontSize: '9px', letterSpacing: '.5px', padding: '2px 6px', borderRadius: '4px', color: c.col, background: c.bg, border: ('1px solid ' + c.bd), whiteSpace: 'nowrap' },
+          dirChar: di.ch, dirStyle: { fontFamily: 'var(--mono)', fontSize: '12px', color: di.col, flex: '0 0 auto' },
+          titleStyle: { flex: '1 1 auto', fontSize: '12px', lineHeight: 1.45, color: n.cat === 'noise' ? 'var(--ink2)' : 'var(--ink)', textWrap: 'pretty' }
+        };
+      });
+      const impacts = b.impacts.map(im => {
+        const di = dirInfo(im.dir);
+        return { asset: im.asset, watch: im.watch, dirChar: di.ch, dirStyle: { fontFamily: 'var(--mono)', fontSize: '12px', color: di.col, flex: '0 0 auto', width: '12px', textAlign: 'center' } };
+      });
+      Object.assign(view, {
+        date: b.date, weekday: b.weekday, issue: b.issue, time: b.time, headline: b.headline,
+        metrics, facts: b.facts, reads: b.reads, hypotheses: b.hypotheses, impacts,
+        reviews, hasReviews: (b.reviews || []).length > 0, news,
+      });
+    }
+    return view;
+  }
+}
+</script>
+</body>
+</html>
