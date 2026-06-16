@@ -141,6 +141,7 @@ function calling(失败回退解析 JSON)。换模型只改 env,不改代码。
 - [DESIGN.md](DESIGN.md) — 高层设计、四层结构、已锁定决策、里程碑
 - [docs/data-plane.md](docs/data-plane.md) — 数据平面(Rust)模块细节
 - [docs/intelligence-plane.md](docs/intelligence-plane.md) — 智能平面(Python)模块细节
+- [docs/frontend-plane.md](docs/frontend-plane.md) — 展示平面(React 小票阅读器)开发计划 / 技术栈 / 数据契约
 - [docs/TODO.md](docs/TODO.md) — **详细路线图 / 未来 TODO / 技术债 / 开放问题**
 
 ## 免责声明
