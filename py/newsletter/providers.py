@@ -119,7 +119,9 @@ class AnthropicProvider:
         self.api_key = api_key
         self.model = model
 
-    def generate(self, data_block: str, linkage_map: str) -> dict:
+    def call_structured(
+        self, system: str, user: str, tool_name: str, description: str, schema: dict
+    ) -> dict:
         body = _http_post_json(
             self.API_URL,
             {
@@ -130,22 +132,25 @@ class AnthropicProvider:
             {
                 "model": self.model,
                 "max_tokens": 4096,
-                "system": SYSTEM,
-                "tools": [
-                    {
-                        "name": "emit_brief",
-                        "description": "输出四层结构的每日宏观简报",
-                        "input_schema": BRIEF_SCHEMA,
-                    }
-                ],
-                "tool_choice": {"type": "tool", "name": "emit_brief"},
-                "messages": [{"role": "user", "content": build_user(data_block, linkage_map)}],
+                "system": system,
+                "tools": [{"name": tool_name, "description": description, "input_schema": schema}],
+                "tool_choice": {"type": "tool", "name": tool_name},
+                "messages": [{"role": "user", "content": user}],
             },
         )
         for block in body.get("content", []):
-            if block.get("type") == "tool_use" and block.get("name") == "emit_brief":
+            if block.get("type") == "tool_use" and block.get("name") == tool_name:
                 return block["input"]
-        raise RuntimeError("Anthropic 响应未包含 emit_brief 工具调用")
+        raise RuntimeError(f"Anthropic 响应未包含 {tool_name} 工具调用")
+
+    def generate(self, data_block: str, linkage_map: str) -> dict:
+        return self.call_structured(
+            SYSTEM,
+            build_user(data_block, linkage_map),
+            "emit_brief",
+            "输出四层结构的每日宏观简报",
+            BRIEF_SCHEMA,
+        )
 
 
 class OpenAICompatProvider:
@@ -157,7 +162,9 @@ class OpenAICompatProvider:
         self.api_key = api_key
         self.model = model
 
-    def generate(self, data_block: str, linkage_map: str) -> dict:
+    def call_structured(
+        self, system: str, user: str, tool_name: str, description: str, schema: dict
+    ) -> dict:
         body = _http_post_json(
             self.url,
             {
@@ -169,20 +176,16 @@ class OpenAICompatProvider:
                 "max_tokens": 4096,
                 "temperature": 0.3,
                 "messages": [
-                    {"role": "system", "content": SYSTEM},
-                    {"role": "user", "content": build_user(data_block, linkage_map)},
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
                 ],
                 "tools": [
                     {
                         "type": "function",
-                        "function": {
-                            "name": "emit_brief",
-                            "description": "输出四层结构的每日宏观简报",
-                            "parameters": BRIEF_SCHEMA,
-                        },
+                        "function": {"name": tool_name, "description": description, "parameters": schema},
                     }
                 ],
-                "tool_choice": {"type": "function", "function": {"name": "emit_brief"}},
+                "tool_choice": {"type": "function", "function": {"name": tool_name}},
             },
         )
         msg = body["choices"][0]["message"]
@@ -191,6 +194,15 @@ class OpenAICompatProvider:
             return json.loads(calls[0]["function"]["arguments"])
         # 回退:有的兼容端点不支持强制函数调用,直接把 JSON 写进 content。
         return _extract_json(msg.get("content") or "")
+
+    def generate(self, data_block: str, linkage_map: str) -> dict:
+        return self.call_structured(
+            SYSTEM,
+            build_user(data_block, linkage_map),
+            "emit_brief",
+            "输出四层结构的每日宏观简报",
+            BRIEF_SCHEMA,
+        )
 
 
 # 预设的 OpenAI 兼容端点。模型名可能随各家目录更新,用 <PREFIX>_MODEL 或 LLM_MODEL 覆盖。

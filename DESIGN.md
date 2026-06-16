@@ -72,8 +72,8 @@
 | 接缝 | **SQLite `data/brief.db` + `schema.sql`** | 唯一契约;**不走 FFI/PyO3,不走 HTTP service** |
 
 - **Rust**:`reqwest`+`tokio` 抓取,`sqlx`(编译期校验 SQL)写库;数据源全走 FRED+Stooq+Socrata,避开 yfinance 的接口漂移
-- **Python**:M1 用**纯 stdlib**(`urllib`/`json`/`csv`/`hmac`,零第三方);Claude 用 tool use 强制四层输出;`framework/linkage_map.md` 运行时读取
-- **模型**:日常 `claude-sonnet-4-6`,深度 `claude-opus-4-8`
+- **Python**:**纯 stdlib**(`urllib`/`json`/`csv`/`hmac`/`xml`,零第三方);LLM 走统一 `call_structured`(Anthropic tool use / OpenAI 兼容 function calling),`framework/linkage_map.md` 运行时读取
+- **模型**:**provider 可插拔**(Anthropic / OpenAI / MiniMax / DeepSeek 等);默认 `claude-sonnet-4-6`,深度 `claude-opus-4-8`
 - **调度**:**GitHub Actions cron**,顺序跑 `cargo run --release`(Rust 抓数)→ `python -m newsletter.brief`(读数据→Claude→渲染→存/推)
 - **交付**:Python 推**飞书机器人**(始终先存本地 md 兜底);Telegram/邮件后续再加,交互式 bot 可再用 Rust `teloxide`
 - **配置**:`.env`(API keys)
@@ -106,11 +106,13 @@ newsletter/
 
 > **M1 现状(2026-06-16,代码已就绪)**:智能平面(Python,纯 stdlib)读 `observations.csv` + 传导图 → Claude `emit_brief` 工具强制四层(事实/解读/可证伪假设/影响)→ 存 `data/briefs/<date>.md` + 推飞书。已用真实 M0 数据跑通**回退路径**(无 ANTHROPIC_API_KEY → 仅事实层;无 FEISHU_WEBHOOK → 仅存 md);6 单测过。完整 AI 四层待填 `ANTHROPIC_API_KEY`。详见 [docs/intelligence-plane.md](docs/intelligence-plane.md)。
 
+> **M2 现状(2026-06-16,代码已就绪)**:新闻分类(`news.py`,stdlib RSS+Atom,已实测抓取真实新闻)+ 假设追踪复盘日志(`hypotheses.py`,git-as-database `hypotheses.csv`)接进简报;无 LLM key 时新闻仍展示原始标题。LLM 层已重构为**多 provider 可插拔**(Anthropic/OpenAI/MiniMax 等)。21 单测过。详见 [docs/intelligence-plane.md](docs/intelligence-plane.md)。
+
 ## 7. 里程碑
 
 - **M0 · 本周**(✅ 已跑通真实数据)— 数据管道打通。拉 6 个核心数据(10Y/2Y/2s10s/VIX/USD/Gold,FRED 主源 + Yahoo 补 DXY/黄金),存为 CSV + markdown 提交回仓库。
 - **M1 · 第 2-3 周**(代码已就绪)— 每日四层简报(只给作者)。Python 读数据 + linkage map → Claude 四层简报 → 存本地 md + 推**飞书机器人**(无 key 降级仅事实层;无 webhook 仅存 md)。✅ 验收:作者每天真读、觉得比刷推特信息量大(待填 ANTHROPIC_API_KEY 出完整四层)。
-- **M2 · 第 4-6 周** — 加新闻分类 + 假设追踪日志。发给 5-10 个朋友收反馈。
+- **M2 · 第 4-6 周**(代码已就绪)— 新闻分类(RSS → 事实/解读/影响资产)+ 假设追踪复盘日志(可证伪假设次日复盘 held/invalidated/open),均接进每日简报。发给朋友收反馈待 LLM key 跑出完整内容。
 - **M3 · 第 2 月** — 接入 A股/港股影响层;固定格式/时间/voice。
 - **M4 · 第 3 月+** — 单资产交易框架生成器、CFTC、dashboard;考虑公开 + 付费墙(¥99-299/月)。
 

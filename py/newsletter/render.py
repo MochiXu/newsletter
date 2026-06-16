@@ -1,4 +1,7 @@
-"""把四层简报渲染为 markdown(本地存档/飞书卡片)与纯文本(飞书文本消息)。"""
+"""把简报渲染为 markdown(本地存档/飞书卡片)与纯文本(飞书文本消息)。
+
+M2 起,简报除四层外还含「假设复盘」与「今日新闻分类」两节(均为可选参数)。
+"""
 
 from __future__ import annotations
 
@@ -28,7 +31,65 @@ def data_table(obs: list[Observation], with_note: bool = False) -> str:
     return "\n".join(lines)
 
 
-def render_markdown(run_date: str, obs: list[Observation], brief: dict | None) -> str:
+def _resolved_today(run_date, hyp_rows):
+    return [
+        r
+        for r in hyp_rows
+        if r.get("resolved_date") == run_date and (r.get("status") in ("held", "invalidated"))
+    ]
+
+
+def _still_open(hyp_rows):
+    return [r for r in hyp_rows if (r.get("status") or "open") == "open"]
+
+
+_HYP_ICON = {"held": "✅ 已兑现", "invalidated": "❌ 已失效"}
+
+
+def _hyp_section_md(run_date, hyp_rows) -> list[str]:
+    if not hyp_rows:
+        return []
+    resolved, still_open = _resolved_today(run_date, hyp_rows), _still_open(hyp_rows)
+    if not resolved and not still_open:
+        return []
+    out = ["## 假设复盘(昨日及以前)"]
+    for r in resolved:
+        line = f"- {_HYP_ICON.get(r.get('status'), r.get('status'))}({r.get('created_date', '')} 起):{r.get('if_then', '')}"
+        if r.get("note"):
+            line += f" — {r['note']}"
+        out.append(line)
+    for r in still_open:
+        line = f"- ⏳ 待观察({r.get('created_date', '')} 起):{r.get('if_then', '')}"
+        if r.get("note"):
+            line += f" — {r['note']}"
+        out.append(line)
+    out.append("")
+    return out
+
+
+def _news_section_md(news) -> list[str]:
+    if not news:
+        return []
+    classified = any(n.get("category") for n in news)
+    out = [
+        "## 今日新闻(事实 / 解读 / 影响资产)"
+        if classified
+        else "## 今日新闻(未分类——配置 LLM provider 后自动分类)"
+    ]
+    for n in news:
+        if n.get("category"):
+            assets = "、".join(n.get("affected_assets") or []) or "—"
+            line = f"- **[{n['category']}]** {n.get('summary') or n.get('title', '')} _({n.get('source', '')})_ → 影响:{assets}"
+            if n.get("note"):
+                line += f" — {n['note']}"
+        else:
+            line = f"- {n.get('title', '')} _({n.get('source', '')})_"
+        out.append(line)
+    out.append("")
+    return out
+
+
+def render_markdown(run_date, obs, brief, news=None, hyp_rows=None) -> str:
     parts = [f"# 每日宏观简报 · {run_date}", ""]
     if brief and brief.get("headline"):
         parts += [f"**{brief['headline']}**", ""]
@@ -59,11 +120,13 @@ def render_markdown(run_date: str, obs: list[Observation], brief: dict | None) -
             "",
         ]
 
+    parts += _hyp_section_md(run_date, hyp_rows)
+    parts += _news_section_md(news)
     parts += [DISCLAIMER, ""]
     return "\n".join(parts)
 
 
-def render_text(run_date: str, obs: list[Observation], brief: dict | None) -> str:
+def render_text(run_date, obs, brief, news=None, hyp_rows=None) -> str:
     """飞书纯文本版本(无 markdown 渲染)。"""
     lines = [f"【每日宏观简报 · {run_date}】"]
     if brief and brief.get("headline"):
@@ -85,5 +148,21 @@ def render_text(run_date: str, obs: list[Observation], brief: dict | None) -> st
                 lines.append(f"· {i.get('asset', '')}: {i.get('watch', '')}")
     else:
         lines.append("(未配置 LLM provider,仅事实层)")
+
+    if hyp_rows:
+        resolved, still_open = _resolved_today(run_date, hyp_rows), _still_open(hyp_rows)
+        if resolved or still_open:
+            lines.append("— 假设复盘 —")
+            for r in resolved[:5]:
+                lines.append(f"· {_HYP_ICON.get(r.get('status'), '')} {r.get('if_then', '')}")
+            for r in still_open[:5]:
+                lines.append(f"· ⏳ {r.get('if_then', '')}")
+
+    if news:
+        lines.append("— 今日新闻 —")
+        for n in news[:5]:
+            tag = f"[{n['category']}] " if n.get("category") else ""
+            lines.append(f"· {tag}{n.get('summary') or n.get('title', '')}")
+
     lines.append("仅研究参考,不构成投资建议。")
     return "\n".join(lines)

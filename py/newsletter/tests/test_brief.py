@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from newsletter import hypotheses as hyp
+from newsletter import news as news_mod
 from newsletter.data import Observation, load_latest
 from newsletter.deliver.feishu import _sign
 from newsletter.providers import _extract_json, select_provider
@@ -135,6 +137,96 @@ class TestProviders(unittest.TestCase):
         os.environ["OPENAI_API_KEY"] = "sk-oai"
         p = select_provider()
         self.assertEqual(p.name, "anthropic")
+
+
+class TestNews(unittest.TestCase):
+    RSS = (
+        b'<rss><channel>'
+        b'<item><title>T1</title><link>http://a/1</link>'
+        b'<description>&lt;p&gt;hello&lt;/p&gt;</description><pubDate>Mon</pubDate></item>'
+        b'<item><title>T2</title><link>http://a/2</link></item>'
+        b'</channel></rss>'
+    )
+    ATOM = (
+        b'<feed xmlns="http://www.w3.org/2005/Atom">'
+        b'<entry><title>AT</title><link href="http://b/1"/><summary>S</summary></entry>'
+        b'</feed>'
+    )
+
+    def test_parse_rss(self):
+        items = news_mod.parse_feed("Src", self.RSS)
+        self.assertEqual(len(items), 2)
+        self.assertEqual(items[0].title, "T1")
+        self.assertEqual(items[0].link, "http://a/1")
+        self.assertEqual(items[0].summary, "hello")  # html 已剥离
+        self.assertEqual(items[0].source, "Src")
+
+    def test_parse_atom(self):
+        items = news_mod.parse_feed("Src", self.ATOM)
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].title, "AT")
+        self.assertEqual(items[0].link, "http://b/1")  # 取 href
+
+    def test_parse_garbage(self):
+        self.assertEqual(news_mod.parse_feed("Src", b"not xml"), [])
+
+
+class TestHypotheses(unittest.TestCase):
+    def test_record_new_and_dedupe(self):
+        rows = []
+        hyps = [{"if_then": "若 X 则 Y", "invalidation": "Z"}]
+        hyp.record_new(rows, "2026-06-16", hyps)
+        hyp.record_new(rows, "2026-06-16", hyps)  # 同日同假设不重复
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["status"], "open")
+        self.assertEqual(rows[0]["created_date"], "2026-06-16")
+
+    def test_open_items_and_apply_reviews(self):
+        rows = [
+            {"created_date": "2026-06-15", "if_then": "若 A 则 B", "invalidation": "C",
+             "status": "open", "resolved_date": "", "verdict": "", "note": ""},
+        ]
+        open_hyps = hyp.open_items(rows)
+        self.assertEqual(len(open_hyps), 1)
+        reviews = [{"index": 1, "status": "held", "note": "数据兑现"}]
+        hyp.apply_reviews(open_hyps, reviews, "2026-06-16")  # open_hyps 是 rows 的引用
+        self.assertEqual(rows[0]["status"], "held")
+        self.assertEqual(rows[0]["resolved_date"], "2026-06-16")
+        self.assertEqual(rows[0]["note"], "数据兑现")
+        self.assertEqual(hyp.open_items(rows), [])  # 已不再 open
+
+    def test_save_load_roundtrip(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "hypotheses.csv"
+            rows = []
+            hyp.record_new(rows, "2026-06-16", [{"if_then": "若 X,则 Y", "invalidation": "Z"}])
+            hyp.save(p, rows)
+            loaded = hyp.load(p)
+            self.assertEqual(len(loaded), 1)
+            self.assertEqual(loaded[0]["if_then"], "若 X,则 Y")  # 含逗号字段正确
+
+    def test_load_missing(self):
+        self.assertEqual(hyp.load(Path("/no/such/hyp.csv")), [])
+
+
+class TestRenderM2Sections(unittest.TestCase):
+    def test_news_and_hyp_in_markdown(self):
+        obs = [Observation("2026-06-16", "DGS10", "10Y", "2026-06-12", 4.48, "%", "FRED", "")]
+        news = [{"source": "CNBC", "title": "T", "link": "L", "category": "事实",
+                 "summary": "某事发生", "affected_assets": ["美债", "黄金"], "note": "利率↑"}]
+        hyp_rows = [
+            {"created_date": "2026-06-15", "if_then": "若 A 则 B", "status": "held",
+             "resolved_date": "2026-06-16", "verdict": "held", "note": "兑现"},
+            {"created_date": "2026-06-15", "if_then": "若 C 则 D", "status": "open",
+             "resolved_date": "", "verdict": "", "note": ""},
+        ]
+        md = render_markdown("2026-06-16", obs, None, news=news, hyp_rows=hyp_rows)
+        self.assertIn("今日新闻", md)
+        self.assertIn("[事实]", md)
+        self.assertIn("美债、黄金", md)
+        self.assertIn("假设复盘", md)
+        self.assertIn("已兑现", md)
+        self.assertIn("待观察", md)
 
 
 if __name__ == "__main__":
