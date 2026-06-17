@@ -155,8 +155,13 @@ NEWS_SCHEMA = {
                         "description": "主要受影响资产(如 美债/黄金/美元/美股/A股/比特币)",
                     },
                     "note": {"type": "string", "description": "对资产的方向性影响,简短;非买卖建议"},
+                    "direction": {
+                        "type": "string",
+                        "enum": ["up", "down", "watch"],
+                        "description": "该新闻对主要受影响资产的方向性:up=利多/上行,down=利空/下行,watch=方向待观察",
+                    },
                 },
-                "required": ["index", "title", "category", "summary", "affected_assets"],
+                "required": ["index", "title", "category", "summary", "affected_assets", "direction"],
             },
         }
     },
@@ -165,7 +170,7 @@ NEWS_SCHEMA = {
 
 NEWS_SYSTEM = (
     "你是宏观新闻分类助手。把每条新闻分为『事实/解读/事实+解读/噪音』,"
-    "用中文一句话概括,列出主要受影响资产,并简述方向性影响。"
+    "用中文一句话概括,列出主要受影响资产,简述方向性影响,并给出方向 direction(up/down/watch)。"
     "严格区分客观事实与主观解读;绝不给买/卖建议,不承诺收益。"
 )
 
@@ -181,7 +186,7 @@ def classify(items: list[NewsItem]) -> list[dict] | None:
     )
     user = (
         "请对以下每条新闻分类。每条返回的 index 必须等于该条前面的编号(从 1 开始),"
-        "title 保持英文原文不要翻译,category/summary/note 用中文:\n" + listing
+        "title 保持英文原文不要翻译,category/summary/note 用中文,direction 用 up/down/watch:\n" + listing
     )
     result = provider.call_structured(
         NEWS_SYSTEM, user, "classify_news", "对新闻逐条分类(事实/解读/影响资产)", NEWS_SCHEMA

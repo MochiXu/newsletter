@@ -9,15 +9,16 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from newsletter import export_json
 from newsletter import hypotheses as hyp
 from newsletter import news as news_mod
 from newsletter.brief import _merge_news
 from newsletter.config import load_dotenv
-from newsletter.data import Observation, load_latest
+from newsletter.data import Observation, load_all, load_latest
 from newsletter.deliver.feishu import _sign
 from newsletter.news import NewsItem
 from newsletter.providers import _extract_json, select_provider
-from newsletter.render import data_table, fmt, render_markdown, render_text
+from newsletter.render import data_table, fmt, render_json, render_markdown, render_text
 
 _PROVIDER_ENV = [
     "LLM_PROVIDER", "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL",
@@ -336,6 +337,128 @@ class TestDotenv(unittest.TestCase):
 
     def test_missing_file_is_noop(self):
         self.assertEqual(load_dotenv(Path(tempfile.mkdtemp()) / "nope.env"), 0)
+
+
+def _seven_series(run_date, vals):
+    """构造某 run_date 的 7 个 series 观测;vals 顺序对应 _METRIC_SPECS。"""
+    spec = [
+        ("DGS10", "10Y", "%"), ("DGS2", "2Y", "%"), ("T10Y2Y", "2s10s", "%"),
+        ("VIXCLS", "VIX", "index"), ("DX-Y.NYB", "DXY", "index"),
+        ("DTWEXBGS", "USD Broad", "index"), ("GC=F", "Gold", "USD/oz"),
+    ]
+    return [
+        Observation(run_date, sid, lab, run_date, v, unit, "FRED", "")
+        for (sid, lab, unit), v in zip(spec, vals)
+    ]
+
+
+class TestLoadAll(unittest.TestCase):
+    def test_load_all_keeps_every_run_date(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "obs.csv"
+            p.write_text(
+                "run_date,series_id,label,obs_date,value,unit,source,note\n"
+                "2026-06-15,DGS10,10Y,2026-06-12,4.40,%,FRED,\n"
+                "2026-06-16,DGS10,10Y,2026-06-13,4.48,%,FRED,\n"
+                "2026-06-16,DGS2,2Y,2026-06-13,4.09,%,FRED,\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(len(load_all(p)), 3)  # 跨 run_date 全保留
+            self.assertEqual(len(load_latest(p)), 2)  # 仍只取最新一日
+
+
+class TestRenderJson(unittest.TestCase):
+    def _history(self):
+        day1 = _seven_series("2026-06-16", [4.40, 4.00, 0.40, 17.68, 99.66, 119.50, 4335.2])
+        day2 = _seven_series("2026-06-17", [4.48, 4.09, 0.40, 16.20, 99.48, 119.51, 4364.9])
+        return day1 + day2, day2
+
+    def _brief(self):
+        return {
+            "headline": "鹰派暂停",
+            "tone": "risk-off",
+            "facts": ["10Y 4.48%"],
+            "interpretation": ["重新计入更高更久"],
+            "hypotheses": [{"if_then": "若 X 则 Y", "invalidation": "Z"}],
+            "impact": [
+                {"asset": "美元 DXY", "watch": "105 前高", "direction": "up"},
+                {"asset": "黄金", "watch": "实际利率", "direction": "down"},
+            ],
+        }
+
+    def test_full_contract(self):
+        history, obs = self._history()
+        news = [{"source": "Fed", "title": "Fed holds", "link": "L", "category": "事实",
+                 "summary": "维持利率", "affected_assets": ["UST"], "direction": "down"}]
+        hyp_rows = [
+            {"created_date": "2026-06-16", "if_then": "若 A 则 B", "status": "held",
+             "resolved_date": "2026-06-17", "verdict": "held", "note": "兑现"},
+            {"created_date": "2026-06-16", "if_then": "若 C 则 D", "status": "open",
+             "resolved_date": "", "verdict": "", "note": ""},
+        ]
+        b = render_json("2026-06-17", obs, history, self._brief(), news=news, hyp_rows=hyp_rows)
+
+        self.assertEqual(b["date"], "2026-06-17")
+        self.assertEqual(b["weekday"], "周三")
+        self.assertEqual(b["time"], "07:00 CST")
+        self.assertEqual(b["tone"], "risk-off")
+
+        # 7 行指标,含广义美元一行,顺序固定
+        self.assertEqual(len(b["metrics"]), 7)
+        self.assertEqual(b["metrics"][0], {"key": "us10y", "label": "US10Y", "value": 4.48, "change": 0.08, "kind": "yield"})
+        self.assertEqual(b["metrics"][5]["key"], "usdbroad")
+        self.assertEqual(b["metrics"][5]["label"], "广义美元")
+        self.assertEqual(b["metrics"][6]["key"], "gold")
+        self.assertAlmostEqual(b["metrics"][3]["change"], -1.48)  # VIX 变化
+
+        # 四层 + 方向 + 复盘 + 新闻枚举映射
+        self.assertEqual(b["reads"], ["重新计入更高更久"])
+        self.assertEqual(b["hypotheses"][0], {"ifThen": "若 X 则 Y", "invalidation": "Z"})
+        self.assertEqual([i["dir"] for i in b["impacts"]], ["up", "down"])
+        self.assertEqual(b["news"][0]["cat"], "fact")  # 事实 -> fact
+        self.assertEqual(b["news"][0]["dir"], "down")
+        statuses = {r["status"] for r in b["reviews"]}
+        self.assertEqual(statuses, {"held", "open"})
+
+    def test_degraded_brief_none(self):
+        history, obs = self._history()
+        b = render_json("2026-06-17", obs, history, None, news=None, hyp_rows=[])
+        self.assertEqual(b["tone"], "neutral")  # 无 LLM 退中性
+        self.assertEqual(b["headline"], "")
+        self.assertEqual(b["facts"], [])
+        self.assertEqual(b["hypotheses"], [])
+        self.assertEqual(len(b["metrics"]), 7)  # 指标仍在(来自数据平面)
+        self.assertEqual(b["news"], [])
+
+    def test_news_unclassified_cat_none(self):
+        history, obs = self._history()
+        news = [{"source": "X", "title": "T", "link": ""}]  # 无 category
+        b = render_json("2026-06-17", obs, history, None, news=news)
+        self.assertIsNone(b["news"][0]["cat"])
+        self.assertEqual(b["news"][0]["dir"], "watch")  # 缺省方向
+
+    def test_change_zero_when_single_run_date(self):
+        obs = _seven_series("2026-06-17", [4.48, 4.09, 0.40, 16.20, 99.48, 119.51, 4364.9])
+        b = render_json("2026-06-17", obs, obs, self._brief())  # history == obs:无前值
+        self.assertTrue(all(m["change"] == 0.0 for m in b["metrics"]))
+
+
+class TestExportRebuild(unittest.TestCase):
+    def test_rebuild_sorts_desc_and_renumbers_issue(self):
+        import json as _json
+        with tempfile.TemporaryDirectory() as d:
+            bd = Path(d)
+            for date in ("2026-06-17", "2026-06-04", "2026-06-16"):  # 乱序写入
+                (bd / f"{date}.json").write_text(
+                    _json.dumps({"date": date, "issue": 999}), encoding="utf-8"
+                )
+            out = export_json.rebuild(bd, model="DeepSeek")
+            self.assertEqual(out["model"], "DeepSeek")
+            self.assertEqual(out["generatedAt"], "2026-06-17")
+            dates = [b["date"] for b in out["briefs"]]
+            self.assertEqual(dates, ["2026-06-17", "2026-06-16", "2026-06-04"])  # 倒序
+            issues = {b["date"]: b["issue"] for b in out["briefs"]}
+            self.assertEqual(issues, {"2026-06-04": 1, "2026-06-16": 2, "2026-06-17": 3})  # 年代序
 
 
 class TestDataTableEscape(unittest.TestCase):

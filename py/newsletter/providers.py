@@ -25,6 +25,11 @@ BRIEF_SCHEMA = {
     "type": "object",
     "properties": {
         "headline": {"type": "string", "description": "一句话总览今日宏观图景"},
+        "tone": {
+            "type": "string",
+            "enum": ["risk-on", "risk-off", "neutral"],
+            "description": "当日整体基调(你的全局判断):risk-on=风险偏好上升/避险松弛;risk-off=避险上升;neutral=中性观望",
+        },
         "facts": {
             "type": "array",
             "items": {"type": "string"},
@@ -54,19 +59,25 @@ BRIEF_SCHEMA = {
                 "properties": {
                     "asset": {"type": "string"},
                     "watch": {"type": "string", "description": "观察点,不是买卖建议"},
+                    "direction": {
+                        "type": "string",
+                        "enum": ["up", "down", "watch"],
+                        "description": "方向性观察:up=偏多/上行风险,down=偏空/下行风险,watch=方向待观察(非买卖建议)",
+                    },
                 },
-                "required": ["asset", "watch"],
+                "required": ["asset", "watch", "direction"],
             },
             "description": "影响层:对相关资产的观察点(绝非投资建议)",
         },
     },
-    "required": ["headline", "facts", "interpretation", "hypotheses", "impact"],
+    "required": ["headline", "tone", "facts", "interpretation", "hypotheses", "impact"],
 }
 
 SYSTEM = (
     "你是一名严谨的宏观研究助手,服务于个人投资者的学习与决策框架。"
     "硬性纪律:(1) 严格区分事实与判断;(2) 假设必须可证伪(给出失效条件);"
-    "(3) 只给『观察点』,绝不给买/卖建议,不承诺收益;(4) 中文输出,简洁、有信息量。"
+    "(3) 只给『观察点』,绝不给买/卖建议,不承诺收益;(4) 中文输出,简洁、有信息量;"
+    "(5) 给出当日整体基调 tone(risk-on/risk-off/neutral),并为每条影响层资产标注方向 direction(up/down/watch)。"
     "你会得到今日宏观数据与一份『宏观传导图』,据此推理并通过 emit_brief 输出四层简报。"
 )
 
@@ -78,7 +89,7 @@ def build_user(data_block: str, linkage_map: str) -> str:
         + "\n\n## 宏观传导图(你的推理依据)\n"
         + linkage_map
         + "\n\n请基于以上,通过 emit_brief(工具/函数)输出四层简报。"
-        "事实层只复述数据;解读层标注为判断;假设层给可证伪命题与失效条件;影响层给观察点。"
+        "事实层只复述数据;解读层标注为判断;假设层给可证伪命题与失效条件;影响层给观察点并标注 direction;另给出当日 tone。"
         "若你的接口不支持函数调用,请直接输出符合 emit_brief 参数结构的 JSON,不要包裹多余文字。"
     )
 
