@@ -1,0 +1,285 @@
+{
+  "model": "DeepSeek",
+  "generatedAt": "2026-06-17",
+  "briefs": [
+    {
+      "date": "2026-06-17",
+      "weekday": "周三",
+      "issue": 1,
+      "time": "07:00 CST",
+      "tone": "neutral",
+      "headline": "美债曲线持续陡化、美元高位震荡，黄金逆势走强——risk-off与结构性买盘并存",
+      "metrics": [
+        {
+          "key": "us10y",
+          "label": "US10Y",
+          "value": 4.43,
+          "change": -0.04,
+          "kind": "yield"
+        },
+        {
+          "key": "us2y",
+          "label": "US2Y",
+          "value": 4.05,
+          "change": -0.02,
+          "kind": "yield"
+        },
+        {
+          "key": "2s10s",
+          "label": "2s10s",
+          "value": 0.29,
+          "change": -0.09,
+          "kind": "spread"
+        },
+        {
+          "key": "vix",
+          "label": "VIX",
+          "value": 16.41,
+          "change": 0.21,
+          "kind": "index"
+        },
+        {
+          "key": "dxy",
+          "label": "DXY",
+          "value": 100.388,
+          "change": 0.848,
+          "kind": "index"
+        },
+        {
+          "key": "usdbroad",
+          "label": "广义美元",
+          "value": 119.5073,
+          "change": 0.0,
+          "kind": "index"
+        },
+        {
+          "key": "gold",
+          "label": "GOLD",
+          "value": 4299.0,
+          "change": -57.2,
+          "kind": "price"
+        }
+      ],
+      "facts": [
+        "10Y Treasury 收益率 4.43%，2Y Treasury 收益率 4.05%，2s10s 利差 0.29%（10Y 减 2Y，曲线持续为正且走陡）",
+        "VIX 16.41，处于15–20中性区间",
+        "美元指数（DXY）100.388，广义美元指数（贸易加权）119.5073",
+        "黄金（COMEX front）4299 USD/oz"
+      ],
+      "reads": [
+        "2s10s 利差 0.29% 且为正，已脱离倒挂状态，属于熊陡（10Y 上行快于 2Y），指向期限溢价上升/财政担忧/再通胀叙事，而非降息预期驱动的牛陡",
+        "VIX 16.41 处于中性偏震荡区间，未触发避险警报，但也不支持激进 risk-on",
+        "美元 DXY 100.388 处于近年高位区间，广义美元同步高位，对大宗和新兴市场构成压制",
+        "黄金 4299 USD/oz 在美元高位、实际利率不低的背景下仍创新高，与实际利率/美元的经典负相关出现背离，暗示存在结构性买盘（央行购金/去美元化/避险溢价）",
+        "当前 regime 属于『利率曲线熊陡 + 美元高位 + 黄金脱钩走强』的矛盾组合：市场在定价再通胀/财政风险的同时，也在定价尾部风险或结构性去美元化"
+      ],
+      "hypotheses": [
+        {
+          "ifThen": "若 10Y 收益率持续上行突破 4.50% 且 VIX 同步升破 20，则黄金将因实际利率压制和流动性收紧而回调",
+          "invalidation": "黄金在 10Y>4.50% 且 VIX>20 的环境下仍不跌或继续上涨"
+        },
+        {
+          "ifThen": "若 2s10s 利差继续走阔（熊陡加深）至 0.40% 以上，则市场对财政/通胀担忧加剧，成长股和长债承压",
+          "invalidation": "利差走阔的同时成长股和长债不跌反涨"
+        },
+        {
+          "ifThen": "若 DXY 从当前 100.4 回落至 99 以下，则黄金和新兴市场将获得显著顺风",
+          "invalidation": "DXY 跌破 99 后黄金或新兴市场未出现明显上涨"
+        }
+      ],
+      "impacts": [
+        {
+          "asset": "黄金（XAU/USD）",
+          "watch": "观察黄金是否持续脱钩美元与实际利率；若美元回落或 VIX 升破 20，黄金方向将面临方向选择",
+          "dir": "watch"
+        },
+        {
+          "asset": "美股（标普500）",
+          "watch": "熊陡环境下长端利率上行压制估值，关注 10Y 是否突破 4.50% 关键位",
+          "dir": "down"
+        },
+        {
+          "asset": "美债（TLT/长债）",
+          "watch": "熊陡延续对长债不利，关注下周拍卖需求及期限溢价变化",
+          "dir": "down"
+        },
+        {
+          "asset": "美元（DXY）",
+          "watch": "高位震荡，若黄金持续走强而美元不跌，可能预示美元流动性异常或避险买盘分流",
+          "dir": "watch"
+        },
+        {
+          "asset": "新兴市场（EEM）",
+          "watch": "广义美元高位压制新兴市场，需等美元回落信号出现",
+          "dir": "down"
+        }
+      ],
+      "reviews": [
+        {
+          "ifThen": "若 2s10s 利差继续走阔且 10Y 上行快于 2Y（熊陡延续），则市场在定价财政赤字担忧或通胀预期回升，而非降息预期。",
+          "status": "held",
+          "note": "今日10Y=4.48%, 2Y=4.09%, 2s10s利差=0.4%(40bp), 10Y上行快于2Y(熊陡延续), 且2Y并未同步或更快下行, 失效条件未触发。"
+        },
+        {
+          "ifThen": "若黄金在广义美元偏强环境下继续上涨或维持高位，则当前定价逻辑已从『实际利率+美元』框架切换至『去美元化/央行购金/避险』叙事。",
+          "status": "held",
+          "note": "黄金4364.9美元/oz维持高位, 广义美元119.5仍偏强, 黄金未因美元回落而上涨, 符合『去美元化/央行购金/避险』叙事, 传统框架失效条件未触发。"
+        },
+        {
+          "ifThen": "若广义美元与 DXY 的背离持续扩大，则反映全球贸易格局分化——美国对非欧日英经济体保持强势，可能压制新兴市场资产。",
+          "status": "open",
+          "note": "今日数据：广义美元(FRED Broad)为119.5073（6/12），DXY为100.388（6/17），两者数值差距约19个点，仍处于较大背离状态。但广义美元数据滞后（6/12 vs DXY的6/17），且无最新收敛证据，背离尚未消除，失效条件未触发，故维持open。"
+        },
+        {
+          "ifThen": "若 2Y 收益率在未来一周跌破 4.0%，则 2s10s 利差将走陡至 0.50% 以上，确认牛陡 regime，利好成长股与黄金。",
+          "status": "open",
+          "note": ""
+        },
+        {
+          "ifThen": "若广义美元与 DXY 的背离持续扩大（广义美元继续上行而 DXY 跌破 99），则反映全球贸易摩擦加剧或新兴市场承压，对新兴市场资产不利。",
+          "status": "open",
+          "note": ""
+        },
+        {
+          "ifThen": "若黄金在广义美元不跌、VIX 不升的条件下继续站稳 4400 以上，则黄金与实际利率/美元的负相关关系正在弱化，去美元化或央行购金成为主导定价因子。",
+          "status": "open",
+          "note": ""
+        }
+      ],
+      "news": [
+        {
+          "title": "Federal Reserve issues FOMC statement",
+          "source": "Fed",
+          "cat": "fact",
+          "assets": [
+            "美债",
+            "美元",
+            "美股"
+          ],
+          "dir": "watch",
+          "link": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm"
+        },
+        {
+          "title": "Federal Reserve Board and Federal Open Market Committee release economic projections from the June 16-17 FOMC meeting",
+          "source": "Fed",
+          "cat": "fact",
+          "assets": [
+            "美债",
+            "美元",
+            "美股"
+          ],
+          "dir": "watch",
+          "link": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617b.htm"
+        },
+        {
+          "title": "Federal Reserve Board announces final rule that establishes data standards for certain information collections",
+          "source": "Fed",
+          "cat": "fact",
+          "assets": [
+            "美债"
+          ],
+          "dir": "watch",
+          "link": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260611a.htm"
+        },
+        {
+          "title": "Federal Reserve Board announces that results from its annual bank stress test will be released on Wednesday, June 24, at 4 p.m. EDT.",
+          "source": "Fed",
+          "cat": "fact",
+          "assets": [
+            "美股（银行股）"
+          ],
+          "dir": "watch",
+          "link": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260609a.htm"
+        },
+        {
+          "title": "Agencies remove additional references to reputation risk",
+          "source": "Fed",
+          "cat": "fact",
+          "assets": [
+            "美股（银行股）"
+          ],
+          "dir": "watch",
+          "link": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260602a.htm"
+        },
+        {
+          "title": "Here are the five big takeaways from Kevin Warsh's first meeting as Fed chairman",
+          "source": "CNBC",
+          "cat": "read",
+          "assets": [
+            "美债",
+            "美元",
+            "美股"
+          ],
+          "dir": "watch",
+          "link": "https://www.cnbc.com/2026/06/17/here-are-the-five-big-takeaways-from-kevin-warshs-first-meeting-as-fed-chairman.html"
+        },
+        {
+          "title": "Trump says he likes idea of blaming Vance if Iran deal doesn't work out",
+          "source": "CNBC",
+          "cat": "both",
+          "assets": [
+            "原油",
+            "黄金"
+          ],
+          "dir": "watch",
+          "link": "https://www.cnbc.com/2026/06/17/trump-vance-iran-deal-nuclear-g7.html"
+        },
+        {
+          "title": "Jeffrey Gundlach says Fed's Warsh is not going to be the 'easy money' chairman many hoped for",
+          "source": "CNBC",
+          "cat": "read",
+          "assets": [
+            "美债",
+            "美元"
+          ],
+          "dir": "watch",
+          "link": "https://www.cnbc.com/2026/06/17/jeffrey-gundlach-says-feds-warsh-is-not-going-to-be-the-easy-money-chairman-many-hoped-for.html"
+        },
+        {
+          "title": "Defense contractors would be barred from buying back their stock in bill approved by Senate panel",
+          "source": "CNBC",
+          "cat": "fact",
+          "assets": [
+            "美股（国防股）"
+          ],
+          "dir": "watch",
+          "link": "https://www.cnbc.com/2026/06/17/defense-contractors-stock-buybacks-senate-warren-trump.html"
+        },
+        {
+          "title": "Analysis: Chairman Kevin Warsh’s task forces are the key to understanding the new Fed",
+          "source": "CNBC",
+          "cat": "read",
+          "assets": [
+            "美债",
+            "美元"
+          ],
+          "dir": "watch",
+          "link": "https://www.cnbc.com/2026/06/17/kevin-warsh-fed-interest-rates-risk-analysis.html"
+        },
+        {
+          "title": "Rumble gets 22,000 Nvidia chips, but the video company’s CEO insists this isn’t a fad-like pivot",
+          "source": "MarketWatch",
+          "cat": "both",
+          "assets": [
+            "Rumble股票",
+            "英伟达股票"
+          ],
+          "dir": "watch",
+          "link": "https://www.marketwatch.com/story/rumble-gets-22-000-nvidia-chips-but-the-video-companys-ceo-insists-this-isnt-a-fad-like-pivot-b52b2036?mod=mw_rss_topstories"
+        },
+        {
+          "title": "It’s ‘unavoidable’: Apple says it will be forced to raise prices due to the AI boom",
+          "source": "MarketWatch",
+          "cat": "both",
+          "assets": [
+            "苹果股票",
+            "半导体/存储芯片股",
+            "消费电子"
+          ],
+          "dir": "watch",
+          "link": "https://www.marketwatch.com/story/its-unavoidable-apple-says-it-will-be-forced-to-raise-prices-due-to-the-ai-boom-e3d1e4c4?mod=mw_rss_topstories"
+        }
+      ]
+    }
+  ]
+}
