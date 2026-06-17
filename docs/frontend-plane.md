@@ -70,20 +70,20 @@
   "weekday": "周三",              // 由 date 推导
   "issue": 143,                  // 交易日序号(累计计数)
   "time": "07:00 CST",           // 常量
-  "tone": "neutral",             // risk-on | risk-off | neutral(派生,见 §6 开放问题)
+  "tone": "neutral",             // risk-on | risk-off | neutral;由 LLM 产出,无 LLM 时退 neutral
   "headline": "……",             // brief.headline
-  "metrics": [                   // 固定 6 行,顺序:US10Y/US2Y/2s10s/VIX/DXY/GOLD
+  "metrics": [                   // 固定映射 7 行:US10Y/US2Y/2s10s/VIX/DXY/广义美元/GOLD
     { "key": "us10y", "label": "US10Y", "value": 4.48, "change": 0.0, "kind": "yield" }
     // kind ∈ yield | spread | index | price —— 决定数值/变化量格式化与单位
   ],
   "facts":      ["……"],          // brief.facts
   "reads":      ["……"],          // brief.interpretation
   "hypotheses": [ { "ifThen": "……", "invalidation": "……" } ],     // brief.hypotheses
-  "impacts":    [ { "asset": "黄金 XAU", "watch": "……", "dir": "watch" } ], // brief.impact(+dir,见缺口)
+  "impacts":    [ { "asset": "黄金 XAU", "watch": "……", "dir": "watch" } ], // brief.impact.direction 映射而来
   "reviews":    [ { "ifThen": "……", "status": "held", "note": "……" } ],   // hypotheses.csv 当日复盘
   "news": [
     { "title": "……", "source": "Fed", "cat": "fact",
-      "assets": ["美债","美元"], "dir": "·", "link": "https://…" }
+      "assets": ["美债","美元"], "dir": "watch", "link": "https://…" }
     // cat: 事实→fact 解读→read 事实+解读→both 噪音→noise
   ]
 }
@@ -94,14 +94,14 @@
 | 前端字段 | 后端来源 | 备注 |
 |---|---|---|
 | `date / weekday / time / issue` | `run_date` + 派生 | weekday 由日期算;issue = 累计交易日序号 |
-| `metrics[].value` | `observations.csv` | 按 series 选 6 个:DGS10/DGS2/T10Y2Y/VIXCLS/DX-Y.NYB/GC=F |
+| `metrics[].value` | `observations.csv` | 按 series 选 7 个:DGS10/DGS2/T10Y2Y/VIXCLS/DX-Y.NYB/DTWEXBGS/GC=F |
 | `metrics[].change` | `observations.csv` 相邻 run_date 差 | 当日值 − 上一交易日值 |
 | `metrics[].kind` | series 固定映射 | 收益率→yield、利差→spread、VIX/DXY→index、金价→price |
 | `headline / facts / reads` | `brief.headline / .facts / .interpretation` | 直接搬 |
 | `hypotheses[]` | `brief.hypotheses[{if_then,invalidation}]` | 改名 `ifThen` |
-| `impacts[]` | `brief.impact[{asset,watch}]` | **缺 `dir`**,见缺口 |
+| `impacts[]` | `brief.impact[{asset,watch,direction}]` | `direction` 映射为前端 `dir`;枚举 `up/down/watch` |
 | `reviews[]` | `hypotheses.csv` 当日 resolved + 仍 open | status: held/invalidated/open |
-| `news[]` | `brief` 内 `news`(merge 后) | cat 中文→英文枚举;**缺 `dir`** |
+| `news[]` | `brief` 内 `news`(merge 后) | cat 中文→英文枚举;`direction` 映射为前端 `dir` |
 | `model` | provider(env) | 页脚签名 `GEN <model>` |
 
 ### 3.3 数据来源说明(评审后已收口)
@@ -208,13 +208,17 @@ npm run build               # 类型检查 + 打包到 dist/(纯静态产物)
 | **F4 Tweaks + 边界态 + 收尾** ✅ | accent 取色 / sparkline / texture 三开关(localStorage 持久化);加载呼吸占位、空复盘隐藏;桌面/移动像素级对齐;`npm run build` 通过 | 可交付的小票阅读器 |
 | **F5(可选)联动后端缺口** ⏳ | `tone` / `dir` 已在 F0 进 schema;F5 主要剩「真实数据攒够后自动接管 demo」+ 部署。本轮不做 | 时间线染色、方向箭头随真实数据生效 |
 
-## 9. 开放问题
+## 9. 已决策与剩余开放问题
 
-1. **`tone` 怎么定**:先启发式(VIX/收益率组合)还是直接让 LLM 产出?——本轮先启发式 + 默认 neutral。
-2. **`impacts[].dir` / `news[].dir`**:加进 LLM schema 最干净,但要改 `emit_brief`。本轮先默认 `·`。
-3. **`issue` 刊号起点**:设计稿示例从 142 起。需定一个 epoch(某交易日 = 第 1 刊)或直接用累计交易日数。
-4. **`briefs.json` 怎么到前端**:dev 期用 Vite 代理读仓库根 `data/briefs.json`,构建期拷进 `public/data/`——两者都不需要服务端;具体取舍 F1 落地时定。
-5. **部署**:本轮不涉及(纯静态产物,以后可挂任意静态托管 / GitHub Pages)。
+已决策 / 已落地:
+1. **`tone` 怎么定**:由 LLM 在 `emit_brief` schema 中直接产出(`risk-on/risk-off/neutral`);无 LLM 时退 `neutral`。
+2. **`impacts[].dir` / `news[].dir`**:已进 LLM schema,后端用 `direction` 产出 `up/down/watch`,前端渲染成方向箭头/观察符号。
+3. **`briefs.json` 怎么到前端**:后端产出仓库根 `data/briefs.json`;前端 `predev/prebuild` 通过 `scripts/copy-data.mjs` 拷到 `public/data/`,缺失时回退 9 天 demo。
+
+仍开放:
+1. **真实数据接管时机**:管线连续运行后让 `data/briefs.json` 攒够真实内容,前端自动从 demo 切换到真实数据。
+2. **部署**:纯静态产物,后续挂 GitHub Pages / 任意静态托管。
+3. **`issue` 刊号起点**:当前按聚合文件中的日期年代序重算(最早=1);若公开发行需要营销化刊号,再定 epoch。
 
 ## 10. 后续可拓展(对齐设计稿 §11,本轮不做)
 

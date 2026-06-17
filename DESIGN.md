@@ -54,8 +54,8 @@
 |---|---|---|
 | 10Y / 2Y / 2s10s | FRED `DGS10`/`DGS2`/`T10Y2Y` | 免费 API key,每日,最稳,优先 |
 | VIX | FRED `VIXCLS` 或 Yahoo `^VIX` | 免费 |
-| Gold | M0:FRED `GOLDAMGBD228NLBM`(伦敦定盘价);后续 Yahoo `GC=F`/Stooq | M0 全走 FRED 省一个源 |
-| DXY | Yahoo `DX=F`,或 FRED 贸易加权美元 `DTWEXBGS` 代理 | ICE 官方收费,用代理并注明口径 |
+| Gold | Yahoo `GC=F` | COMEX front futures;FRED 伦敦金价序列已下架,后续可换更贴盘口/更稳定源 |
+| DXY | Yahoo `DX-Y.NYB` + FRED `DTWEXBGS` | `DX-Y.NYB` 是用户口径的 ICE 窄口径 DXY 代理;`DTWEXBGS` 是贸易加权广义美元,两者并列展示且不混用 |
 | FedWatch | 自己从 30 天联邦基金期货 `ZQ` 算隐含概率 | 无干净免费 API;自己算=最好的学习项目,Phase 2 |
 | CFTC 持仓 (COT) | CFTC Socrata API | 免费,每周五发布(周二数据) |
 | ETF flow | 无统一免费 API;加密 ETF 用 Farside | 往后放 |
@@ -63,22 +63,22 @@
 
 ## 6. 架构(Rust + Python 混合,各扬所长)
 
-清晰的接缝是关键:两半**互不直接调用**,只通过共享 SQLite 数据库这一个契约协作。
+清晰的接缝是关键:两半**互不直接调用**,当前只通过共享数据文件协作。SQLite 是未来在数据量/查询复杂度上来后的迁移目标,不是当前契约。
 
 | 平面 | 语言 | 负责 |
 |---|---|---|
-| 数据平面 | **Rust** | fetchers(FRED/Stooq/CFTC/RSS)、并发抓取、写 SQLite;编译成二进制,cron 跑,无人值守可靠 |
-| 智能平面 | **Python** | 读数据(M1 读 CSV)+ linkage map → 调 Claude(tool use 强制四层)→ 渲染 markdown → 存 md + 推飞书 |
-| 接缝 | **SQLite `data/brief.db` + `schema.sql`** | 唯一契约;**不走 FFI/PyO3,不走 HTTP service** |
+| 数据平面 | **Rust** | fetchers(FRED/Yahoo;后续 CFTC/FedWatch/A股港股等)、写 `data/observations.csv` + `data/snapshots/<date>.md`;编译成二进制,cron 跑,无人值守可靠 |
+| 智能平面 | **Python** | 读 CSV + linkage map → 多 provider LLM 强制四层 → 渲染 markdown / JSON → 存本地 + 推飞书 |
+| 接缝 | **CSV / Markdown / JSON 数据文件** | 当前契约:`observations.csv`、`briefs/<date>.md|json`、`briefs.json`、`hypotheses.csv`;**不走 FFI/PyO3,不走 HTTP service** |
 
-- **Rust**:`reqwest`+`tokio` 抓取,`sqlx`(编译期校验 SQL)写库;数据源全走 FRED+Stooq+Socrata,避开 yfinance 的接口漂移
+- **Rust**:`reqwest` blocking 抓取,FRED 为权威主源,Yahoo 作为 DXY/黄金补充与 FRED 全失败时的降级源;序列增多后再切 `tokio` 并发
 - **Python**:**纯 stdlib**(`urllib`/`json`/`csv`/`hmac`/`xml`,零第三方);LLM 走统一 `call_structured`(Anthropic tool use / OpenAI 兼容 function calling),`framework/linkage_map.md` 运行时读取
 - **模型**:**provider 可插拔**(Anthropic / OpenAI / MiniMax / DeepSeek 等);默认 `claude-sonnet-4-6`,深度 `claude-opus-4-8`
 - **调度**:**GitHub Actions cron**,顺序跑 `cargo run --release`(Rust 抓数)→ `python -m newsletter.brief`(读数据→Claude→渲染→存/推)
 - **交付**:Python 推**飞书机器人**(始终先存本地 md 兜底);Telegram/邮件后续再加,交互式 bot 可再用 Rust `teloxide`
 - **配置**:`.env`(API keys)
 
-**为什么这个接缝好**:流程是线性的一次交接(Rust 写库 → Python 读库),没有进程内调用所以不需要 FFI/maturin 的构建复杂度;而且本地迭代 prompt 时**只跑 Python 半边**、读上次 Rust 落的库快照——既拿到 Rust 的无人值守可靠性,又保住 Python 改 prompt 即时见效的内循环。
+**为什么这个接缝好**:流程是线性的一次交接(Rust 写文件 → Python 读文件),没有进程内调用所以不需要 FFI/maturin 的构建复杂度;而且本地迭代 prompt 时**只跑 Python 半边**、读上次 Rust 落的快照——既拿到 Rust 的无人值守可靠性,又保住 Python 改 prompt 即时见效的内循环。GitHub Actions 临时 runner 上 SQLite 文件本身不持久,把数据提交回仓库更适合当前阶段;等需要复杂历史查询、rolling feature、跨表 join 时,再从 CSV 重建/引入 SQLite 或 DuckDB。
 
 建议仓库结构(复用现有的根 `Cargo.toml`/`src/` 作为数据平面):
 ```
@@ -88,31 +88,29 @@ newsletter/
     main.rs
     sources/ (fred.rs, stooq.rs, cftc.rs, rss.rs)
     store.rs
-  schema.sql                   # 共享契约:SQLite 表定义(两边都读)
-  pyproject.toml               # Python 包:智能平面
+
   py/newsletter/
     framework/
       linkage_map.md           # IP:人工维护的宏观传导图
-      schema.py                # 四层 pydantic 模型
-    brief.py                   # 读库 -> 调 Claude -> 渲染
+    brief.py                   # 读 CSV -> 调 LLM -> 渲染 Markdown/JSON
     render.py
     deliver/feishu.py
-  prompts/                     # prompt 模板(运行时读,不重编译)
-  data/brief.db                # 接缝(.gitignore)
+  data/observations.csv        # Rust → Python 的事实数据接缝(git-as-database)
+  data/briefs.json             # Python → Frontend 的展示接缝
   .github/workflows/daily.yml  # cargo run --release && python -m newsletter.brief
 ```
 
-> **M0 现状(2026-06-16,代码已落地)**:数据平面用 `reqwest` blocking 抓 6 个 FRED 序列,存为 CSV + markdown 提交回仓库(GitHub Actions 临时 runner 上 SQLite 不持久 → M0 用 git-as-database,SQLite 接缝待 M1);单测覆盖解析与落库。**另加 Yahoo 免鉴权回退源**:在无有效 FRED key 时也用真实数据(S&P/VIX/10Y/DXY/Gold)跑通了管道并提交首个快照。详见 [docs/data-plane.md](docs/data-plane.md)。
+> **M0 现状(2026-06-17,代码已落地)**:数据平面用 `reqwest` blocking 抓 FRED 核心序列(10Y/2Y/2s10s/VIX/广义美元),并用 Yahoo 补 DXY/黄金;存为 CSV + markdown 提交回仓库(GitHub Actions 临时 runner 上 SQLite 不持久 → 当前用 git-as-database,SQLite/DuckDB 待复杂查询时再引入)。单测覆盖解析、落库、新鲜度与 api_key 不泄漏。详见 [docs/data-plane.md](docs/data-plane.md)。
 
-> **M1 现状(2026-06-16,代码已就绪)**:智能平面(Python,纯 stdlib)读 `observations.csv` + 传导图 → Claude `emit_brief` 工具强制四层(事实/解读/可证伪假设/影响)→ 存 `data/briefs/<date>.md` + 推飞书。已用真实 M0 数据跑通**回退路径**(无 ANTHROPIC_API_KEY → 仅事实层;无 FEISHU_WEBHOOK → 仅存 md);6 单测过。完整 AI 四层待填 `ANTHROPIC_API_KEY`。详见 [docs/intelligence-plane.md](docs/intelligence-plane.md)。
+> **M1 现状(2026-06-17,代码已就绪并实跑)**:智能平面(Python,纯 stdlib)读 `observations.csv` + 传导图 → 多 provider LLM `emit_brief` 强制四层(事实/解读/可证伪假设/影响,含 `tone` 与 impact `direction`)→ 存 `data/briefs/<date>.md|json` + 增量维护 `data/briefs.json` + 推飞书。无 key / webhook 时优雅降级。详见 [docs/intelligence-plane.md](docs/intelligence-plane.md)。
 
-> **M2 现状(2026-06-16,代码已就绪)**:新闻分类(`news.py`,stdlib RSS+Atom,已实测抓取真实新闻)+ 假设追踪复盘日志(`hypotheses.py`,git-as-database `hypotheses.csv`)接进简报;无 LLM key 时新闻仍展示原始标题。LLM 层已重构为**多 provider 可插拔**(Anthropic/OpenAI/MiniMax 等)。21 单测过。详见 [docs/intelligence-plane.md](docs/intelligence-plane.md)。
+> **M2 现状(2026-06-17,代码已就绪并实跑)**:新闻分类(`news.py`,stdlib RSS+Atom)+ 假设追踪复盘日志(`hypotheses.py`,git-as-database `hypotheses.csv`)接进简报;新闻与假设复盘均用 `index` 对齐,避免 LLM 改写标题/假设文本导致错配。无 LLM key 时新闻仍展示原始标题。详见 [docs/intelligence-plane.md](docs/intelligence-plane.md)。
 
 ## 7. 里程碑
 
 - **M0 · 本周**(✅ 已跑通真实数据)— 数据管道打通。拉 6 个核心数据(10Y/2Y/2s10s/VIX/USD/Gold,FRED 主源 + Yahoo 补 DXY/黄金),存为 CSV + markdown 提交回仓库。
-- **M1 · 第 2-3 周**(代码已就绪)— 每日四层简报(只给作者)。Python 读数据 + linkage map → Claude 四层简报 → 存本地 md + 推**飞书机器人**(无 key 降级仅事实层;无 webhook 仅存 md)。✅ 验收:作者每天真读、觉得比刷推特信息量大(待填 ANTHROPIC_API_KEY 出完整四层)。
-- **M2 · 第 4-6 周**(代码已就绪)— 新闻分类(RSS → 事实/解读/影响资产)+ 假设追踪复盘日志(可证伪假设次日复盘 held/invalidated/open),均接进每日简报。发给朋友收反馈待 LLM key 跑出完整内容。
+- **M1 · 第 2-3 周**(✅ 已用 DeepSeek 跑通)— 每日四层简报(只给作者)。Python 读数据 + linkage map → LLM 四层简报 → 存本地 md/json + 推**飞书机器人**(无 key 降级仅事实层;无 webhook 仅存 md)。
+- **M2 · 第 4-6 周**(✅ 已用 DeepSeek 跑通)— 新闻分类(RSS → 事实/解读/影响资产)+ 假设追踪复盘日志(可证伪假设次日复盘 held/invalidated/open),均接进每日简报。
 - **M3 · 第 2 月** — 接入 A股/港股影响层;固定格式/时间/voice。
 - **M4 · 第 3 月+** — 单资产交易框架生成器、CFTC、dashboard;考虑公开 + 付费墙(¥99-299/月)。
 
@@ -124,11 +122,11 @@ newsletter/
 
 1. 首要目标:**先自用 2-3 个月再公开**(dogfood-first)
 2. 关注市场:全球宏观 + 美股 + 加密 + A股/港股(分批,见 §4)
-3. 技术栈:**Rust + Python 混合**——Rust 数据平面 + Python 智能平面,接缝为共享 SQLite(见 §6;现有 Rust 骨架复用)
+3. 技术栈:**Rust + Python 混合**——Rust 数据平面 + Python 智能平面;当前接缝为 CSV/Markdown/JSON 数据文件(git-as-database),复杂查询阶段再迁移 SQLite/DuckDB
 4. 首发交付:**飞书机器人 webhook**(始终存本地 md 兜底;Telegram 暂不可用,后续再加)
 
 ## 9. 待定 / Open questions
 
-- FRED API key、Telegram Bot token 的获取
+- Telegram Bot token 的获取(非首发渠道)
 - linkage map 初版由谁写第一版规则(作者口述 + AI 整理?)
 - 日报里"偏离预期"需要 consensus 数据(经济日历预期值)——来源待定

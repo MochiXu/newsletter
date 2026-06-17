@@ -100,7 +100,7 @@ M0 跑在 GitHub Actions 临时 runner 上,SQLite 文件不跨运行持久化。
 - `data/snapshots/<run_date>.md` — 人类可读的当日快照(同日重跑覆盖);失败原因经
   单行化/截断/转义后写入,避免破坏 markdown 渲染
 
-SQLite 接缝(DESIGN §6 的契约)待 **M1** Python 需要查询历史时再引入;届时可由 CSV 重建或新增 SQLite writer。
+SQLite/DuckDB 接缝不再是 M1 的前置条件。当前契约就是 `observations.csv` + markdown 快照(git-as-database);等需要复杂历史查询、rolling feature、跨表 join 或更大数据量时,再由 CSV 重建或新增 SQLite/DuckDB writer。
 
 ## 运行
 
@@ -139,9 +139,9 @@ cargo clippy --all-targets     # 静态检查(应无告警)
 
 > 全局路线 / 技术债 / 开放问题见 [TODO.md](TODO.md)。
 
-- [ ] 用真实 key 跑通一次(M0 验收:连续 3 天产出快照)
-- [ ] 确认 `GOLDAMGBD228NLBM` 是否仍更新;若被新鲜度校验判为陈旧则换 Stooq/Yahoo
-- [ ] DXY/Gold 换更贴盘口的源(Stooq/Yahoo)
-- [ ] 加 CFTC COT(每周)、RSS 新闻(M2)
+- [x] 用真实 key 跑通并连续产出快照(见 README/TODO 当前状态)
+- [x] 黄金从已下架的 FRED `GOLDAMGBD228NLBM` 切到 Yahoo `GC=F`;DXY 用 Yahoo `DX-Y.NYB`,并保留 FRED `DTWEXBGS` 作为广义美元口径
+- [ ] DXY/Gold 换更贴盘口/更稳定的源(当前 Yahoo 可用但非官方,后续可加替代源或 fallback)
+- [ ] 加 CFTC COT(每周)、FedWatch/ZQ、ETF flow 等新数据源
 - [ ] 序列增多后切 async 并发抓取
-- [ ] M1:引入 SQLite 接缝供 Python 读取
+- [ ] 复杂查询阶段引入 SQLite/DuckDB 接缝供 Python / frontend analytics 读取
