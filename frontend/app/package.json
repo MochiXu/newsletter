@@ -1,0 +1,27 @@
+{
+  "name": "newsletter-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "展示平面:把每日宏观简报渲染成「暖纸小票」阅读器(React + Vite + TS)",
+  "scripts": {
+    "predev": "node scripts/copy-data.mjs",
+    "dev": "vite --port 5179 --strictPort",
+    "prebuild": "node scripts/copy-data.mjs",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.1.1",
+    "@fontsource/noto-sans-sc": "^5.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  }
+}

@@ -1,0 +1,130 @@
+/* 主题与基础样式:从设计稿 frontend/desgin/resource/市场走势简报.dc.html 的 <helmet> 1:1 搬运。
+   所有色彩集中在 CSS 变量;明暗主题通过 data-theme 属性 + prefers-color-scheme 媒体查询联动。
+   注意:data-theme="auto" 不匹配任何 [data-theme=...] 规则,于是落到 :root + @media,
+   从而「跟随系统」——这是有意的机制,React 侧把 themeMode 原样写进 data-theme 即可。 */
+
+:root {
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: "Noto Sans SC", "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --bg: #e7ddc9;
+  --paper: #fdfaf2;
+  --paper2: #f3ebd9;
+  --ink: #2b2018;
+  --ink2: #8a785b;
+  --faint: #d6c9af;
+  --hair: #ece2cd;
+  --accent: #c0612f;
+  --up: #2f7d50;
+  --down: #c0432a;
+  --blue: #3a6ea5;
+  --shadow: 0 20px 50px -26px rgba(70, 48, 18, 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16130f;
+    --paper: #221c15;
+    --paper2: #2b241b;
+    --ink: #ece2cf;
+    --ink2: #9a8a6f;
+    --faint: #3c3326;
+    --hair: #2c2618;
+    --accent: #e0824a;
+    --up: #5bc486;
+    --down: #e8694e;
+    --blue: #7aa6dd;
+    --shadow: 0 26px 60px -30px rgba(0, 0, 0, 0.78);
+  }
+}
+
+[data-theme="light"] {
+  --bg: #e7ddc9;
+  --paper: #fdfaf2;
+  --paper2: #f3ebd9;
+  --ink: #2b2018;
+  --ink2: #8a785b;
+  --faint: #d6c9af;
+  --hair: #ece2cd;
+  --accent: #c0612f;
+  --up: #2f7d50;
+  --down: #c0432a;
+  --blue: #3a6ea5;
+  --shadow: 0 20px 50px -26px rgba(70, 48, 18, 0.55);
+}
+
+[data-theme="dark"] {
+  --bg: #16130f;
+  --paper: #221c15;
+  --paper2: #2b241b;
+  --ink: #ece2cf;
+  --ink2: #9a8a6f;
+  --faint: #3c3326;
+  --hair: #2c2618;
+  --accent: #e0824a;
+  --up: #5bc486;
+  --down: #e8694e;
+  --blue: #7aa6dd;
+  --shadow: 0 26px 60px -30px rgba(0, 0, 0, 0.78);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+}
+button {
+  font-family: inherit;
+  outline: none;
+}
+
+@keyframes receiptIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes mbpulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* 区域内独立滚动条:细、暖色、跟随主题(桌面下时间线列 / 小票列各自滚动)。
+   thumb 用 background-clip:content-box + 透明边框做出「留白细条」效果,空闲时低调、悬停加深。 */
+.mb-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--faint) transparent;
+}
+.mb-scroll::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+.mb-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.mb-scroll::-webkit-scrollbar-thumb {
+  background: var(--faint);
+  border-radius: 9px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.mb-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--ink2);
+  background-clip: content-box;
+}

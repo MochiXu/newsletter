@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# 构建期从仓库根 data/briefs.json 拷贝过来的运行时数据(产物,不入库)
+public/data/briefs.json
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
