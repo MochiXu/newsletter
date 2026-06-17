@@ -75,6 +75,13 @@ RSS 抓取 + 分类(事实/解读/影响资产)+ 可证伪假设次日复盘,均
 - [ ] Telegram(若之后可用)
 - [ ] Web dashboard(M4)
 
+### 展示平面(前端,`frontend/app/`)— F0–F4 已完成
+- [x] React18+Vite+TS 小票阅读器:数据契约 + 后端 JSON 导出 + 主题 + 时间线 + 五节内容 + Tweaks + 响应式(明暗/桌面/移动均验证)
+- [ ] **真实数据接管**:管线连续运行让 `data/briefs.json` 攒够内容,前端从 9 天 demo 自动切到真实(`loadBriefs` 已就绪)
+- [ ] **部署**:纯静态产物,挂 GitHub Pages / 任意静态托管(F5)
+- [ ] **esbuild 开发期 RCE 告警**(`npm audit` 3 条 high,经 vite→plugin-react 传递):仅影响构建工具、不进生产产物;修复需破坏性升级 vite,择机处理
+- [ ] 详情走势图 / 跨日搜索 / PDF 导出 / 多模型对比(设计稿 §11,后续)
+
 ### 基础设施 / CI
 - [ ] CI 缓存 Rust 构建(已用 `Swatinem/rust-cache`);Python 无依赖无需缓存
 - [ ] 失败可见性:简报部分序列失败/无分类时,除日志外发通知(现有 `::warning::` 注解)

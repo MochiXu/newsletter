@@ -14,6 +14,7 @@
 | **M1** 智能平面(Python) | 数据 + 宏观传导图 → LLM 四层简报 → 存 md + 推飞书 | ✅ 已用 DeepSeek 跑通完整四层 |
 | **多模型** | LLM 可插拔:Anthropic / OpenAI / MiniMax / DeepSeek / … | ✅(DeepSeek 已实跑) |
 | **M2** | 新闻分类(RSS→事实/解读/影响资产)+ 假设追踪复盘日志 | ✅ 已实跑 |
+| **展示平面**(前端) | React「暖纸小票」阅读器:JSON 接缝 + 明暗主题 + 时间线 + 四层/复盘/新闻 + Tweaks | ✅ F0–F4 完成(本地构建) |
 | M3 / M4 | A股港股、交易框架生成器、CFTC、dashboard、付费墙 | ⏳ 见 [docs/TODO.md](docs/TODO.md) |
 
 **优雅降级**:没有 LLM key 也能跑——产出事实层数据快照 + 原始新闻标题;没有飞书 webhook 就只
@@ -61,12 +62,17 @@ py/newsletter/             # 智能平面(Python,纯 stdlib)
   brief.py                 # 入口:编排上面所有
   deliver/feishu.py        # 飞书机器人推送
   framework/linkage_map.md # 核心 IP:人工维护的宏观传导图
-  tests/test_brief.py      # 32 个离线单测
+  export_json.py           # 重建展示平面聚合 data/briefs.json
+  tests/test_brief.py      # 38 个离线单测
 data/                      # git-as-database
   observations.csv         # 机器可读时序(append/upsert)
   snapshots/<date>.md      # 每日数据快照(人读)
   briefs/<date>.md         # 每日简报(人读)
+  briefs.json              # 展示平面接缝:聚合简报(供前端 fetch)
   hypotheses.csv           # 假设追踪日志
+frontend/
+  desgin/                  # 设计稿(理念 + dc.html 导出件,作参考)
+  app/                     # 展示平面:React+Vite+TS 小票阅读器(见 docs/frontend-plane.md)
 .github/workflows/daily.yml# 每日 cron:抓数 → 简报 → 提交回仓库 →(可选)推飞书
 DESIGN.md                  # 高层设计与已锁定决策
 docs/                      # 模块文档 + 路线图
@@ -95,7 +101,7 @@ cargo test                     # 数据平面单测
 ```bash
 # 先确保 data/observations.csv 已由数据平面生成
 PYTHONPATH=py python3 -m newsletter.brief        # 生成简报 → data/briefs/<date>.md(+推飞书)
-PYTHONPATH=py python3 -m unittest newsletter.tests.test_brief -v   # 32 个离线单测
+PYTHONPATH=py python3 -m unittest newsletter.tests.test_brief -v   # 38 个离线单测
 ```
 
 ## 配置(环境变量)
