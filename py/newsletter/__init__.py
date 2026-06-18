@@ -1,6 +1,9 @@
-"""newsletter 智能平面(M1):读取数据平面产出 → 生成四层简报 → 交付。
+"""newsletter:AI 宏观投研助手(智能平面,纯 Python)。
 
-纯标准库实现,无第三方依赖。入口见 `newsletter.brief`。
+数据管线(强制分层,代码算特征 → LLM 只解释):
+    catalog/sources → store(parquet) → features/regime → llm → render → pipeline
+
+入口:`python -m newsletter`(见 __main__)。
 """
 
-__version__ = "0.1.0"
+__version__ = "2.0.0"
