@@ -56,10 +56,10 @@
 **产出**:`sources/`、`catalog.py`;能把观察集全历史拉成统一 tidy DataFrame。
 **验收**:离线单测(用录制的样例响应)覆盖每家解析;一次真实拉取打通全观察集,缺口被兜底链补上。
 
-- [ ] `Source` 协议 + tidy 规范
-- [ ] FRED / TwelveData / Tiingo / Yahoo 适配器
-- [ ] `catalog` 主源+兜底链路 + 实际 source 追溯
-- [ ] 解析单测 + 一次真实全量拉取验证
+- [x] `Source` 协议 + tidy 规范
+- [x] FRED / TwelveData / Tiingo / Yahoo 适配器
+- [x] `catalog` 主源+兜底链路 + 实际 source 追溯
+- [x] 解析单测 + 一次真实全量拉取验证
 
 ---
 
@@ -114,10 +114,10 @@
 **产出**:`features.py` / `regime.py` + 一份「特征字典」(每个特征的口径说明,供 prompt 与排错)。
 **验收**:单测核对手算值(收益率/MA/z-score/相关性/回撤);因果性测试——`target_date` 的特征不依赖其后任何一行。
 
-- [ ] 趋势/动量/波动/利率·通胀/美元/相关性/极值 各组特征函数
-- [ ] regime 标签派生
-- [ ] 因果性单测(关键:绝不偷看未来)
-- [ ] 特征字典文档
+- [x] 趋势/动量/波动/利率·通胀/美元/相关性/极值 各组特征函数
+- [x] regime 标签派生
+- [x] 因果性单测(关键:绝不偷看未来)
+- [x] 特征字典文档
 
 ---
 
@@ -169,11 +169,11 @@ data/raw/
 **产出**:`store.py`(parquet 读写)、`prompt.py`(特征块格式)、`render.py`(前端 JSON + md);`.env.example` 补三家 key 占位符。
 **验收**:跑一次真实管线,产出符合现有 `types.ts` 契约的 `briefs.json`;前端不改、能正常渲染;无 `[object Object]`。
 
-- [ ] parquet 读写 + 每日全量重拉 + 幂等覆盖
-- [ ] git 策略落地(.gitignore 调整,只提交 JSON/md)
-- [ ] `build_user` 特征块固定格式
-- [ ] 前端兼容 JSON + facts/interpretation 归一化
-- [ ] `.env.example` 占位符补全
+- [x] parquet 读写 + 每日全量重拉 + 幂等覆盖
+- [x] git 策略落地(.gitignore 调整,只提交 JSON/md)
+- [x] `build_user` 特征块固定格式
+- [x] 前端兼容 JSON + facts/interpretation 归一化
+- [x] `.env.example` 占位符补全
 
 ---
 
@@ -221,10 +221,10 @@ py/newsletter/
 **产出**:可运行的纯 Python 管线,一条命令出当日简报(md + JSON + 可选飞书)。
 **验收**:端到端用真实 key 跑通;离线单测(无 key 时优雅降级:出事实层+特征,不崩);四层内容明显比旧版扎实(特征驱动)。
 
-- [ ] 模块骨架落地
-- [ ] `pipeline` 编排 + `target_date` 接口
-- [ ] 端到端真实跑通 + 离线降级测试
-- [ ] 新旧简报内容质量对比(留样)
+- [x] 模块骨架落地
+- [x] `pipeline` 编排 + `target_date` 接口
+- [x] 端到端真实跑通 + 离线降级测试
+- [x] 新旧简报内容质量对比(留样)
 
 ---
 
@@ -241,9 +241,9 @@ py/newsletter/
 **产出**:单语言(Python)代码库;CI 绿。
 **验收**:`daily.yml` 在干净环境跑通;仓库无 Rust 残留引用。
 
-- [ ] 删除 Rust 源 + 构建产物
-- [ ] `daily.yml` 改纯 Python
-- [ ] 文档同步(README / data-plane / CHANGELOG)
+- [x] 删除 Rust 源 + 构建产物
+- [x] `daily.yml` 改纯 Python
+- [x] 文档同步(README / data-plane / CHANGELOG)
 
 ---
 

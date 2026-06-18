@@ -1,6 +1,11 @@
-# 模块文档 · 数据平面(Rust)
+# 模块文档 · 数据平面(Rust)〔已退役〕
 
-> 对应 [DESIGN.md](../DESIGN.md) §6 的「数据平面」。本文件记录 M0 的实现细节,随开发更新。
+> **⚠️ 已退役(2026-06-18)**:Rust 数据平面在数据质量重构中**已废弃并删除**,数据获取整体
+> 推平为纯 Python(`py/newsletter/sources/` + `catalog`),接缝从 `observations.csv` 升级为
+> `data/raw/*.parquet`。本文件仅作历史记录保留,**不再反映当前实现**。当前数据层见
+> [docs/refactor/](refactor/readme.md) 与 [README](../README.md)。
+
+> (以下为退役前内容)对应 [DESIGN.md](../DESIGN.md) §6 的「数据平面」,记录 M0(Rust)实现细节。
 
 ## 职责
 
