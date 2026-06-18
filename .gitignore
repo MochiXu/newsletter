@@ -1,7 +1,11 @@
-/target
 .env
+.claude/
 
 # Python
 __pycache__/
 *.pyc
 .venv/
+
+# 原始数据层(parquet):latest 入库(全量快照),history/features 可重建 → 忽略
+data/raw/history/
+data/features/

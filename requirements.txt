@@ -1,0 +1,5 @@
+# 智能平面(Python)依赖。本地开发用 conda env `myTools`(已含),CI 用 pip 安装。
+pandas>=2.2,<4
+numpy>=1.26
+pyarrow>=14
+pydantic>=2.5,<3

@@ -1,4 +1,4 @@
-name: daily-macro-snapshot
+name: daily-macro-brief
 
 on:
   schedule:
@@ -11,33 +11,35 @@ permissions:
 
 # 防止 cron 偶发双触发 / 手动重跑与定时任务并发推送。
 concurrency:
-  group: daily-macro-snapshot
+  group: daily-macro-brief
   cancel-in-progress: false
 
 jobs:
-  fetch:
+  brief:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # rebase 重试需要分支历史
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
 
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
+      - name: Install deps
+        run: pip install -r requirements.txt
 
-      - name: Fetch macro data
+      # 纯 Python 管线:拉数(FRED/TwelveData/Tiingo,Yahoo 兜底)→ 特征 → LLM 四层简报
+      # → 存 md + briefs.json + (有 webhook 则)推飞书。密钥缺失时自动降级,不让 CI 失败。
+      - name: Generate brief
         env:
+          # 数据源
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-        run: cargo run --release --bin fetch
-
-      # M1 智能平面:读数据→(有 key 则)生成四层简报→存 md + (有 webhook 则)推飞书。
-      # ubuntu 自带 python3;纯 stdlib 无需安装。密钥缺失时自动降级,不让 CI 失败。
-      - name: Generate brief (Python)
-        env:
-          # LLM provider(任配一个即可;都没配则只产出事实层,不报错)
+          TWELVEDATA_API_KEY: ${{ secrets.TWELVEDATA_API_KEY }}
+          TIINGO_API_TOKEN: ${{ secrets.TIINGO_API_TOKEN }}
+          # LLM provider(任配一个即可;都没配则只产出数据/特征层,不报错)
           LLM_PROVIDER: ${{ vars.LLM_PROVIDER }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
@@ -53,10 +55,10 @@ jobs:
           # 交付(可选)
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
           FEISHU_SECRET: ${{ secrets.FEISHU_SECRET }}
-        run: PYTHONPATH=py python3 -m newsletter.brief
+        run: PYTHONPATH=py python -m newsletter
 
-      - name: Commit snapshot
-        if: always() # 即便简报步骤失败,也提交已抓取的数据快照,不丢 M0 数据
+      - name: Commit outputs
+        if: always() # 即便简报步骤部分失败,也提交已产出的数据/报告
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -65,7 +67,7 @@ jobs:
             echo "无新数据,跳过提交"
             exit 0
           fi
-          git commit -m "data: 宏观快照 $(date -u +%Y-%m-%d)"
+          git commit -m "data: 宏观简报 $(date -u +%Y-%m-%d)"
           # 若默认分支在运行期间前进,rebase 后重试,避免 non-fast-forward 丢数据。
           for i in 1 2 3; do
             if git push; then
