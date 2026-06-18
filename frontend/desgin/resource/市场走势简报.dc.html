@@ -15,22 +15,42 @@
 :root{
  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
  --sans:"Noto Sans SC","IBM Plex Sans",system-ui,-apple-system,sans-serif;
- --bg:#e7ddc9; --paper:#fdfaf2; --paper2:#f3ebd9; --ink:#2b2018; --ink2:#8a785b; --faint:#d6c9af; --hair:#ece2cd; --accent:#c0612f; --up:#2f7d50; --down:#c0432a; --blue:#3a6ea5; --shadow:0 20px 50px -26px rgba(70,48,18,.55);
+ --bg:#e7ddc9; --paper:#fdfaf2; --paper2:#f3ebd9; --ink:#2b2018; --ink2:#8a785b; --faint:#d6c9af; --hair:#ece2cd; --accent:#c0612f; --up:#2f7d50; --down:#c0432a; --warn:#c79a2c; --blue:#3a6ea5; --shadow:0 20px 50px -26px rgba(70,48,18,.55);
 }
 @media (prefers-color-scheme:dark){
- :root{ --bg:#16130f; --paper:#221c15; --paper2:#2b241b; --ink:#ece2cf; --ink2:#9a8a6f; --faint:#3c3326; --hair:#2c2618; --accent:#e0824a; --up:#5bc486; --down:#e8694e; --blue:#7aa6dd; --shadow:0 26px 60px -30px rgba(0,0,0,.78); }
+ :root{ --bg:#16130f; --paper:#221c15; --paper2:#2b241b; --ink:#ece2cf; --ink2:#9a8a6f; --faint:#3c3326; --hair:#2c2618; --accent:#e0824a; --up:#5bc486; --down:#e8694e; --warn:#d8b24a; --blue:#7aa6dd; --shadow:0 26px 60px -30px rgba(0,0,0,.78); }
 }
-[data-theme="light"]{ --bg:#e7ddc9; --paper:#fdfaf2; --paper2:#f3ebd9; --ink:#2b2018; --ink2:#8a785b; --faint:#d6c9af; --hair:#ece2cd; --accent:#c0612f; --up:#2f7d50; --down:#c0432a; --blue:#3a6ea5; --shadow:0 20px 50px -26px rgba(70,48,18,.55); }
-[data-theme="dark"]{ --bg:#16130f; --paper:#221c15; --paper2:#2b241b; --ink:#ece2cf; --ink2:#9a8a6f; --faint:#3c3326; --hair:#2c2618; --accent:#e0824a; --up:#5bc486; --down:#e8694e; --blue:#7aa6dd; --shadow:0 26px 60px -30px rgba(0,0,0,.78); }
+[data-theme="light"]{ --bg:#e7ddc9; --paper:#fdfaf2; --paper2:#f3ebd9; --ink:#2b2018; --ink2:#8a785b; --faint:#d6c9af; --hair:#ece2cd; --accent:#c0612f; --up:#2f7d50; --down:#c0432a; --warn:#c79a2c; --blue:#3a6ea5; --shadow:0 20px 50px -26px rgba(70,48,18,.55); }
+[data-theme="dark"]{ --bg:#16130f; --paper:#221c15; --paper2:#2b241b; --ink:#ece2cf; --ink2:#9a8a6f; --faint:#3c3326; --hair:#2c2618; --accent:#e0824a; --up:#5bc486; --down:#e8694e; --warn:#d8b24a; --blue:#7aa6dd; --shadow:0 26px 60px -30px rgba(0,0,0,.78); }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 button{font-family:inherit;outline:none}
 @keyframes receiptIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes mbpulse{0%,100%{opacity:.5}50%{opacity:.85}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+.mb-scroll{scrollbar-width:thin;scrollbar-color:var(--faint) transparent}
+.mb-scroll::-webkit-scrollbar{width:8px;height:8px}
+.mb-scroll::-webkit-scrollbar-track{background:transparent}
+.mb-scroll::-webkit-scrollbar-thumb{background:var(--faint);border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+.mb-scroll::-webkit-scrollbar-thumb:hover{background:var(--ink2)}
+.mb-punch{
+ -webkit-mask-image:radial-gradient(circle 5px at 7px 0,#000 99%,#0000 100%),radial-gradient(circle 5px at 7px 9px,#000 99%,#0000 100%),linear-gradient(#000,#000);
+ mask-image:radial-gradient(circle 5px at 7px 0,#000 99%,#0000 100%),radial-gradient(circle 5px at 7px 9px,#000 99%,#0000 100%),linear-gradient(#000,#000);
+ -webkit-mask-size:14px 9px,14px 9px,100% 100%;
+ mask-size:14px 9px,14px 9px,100% 100%;
+ -webkit-mask-repeat:repeat-x,repeat-x,no-repeat;
+ mask-repeat:repeat-x,repeat-x,no-repeat;
+ -webkit-mask-position:top,bottom,0 0;
+ mask-position:top,bottom,0 0;
+ -webkit-mask-composite:xor,xor;
+ mask-composite:exclude,exclude;
+}
+.mb-card{position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow)}
+
 </style>
 </helmet>
-<div ref="{{ rootRef }}" data-theme="{{ themeMode }}" style="min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sans);padding:32px 22px 64px;transition:background .35s ease,color .35s ease">
- <div style="max-width:1060px;margin:0 auto">
+<div ref="{{ rootRef }}" data-theme="{{ themeMode }}" style="min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sans);padding:30px 22px 72px;transition:background .35s ease,color .35s ease">
+ <div style="max-width:1080px;margin:0 auto">
 
   <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:0 2px">
    <div>
@@ -48,82 +68,130 @@ button{font-family:inherit;outline:none}
    </div>
   </div>
 
-  <div style="border-top:1px solid var(--hair);margin:20px 0 24px"></div>
+  <div style="display:flex;gap:4px;margin:20px 0 0;border-bottom:1px solid var(--hair);align-items:flex-end">
+   <button style="{{ navBrief }}" onClick="{{ goBrief }}">简报 · Briefing</button>
+   <button style="{{ navTimeline }}" onClick="{{ goTimeline }}">时间线 · Timeline</button>
+   <button style="{{ navTrack }}" onClick="{{ goTrack }}">命中率 · Track Record</button>
+  </div>
 
-  <div style="display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap">
-
-   <div style="flex:1 1 230px;max-width:288px;min-width:206px">
-    <div style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--ink2);margin-bottom:12px;display:flex;align-items:center;gap:8px">
-     <span>TIMELINE</span><span>时间线</span>
+  <!-- ============================== DETAIL (Briefing) — card dashboard ============================== -->
+  <sc-if value="{{ isBrief }}" hint-placeholder-val="{{ true }}">
+  <div style="margin-top:24px">
+   <sc-if value="{{ showBack }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:1040px;margin:0 auto 18px;display:flex;align-items:center;gap:12px">
+     <button style="{{ backLinkStyle }}" onClick="{{ backTo }}">{{ backLabel }}</button>
      <span style="flex:1;border-top:1px dashed var(--faint)"></span>
+     <span style="font-family:var(--mono);font-size:10px;color:var(--ink2);letter-spacing:1px">{{ detailNote }}</span>
     </div>
-    <sc-if value="{{ loaded }}" hint-placeholder-val="{{ true }}">
-     <div style="position:relative">
-      <div style="position:absolute;left:9px;top:10px;bottom:10px;width:2px;background:var(--hair);border-radius:2px"></div>
-      <sc-for list="{{ timeline }}" as="d" hint-placeholder-count="6">
-       <button style="{{ d.rowStyle }}" onMouseEnter="{{ d.onEnter }}" onMouseLeave="{{ d.onLeave }}" onClick="{{ d.onClick }}">
-        <span style="{{ d.dotStyle }}"></span>
-        <span style="display:flex;align-items:baseline">
-         <span style="{{ d.dateStyle }}">{{ d.dateShort }}</span>
-         <span style="{{ d.wdStyle }}">{{ d.weekday }}</span>
-        </span>
-        <span style="{{ d.hlStyle }}">{{ d.headline }}</span>
-       </button>
-      </sc-for>
+   </sc-if>
+
+   <sc-if value="{{ notLoaded }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:1040px;margin:0 auto;height:520px;background:var(--paper);box-shadow:var(--shadow);animation:mbpulse 1.4s ease-in-out infinite"></div>
+   </sc-if>
+
+   <sc-if value="{{ isBriefDay }}" hint-placeholder-val="{{ true }}">
+   <div ref="{{ receiptRef }}" style="max-width:1040px;margin:0 auto">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:20px">
+     <div style="min-width:240px">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--ink2)">MACRO BRIEF · {{ weekday }} · 第 {{ issue }} 刊 · {{ time }}</div>
+      <div style="font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:1px;color:var(--ink);margin-top:7px">{{ date }}</div>
+      <div style="font-size:17px;line-height:1.5;font-weight:700;color:var(--ink);margin-top:12px;max-width:560px;text-wrap:pretty">{{ headline }}</div>
      </div>
-     <div style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);letter-spacing:.5px;margin-top:14px;padding-left:6px;opacity:.85">悬停预览 · 点击锁定</div>
-    </sc-if>
-   </div>
+     <sc-if value="{{ hasScore }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ onScoreClick }}" style="{{ scoreBadgeStyle }}">命中率 {{ scoreText }} →</button>
+     </sc-if>
+    </div>
 
-   <div style="flex:2 1 440px;display:flex;justify-content:center;min-width:300px">
-    <sc-if value="{{ notLoaded }}" hint-placeholder-val="{{ true }}">
-     <div style="width:min(440px,100%);height:560px;background:var(--paper);box-shadow:var(--shadow);animation:mbpulse 1.4s ease-in-out infinite"></div>
-    </sc-if>
-    <sc-if value="{{ loaded }}" hint-placeholder-val="{{ true }}">
-     <div ref="{{ receiptRef }}" style="position:relative;width:min(442px,100%);background:var(--paper);box-shadow:var(--shadow)">
+    <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
 
-      <sc-if value="{{ texture }}" hint-placeholder-val="{{ true }}">
-       <div style="position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(var(--faint) .5px,transparent .6px);background-size:5px 5px;opacity:.28"></div>
-      </sc-if>
+     <div style="flex:4 1 350px;min-width:280px;display:flex;flex-direction:column;gap:18px">
 
-      <div style="height:9px;background-image:radial-gradient(circle 5px at 7px 0px,var(--bg) 99%,transparent 100%);background-repeat:repeat-x;background-size:14px 9px"></div>
-
-      <div style="position:relative;padding:14px 28px 4px">
-
-       <div style="text-align:center;padding-top:4px">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--ink2)">宏观简报 · MACRO BRIEF</div>
-        <div style="font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:1px;color:var(--ink);margin-top:7px">{{ date }}</div>
-        <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink2);margin-top:6px">{{ weekday }} · 第 {{ issue }} 刊 · {{ time }}</div>
-       </div>
-
-       <div style="border-top:1px dashed var(--faint);margin:14px 0"></div>
-
-       <div style="font-size:14.5px;line-height:1.55;font-weight:600;color:var(--ink);text-wrap:pretty">{{ headline }}</div>
-
-       <div style="display:flex;align-items:center;gap:8px;margin:20px 0 12px">
+      <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:20px 22px">
+       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
         <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">MARKET DATA</span>
         <span style="font-size:11px;color:var(--ink2)">当日指标</span>
         <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
        </div>
-
        <sc-for list="{{ metrics }}" as="m" hint-placeholder-count="6">
         <div style="display:grid;grid-template-columns:52px 1fr 66px 50px;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--hair)">
          <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.3px">{{ m.label }}</span>
-         <span style="display:block;min-width:0;height:26px">
+         <span style="position:relative;display:block;min-width:0;height:26px">
           <sc-if value="{{ sparks }}" hint-placeholder-val="{{ true }}">
            <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="width:100%;height:26px;display:block;overflow:visible">
             <polyline points="{{ m.points }}" style="{{ m.lineStyle }}"></polyline>
-            <circle cx="{{ m.dotX }}" cy="{{ m.dotY }}" r="2.4" style="{{ m.dotFill }}"></circle>
            </svg>
+           <span style="position:absolute;right:3px;top:{{ m.dotTop }}%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:{{ m.dotColor }}"></span>
           </sc-if>
          </span>
          <span style="font-family:var(--mono);font-size:12.5px;color:var(--ink);text-align:right">{{ m.valueText }}</span>
          <span style="{{ m.changeStyle }}">{{ m.changeText }}</span>
         </div>
        </sc-for>
+      </div>
 
-       <div style="display:flex;align-items:center;gap:8px;margin:22px 0 4px">
+      <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:20px 22px">
+       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">PRICE</span>
+        <span style="font-size:11px;color:var(--ink2)">走势 · 30D</span>
+        <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+       </div>
+       <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
+        <sc-for list="{{ chartTabs }}" as="c" hint-placeholder-count="6">
+         <button style="{{ c.style }}" onClick="{{ c.onClick }}">{{ c.label }}</button>
+        </sc-for>
+       </div>
+       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px">
+        <span style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--ink)">{{ chartHoverVal }}</span>
+        <span style="font-family:var(--mono);font-size:10.5px;color:var(--ink2)">{{ chartHoverDate }}</span>
+       </div>
+       <span style="position:relative;display:block">
+       <svg ref="{{ chartRef }}" viewBox="0 0 320 110" preserveAspectRatio="none" onMouseMove="{{ onChartMove }}" onMouseLeave="{{ onChartLeave }}" style="width:100%;height:120px;display:block;overflow:visible;cursor:crosshair;touch-action:none">
+        <polyline points="{{ chartArea }}" style="{{ chartAreaStyle }}"></polyline>
+        <polyline points="{{ chartLine }}" style="{{ chartLineStyle }}"></polyline>
+        <line x1="{{ chartCX }}" y1="0" x2="{{ chartCX }}" y2="110" style="{{ chartCrossStyle }}"></line>
+       </svg>
+       <span style="position:absolute;left:{{ chartDotLeft }}%;top:{{ chartDotTop }}%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:{{ chartDotColor }};pointer-events:none"></span>
+       </span>
+       <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink2);margin-top:4px">
+        <span>{{ chartStartDate }}</span>
+        <span style="opacity:.7">30 交易日</span>
+        <span>{{ chartEndDate }}</span>
+       </div>
+      </div>
+
+      <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:20px 22px">
+       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">NEWS</span>
+        <span style="font-size:11px;color:var(--ink2)">新闻分类</span>
+        <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+       </div>
+       <sc-for list="{{ news }}" as="n" hint-placeholder-count="3">
+        <div style="padding:9px 0;border-bottom:1px dashed var(--hair)">
+         <div style="display:flex;gap:8px;align-items:flex-start">
+          <span style="{{ n.catStyle }}">{{ n.catLabel }}</span>
+          <span style="{{ n.titleStyle }}">{{ n.title }}</span>
+          <span style="{{ n.dirStyle }}">{{ n.dirChar }}</span>
+         </div>
+         <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap">
+          <span style="font-family:var(--mono);font-size:9.5px;color:var(--ink2)">{{ n.source }}</span>
+          <sc-for list="{{ n.assets }}" as="a" hint-placeholder-count="2">
+           <span style="font-family:var(--mono);font-size:9px;color:var(--ink2);border:1px solid var(--hair);border-radius:3px;padding:1px 5px">{{ a }}</span>
+          </sc-for>
+         </div>
+        </div>
+       </sc-for>
+      </div>
+
+     </div>
+
+     <div style="flex:5 1 400px;min-width:300px;display:flex;flex-direction:column;gap:18px">
+
+      <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:20px 22px">
+       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
         <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
         <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">AI BRIEF</span>
         <span style="font-size:11px;color:var(--ink2)">四层简报</span>
@@ -158,6 +226,7 @@ button{font-family:inherit;outline:none}
         <span style="width:8px;height:8px;border-radius:2px;background:var(--blue)"></span>
         <span style="font-family:var(--mono);font-size:9.5px;letter-spacing:1.2px;color:var(--ink2)">HYPOTHESIS</span>
         <span style="font-size:11px;color:var(--ink);font-weight:600">假设层</span>
+        <span style="font-size:10px;color:var(--ink2)">· The Call</span>
        </div>
        <sc-for list="{{ hypotheses }}" as="h" hint-placeholder-count="2">
         <div style="background:var(--paper2);border-radius:4px;padding:9px 11px;margin-bottom:6px">
@@ -181,12 +250,14 @@ button{font-family:inherit;outline:none}
          <span style="color:var(--ink2);text-wrap:pretty">{{ im.watch }}</span>
         </div>
        </sc-for>
+      </div>
 
-       <sc-if value="{{ hasReviews }}" hint-placeholder-val="{{ true }}">
-        <div style="display:flex;align-items:center;gap:8px;margin:22px 0 12px">
+      <sc-if value="{{ hasReviews }}" hint-placeholder-val="{{ true }}">
+       <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:20px 22px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
          <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
          <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">REVIEW</span>
-         <span style="font-size:11px;color:var(--ink2)">假设复盘</span>
+         <span style="font-size:11px;color:var(--ink2)">假设复盘 · 预测 vs 实际</span>
          <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
         </div>
         <sc-for list="{{ reviews }}" as="rv" hint-placeholder-count="2">
@@ -201,221 +272,1167 @@ button{font-family:inherit;outline:none}
           </div>
          </div>
         </sc-for>
-       </sc-if>
+       </div>
+      </sc-if>
 
-       <div style="display:flex;align-items:center;gap:8px;margin:22px 0 6px">
+     </div>
+
+    </div>
+
+    <div style="border-top:1px dashed var(--faint);margin-top:18px;padding-top:13px;text-align:center;font-family:var(--mono);font-size:9.5px;color:var(--ink2);letter-spacing:.6px;line-height:1.7">本简报仅供研究 · 非投资建议 · NOT INVESTMENT ADVICE · GEN {{ model }}</div>
+
+   </div>
+   </sc-if>
+
+   <sc-if value="{{ isBriefAgg }}" hint-placeholder-val="{{ true }}">
+   <div ref="{{ receiptRef }}" style="max-width:1040px;margin:0 auto">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:20px">
+     <div style="min-width:240px">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--ink2)">PERIOD BRIEF · {{ aggSub }}</div>
+      <div style="font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:1px;color:var(--ink);margin-top:7px">{{ aggTitle }}</div>
+      <div style="font-size:17px;line-height:1.5;font-weight:700;color:var(--ink);margin-top:12px;max-width:560px;text-wrap:pretty">{{ aggHeadline }}</div>
+     </div>
+     <sc-if value="{{ aggHasScore }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ aggScoreClick }}" style="{{ aggScoreBadgeStyle }}">命中率 {{ aggScoreText }} →</button>
+     </sc-if>
+    </div>
+
+    <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+     <div style="flex:4 1 350px;min-width:280px;display:flex;flex-direction:column;gap:18px">
+
+      <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:20px 22px">
+       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
-        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">NEWS</span>
-        <span style="font-size:11px;color:var(--ink2)">新闻分类</span>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">PERIOD DATA</span>
+        <span style="font-size:11px;color:var(--ink2)">区间读数</span>
         <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
        </div>
-       <sc-for list="{{ news }}" as="n" hint-placeholder-count="3">
-        <div style="padding:9px 0;border-bottom:1px dashed var(--hair)">
-         <div style="display:flex;gap:8px;align-items:flex-start">
-          <span style="{{ n.catStyle }}">{{ n.catLabel }}</span>
-          <span style="{{ n.titleStyle }}">{{ n.title }}</span>
-          <span style="{{ n.dirStyle }}">{{ n.dirChar }}</span>
-         </div>
-         <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap">
-          <span style="font-family:var(--mono);font-size:9.5px;color:var(--ink2)">{{ n.source }}</span>
-          <sc-for list="{{ n.assets }}" as="a" hint-placeholder-count="2">
-           <span style="font-family:var(--mono);font-size:9px;color:var(--ink2);border:1px solid var(--hair);border-radius:3px;padding:1px 5px">{{ a }}</span>
-          </sc-for>
-         </div>
+       <sc-for list="{{ aggStats }}" as="st" hint-placeholder-count="4">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--hair)">
+         <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.3px">{{ st.k }}</span>
+         <span style="{{ st.vStyle }}">{{ st.v }}</span>
         </div>
        </sc-for>
-
-       <div style="border-top:1px dashed var(--faint);margin:20px 0 0"></div>
-       <div style="text-align:center;font-family:var(--mono);font-size:9.5px;color:var(--ink2);letter-spacing:.6px;margin-top:13px;line-height:1.7">本简报仅供研究 · 非投资建议<br>NOT INVESTMENT ADVICE</div>
-       <div style="height:30px;margin:14px 0 7px;opacity:.82;background-image:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 9px,var(--ink) 9px 11px,transparent 11px 13px)"></div>
-       <div style="text-align:center;font-family:var(--mono);font-size:9.5px;color:var(--ink2);letter-spacing:1px">★ {{ date }} · GEN {{ model }} ★</div>
-
       </div>
 
-      <div style="height:9px;background-image:radial-gradient(circle 5px at 7px 9px,var(--bg) 99%,transparent 100%);background-repeat:repeat-x;background-size:14px 9px"></div>
+      <sc-if value="{{ aggHasChart }}" hint-placeholder-val="{{ true }}">
+       <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:20px 22px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+         <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+         <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">ACCURACY</span>
+         <span style="font-size:11px;color:var(--ink2)">命中率走势</span>
+         <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px">
+         <span style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--ink)">{{ aggChartCur }}</span>
+         <span style="font-family:var(--mono);font-size:10.5px;color:var(--ink2)">{{ aggChartLabel }}</span>
+        </div>
+        <svg viewBox="0 0 320 100" preserveAspectRatio="none" style="width:100%;height:100px;display:block;overflow:visible">
+         <polyline points="{{ aggChartArea }}" style="{{ aggChartAreaStyle }}"></polyline>
+         <polyline points="{{ aggChartLine }}" style="{{ aggChartLineStyle }}"></polyline>
+         <circle cx="{{ aggCX }}" cy="{{ aggCY }}" r="3" style="{{ aggChartDotStyle }}"></circle>
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink2);margin-top:4px">
+         <span>{{ aggChartStart }}</span><span>{{ aggChartEnd }}</span>
+        </div>
+       </div>
+      </sc-if>
      </div>
-    </sc-if>
+
+     <div style="flex:5 1 400px;min-width:300px;display:flex;flex-direction:column;gap:18px">
+      <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:20px 22px">
+       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">SUMMARY</span>
+        <span style="font-size:11px;color:var(--ink2)">区间综述</span>
+        <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+       </div>
+       <div style="font-size:12.5px;line-height:1.6;color:var(--ink);text-wrap:pretty">{{ aggNarrative }}</div>
+      </div>
+
+      <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:20px 22px">
+       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">BREAKDOWN</span>
+        <span style="font-size:11px;color:var(--ink2)">{{ aggBreakdownTitle }}</span>
+        <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+       </div>
+       <sc-for list="{{ aggBreakdown }}" as="bd" hint-placeholder-count="6">
+        <button style="{{ bd.rowStyle }}" onClick="{{ bd.onClick }}">
+         <span style="{{ bd.dotStyle }}"></span>
+         <span style="font-family:var(--mono);font-size:11.5px;color:var(--ink);flex:1">{{ bd.label }}</span>
+         <span style="font-family:var(--mono);font-size:11.5px;color:var(--ink2)">{{ bd.value }}</span>
+        </button>
+       </sc-for>
+      </div>
+     </div>
+    </div>
+
+    <div style="border-top:1px dashed var(--faint);margin-top:18px;padding-top:13px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--ink2);letter-spacing:.6px">月 / 季 / 年度详情为初步 mock · 模仿日粒度结构 · 完整规则待定</div>
+   </div>
+   </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ============================== TIMELINE — left moments + right receipt overview ============================== -->
+  <sc-if value="{{ isTimeline }}" hint-placeholder-val="{{ true }}">
+  <div style="margin-top:26px;max-width:1040px;margin-left:auto;margin-right:auto">
+   <div style="{{ hdrStyleMb }}">
+    <div style="{{ hdrLeftStyle }}">
+     <div style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2)">TIMELINE · 时间线</div>
+     <div style="font-size:13px;color:var(--ink2);margin-top:6px">{{ granNote }}</div>
+    </div>
+    <div style="{{ hdrBarStyle }}">
+     <sc-for list="{{ granTabs }}" as="g" hint-placeholder-count="5">
+      <button style="{{ g.style }}" onClick="{{ g.onClick }}">{{ g.label }}</button>
+     </sc-for>
+    </div>
    </div>
 
+   <div style="{{ tlRowStyle }}">
+
+    <div ref="{{ tlListRef }}" class="mb-scroll" style="{{ tlListStyle }}">
+     <sc-if value="{{ tlDesktop }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;left:13px;top:8px;bottom:8px;width:2px;background:var(--hair)"></div>
+     </sc-if>
+     <sc-for list="{{ tlList }}" as="d" hint-placeholder-count="8">
+      <button style="{{ d.rowStyle }}" onMouseEnter="{{ d.onEnter }}" onMouseLeave="{{ d.onLeave }}" onClick="{{ d.onClick }}">
+       <span style="{{ d.dotStyle }}"></span>
+       <span style="{{ d.labelWrapStyle }}">
+        <span style="{{ d.primaryStyle }}">{{ d.primary }}</span>
+        <span style="{{ d.secondaryStyle }}">{{ d.secondary }}</span>
+       </span>
+       <sc-if value="{{ tlDesktop }}" hint-placeholder-val="{{ true }}">
+        <span style="{{ d.hlStyle }}">{{ d.headline }}</span>
+       </sc-if>
+      </button>
+     </sc-for>
+    </div>
+
+    <div style="{{ tlReceiptColStyle }}">
+     <div style="width:min(430px,100%)">
+
+      <sc-if value="{{ tlIsDay }}" hint-placeholder-val="{{ true }}">
+       <div ref="{{ tlReceiptRef }}" class="mb-punch" style="position:relative;background:var(--paper);box-shadow:var(--shadow)">
+        <sc-if value="{{ texture }}" hint-placeholder-val="{{ true }}">
+         <div style="position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(var(--faint) .5px,transparent .6px);background-size:5px 5px;opacity:.28"></div>
+        </sc-if>
+        <button style="{{ ovDetailStyle }}" onClick="{{ ovDetail }}">详情 →</button>
+        <div class="mb-scroll" style="position:relative;padding:14px 26px 6px">
+         <div style="text-align:center;padding-top:2px">
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--ink2)">宏观简报 · MACRO BRIEF</div>
+          <div style="font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:1px;color:var(--ink);margin-top:7px">{{ ovDate }}</div>
+          <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink2);margin-top:6px">{{ ovWeekday }} · 第 {{ ovIssue }} 刊 · {{ ovTime }}</div>
+          <sc-if value="{{ ovHasScore }}" hint-placeholder-val="{{ true }}">
+           <button onClick="{{ ovScoreClick }}" style="{{ ovScoreBadgeStyle }}">命中率 {{ ovScoreText }} ›</button>
+          </sc-if>
+         </div>
+         <div style="border-top:1px dashed var(--faint);margin:13px 0"></div>
+         <div style="font-size:14px;line-height:1.55;font-weight:600;color:var(--ink);text-wrap:pretty">{{ ovHeadline }}</div>
+
+         <div style="display:flex;align-items:center;gap:8px;margin:18px 0 10px">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+          <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">MARKET DATA</span>
+          <span style="font-size:11px;color:var(--ink2)">当日指标</span>
+          <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+         </div>
+         <sc-for list="{{ ovMetrics }}" as="m" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:52px 1fr 66px 50px;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--hair)">
+           <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.3px">{{ m.label }}</span>
+           <span style="position:relative;display:block;min-width:0;height:24px">
+            <sc-if value="{{ sparks }}" hint-placeholder-val="{{ true }}">
+             <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="width:100%;height:24px;display:block;overflow:visible">
+              <polyline points="{{ m.points }}" style="{{ m.lineStyle }}"></polyline>
+             </svg>
+             <span style="position:absolute;right:3px;top:{{ m.dotTop }}%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:{{ m.dotColor }}"></span>
+            </sc-if>
+           </span>
+           <span style="font-family:var(--mono);font-size:12.5px;color:var(--ink);text-align:right">{{ m.valueText }}</span>
+           <span style="{{ m.changeStyle }}">{{ m.changeText }}</span>
+          </div>
+         </sc-for>
+
+         <div style="display:flex;align-items:center;gap:8px;margin:18px 0 8px">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+          <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">THE CALL</span>
+          <span style="font-size:11px;color:var(--ink2)">AI 后市判断</span>
+          <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+         </div>
+         <sc-for list="{{ ovCall }}" as="h" hint-placeholder-count="2">
+          <div style="display:flex;gap:8px;font-size:12px;line-height:1.5;color:var(--ink);margin-bottom:6px">
+           <span style="color:var(--accent);flex:0 0 auto;font-family:var(--mono)">—</span>
+           <span style="text-wrap:pretty">{{ h.ifThen }}</span>
+          </div>
+         </sc-for>
+
+         <sc-if value="{{ ovExpanded }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;margin:18px 0 8px">
+           <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+           <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">NEWS</span>
+           <span style="font-size:11px;color:var(--ink2)">新闻分类</span>
+           <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+          </div>
+          <sc-for list="{{ ovNews }}" as="n" hint-placeholder-count="3">
+           <div style="padding:9px 0;border-bottom:1px dashed var(--hair)">
+            <div style="display:flex;gap:8px;align-items:flex-start">
+             <span style="{{ n.catStyle }}">{{ n.catLabel }}</span>
+             <span style="{{ n.titleStyle }}">{{ n.title }}</span>
+             <span style="{{ n.dirStyle }}">{{ n.dirChar }}</span>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap">
+             <span style="font-family:var(--mono);font-size:9.5px;color:var(--ink2)">{{ n.source }}</span>
+             <sc-for list="{{ n.assets }}" as="a" hint-placeholder-count="2">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--ink2);border:1px solid var(--hair);border-radius:3px;padding:1px 5px">{{ a }}</span>
+             </sc-for>
+            </div>
+           </div>
+          </sc-for>
+         </sc-if>
+
+         <button onClick="{{ ovToggle }}" style="{{ ovToggleStyle }}">
+          <span style="{{ ovToggleTriStyle }}">▾</span>
+          <span>{{ ovToggleLabel }}</span>
+         </button>
+
+         <div style="border-top:1px dashed var(--faint);margin-top:12px;padding-top:11px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--ink2);letter-spacing:.6px">完整事实层 / 解读层 / 影响层 / 复盘 见详情 ↗</div>
+        </div>
+       </div>
+      </sc-if>
+
+      <sc-if value="{{ tlIsAgg }}" hint-placeholder-val="{{ true }}">
+       <div ref="{{ tlReceiptRef }}" class="mb-punch" style="position:relative;background:var(--paper);box-shadow:var(--shadow)">
+        <sc-if value="{{ texture }}" hint-placeholder-val="{{ true }}">
+         <div style="position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(var(--faint) .5px,transparent .6px);background-size:5px 5px;opacity:.28"></div>
+        </sc-if>
+        <button style="{{ ovDetailStyle }}" onClick="{{ ovDetail }}">详情 →</button>
+        <div class="mb-scroll" style="position:relative;padding:14px 26px 6px">
+         <div style="text-align:center;padding-top:2px">
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--ink2)">宏观区间 · PERIOD BRIEF</div>
+          <div style="font-family:var(--mono);font-size:24px;font-weight:600;letter-spacing:1px;color:var(--ink);margin-top:7px">{{ ovTitle }}</div>
+          <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink2);margin-top:6px">{{ ovSub }}</div>
+          <sc-if value="{{ ovHasScore }}" hint-placeholder-val="{{ true }}">
+           <button onClick="{{ ovScoreClick }}" style="{{ ovScoreBadgeStyle }}">命中率 {{ ovScoreText }} ›</button>
+          </sc-if>
+         </div>
+         <div style="border-top:1px dashed var(--faint);margin:13px 0"></div>
+         <div style="font-size:14px;line-height:1.55;font-weight:600;color:var(--ink);text-wrap:pretty">{{ ovHeadline }}</div>
+         <div style="display:flex;align-items:center;gap:8px;margin:18px 0 8px">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+          <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">PERIOD DATA</span>
+          <span style="font-size:11px;color:var(--ink2)">区间读数</span>
+          <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+         </div>
+         <sc-for list="{{ ovStats }}" as="st" hint-placeholder-count="4">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--hair)">
+           <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.3px">{{ st.k }}</span>
+           <span style="{{ st.vStyle }}">{{ st.v }}</span>
+          </div>
+         </sc-for>
+         <div style="border-top:1px dashed var(--faint);margin-top:14px;padding-top:11px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--ink2);letter-spacing:.6px">命中率走势 / 子周期下钻 见详情 ↗</div>
+        </div>
+       </div>
+      </sc-if>
+
+     </div>
+    </div>
+
+   </div>
   </div>
+  </sc-if>
+
+  <!-- ============================== TRACK RECORD ============================== -->
+  <sc-if value="{{ isTrack }}" hint-placeholder-val="{{ true }}">
+  <div style="margin-top:26px;max-width:1040px;margin-left:auto;margin-right:auto">
+   <div ref="{{ trackTipRef }}" style="position:fixed;z-index:80;pointer-events:none;opacity:0;transition:opacity .12s;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:10px;padding:3px 7px;border-radius:4px;white-space:nowrap"></div>
+   <div style="{{ hdrStyle }}">
+    <div style="{{ hdrLeftStyle }}">
+     <div style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2)">TRACK RECORD · 历史命中率</div>
+     <div style="font-size:13px;color:var(--ink2);margin-top:6px">历史预测命中率回看 · 切换聚合维度</div>
+    </div>
+    <div style="{{ hdrBarStyle }}">
+     <sc-for list="{{ trackModes }}" as="t" hint-placeholder-count="4">
+      <button style="{{ t.style }}" onClick="{{ t.onClick }}">{{ t.label }}</button>
+     </sc-for>
+    </div>
+   </div>
+   <div style="font-size:13.5px;line-height:1.6;color:var(--ink);margin-top:14px;max-width:760px;text-wrap:pretty">{{ trackSummary }}</div>
+
+   <sc-if value="{{ hasPeriodNav }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:14px;margin-top:18px">
+     <button style="{{ periodPrevStyle }}" onClick="{{ onPeriodPrev }}">‹</button>
+     <span style="font-family:var(--mono);font-size:14px;letter-spacing:1px;color:var(--ink);font-weight:600">{{ periodLabel }}</span>
+     <button style="{{ periodNextStyle }}" onClick="{{ onPeriodNext }}">›</button>
+    </div>
+   </sc-if>
+
+   <sc-if value="{{ isTYear }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;gap:18px;align-items:stretch;flex-wrap:wrap;margin-top:16px">
+    <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:22px 24px;flex:3 1 540px;min-width:420px">
+     <div onMouseMove="{{ onHeatMove }}" onMouseLeave="{{ onHeatLeave }}" style="display:flex;flex-wrap:wrap;gap:18px 16px;align-items:flex-start">
+      <sc-for list="{{ monthBlocks }}" as="m" hint-placeholder-count="12">
+       <div style="flex:0 0 auto">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--ink2);margin-bottom:6px;letter-spacing:.5px">{{ m.label }}</div>
+        <div style="display:flex;gap:3px">
+         <sc-for list="{{ m.weeks }}" as="w" hint-placeholder-count="6">
+          <div style="display:flex;flex-direction:column;gap:3px">
+           <sc-for list="{{ w.cells }}" as="c" hint-placeholder-count="7">
+            <div data-d="{{ c.data }}" style="{{ c.style }}" onClick="{{ c.onClick }}"></div>
+           </sc-for>
+          </div>
+         </sc-for>
+        </div>
+       </div>
+      </sc-for>
+     </div>
+     <div style="display:flex;align-items:center;gap:7px;margin-top:18px;font-family:var(--mono);font-size:9px;color:var(--ink2);flex-wrap:wrap">
+      <span>低</span>
+      <span style="width:11px;height:11px;border-radius:2px;background:var(--down)"></span>
+      <span style="width:11px;height:11px;border-radius:2px;background:var(--warn)"></span>
+      <span style="width:11px;height:11px;border-radius:2px;background:var(--up)"></span>
+      <span>高</span>
+      <span style="margin-left:10px;opacity:.8">悬停查看日期 · 点击进入当日</span>
+     </div>
+    </div>
+
+    <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:22px 24px;flex:1 1 240px;min-width:230px;display:flex;flex-direction:column">
+     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">YEAR SUMMARY</span>
+      <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+     </div>
+     <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
+      <span style="{{ ySummaryBigStyle }}">{{ ySummaryBig }}</span>
+      <span style="font-size:11px;color:var(--ink2)">整体命中率</span>
+     </div>
+     <div style="margin-top:14px">
+      <sc-for list="{{ ySummaryRows }}" as="r" hint-placeholder-count="5">
+       <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--hair)">
+        <span style="font-family:var(--mono);font-size:10.5px;color:var(--ink2);letter-spacing:.3px">{{ r.k }}</span>
+        <span style="{{ r.vStyle }}">{{ r.v }}</span>
+       </div>
+      </sc-for>
+     </div>
+    </div>
+    </div>
+   </sc-if>
+
+   <sc-if value="{{ isTMonth }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;gap:18px;align-items:stretch;flex-wrap:wrap;margin-top:16px">
+
+     <div class="mb-card mb-punch" style="padding:22px 24px;flex:1 1 320px;min-width:300px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+       <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+       <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">CALENDAR</span>
+       <span style="font-size:11px;color:var(--ink2)">日历视角</span>
+       <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px">
+       <sc-for list="{{ weekdayHeads }}" as="wd" hint-placeholder-count="7">
+        <span style="text-align:center;font-family:var(--mono);font-size:9px;color:var(--ink2)">{{ wd }}</span>
+       </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">
+       <sc-for list="{{ calCells }}" as="c" hint-placeholder-count="35">
+        <button title="{{ c.title }}" style="{{ c.style }}" onClick="{{ c.onClick }}">
+         <span style="{{ c.dayStyle }}">{{ c.day }}</span>
+         <span style="{{ c.pctStyle }}">{{ c.pct }}</span>
+        </button>
+       </sc-for>
+      </div>
+      <div style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);margin-top:14px;text-align:center">{{ calFootnote }}</div>
+     </div>
+
+     <div class="mb-card mb-punch" style="padding:22px 24px;flex:1 1 300px;min-width:280px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+       <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+       <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">ACCURACY</span>
+       <span style="font-size:11px;color:var(--ink2)">每日命中率走势</span>
+       <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+      </div>
+      <span style="position:relative;display:block;margin-top:auto">
+       <svg viewBox="0 0 380 150" preserveAspectRatio="none" style="width:100%;height:150px;display:block;overflow:visible">
+        <sc-if value="{{ mLine.t75In }}" hint-placeholder-val="{{ false }}"><line x1="0" y1="{{ mLine.t75Y }}" x2="380" y2="{{ mLine.t75Y }}" style="{{ mLine.refStyle }}"></line></sc-if>
+        <sc-if value="{{ mLine.t60In }}" hint-placeholder-val="{{ false }}"><line x1="0" y1="{{ mLine.t60Y }}" x2="380" y2="{{ mLine.t60Y }}" style="{{ mLine.refStyle }}"></line></sc-if>
+        <polyline points="{{ mLine.area }}" style="{{ mLine.areaStyle }}"></polyline>
+        <polyline points="{{ mLine.line }}" style="{{ mLine.lineStyle }}"></polyline>
+       </svg>
+       <span style="position:absolute;left:{{ mLine.dotLeft }}%;top:{{ mLine.dotTop }}%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:{{ mLine.dotColor }};pointer-events:none"></span>
+      </span>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink2);margin-top:5px">
+       <span>{{ mLineStart }}</span>
+       <span style="opacity:.7">虚线 = 60 / 75 分级线</span>
+       <span>{{ mLineEnd }}</span>
+      </div>
+     </div>
+
+     <div class="mb-card mb-punch" style="padding:22px 24px;flex:1 1 230px;min-width:220px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+       <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+       <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">MONTH SUMMARY</span>
+       <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
+       <span style="{{ mSummaryBigStyle }}">{{ mSummaryBig }}</span>
+       <span style="font-size:11px;color:var(--ink2)">命中率</span>
+      </div>
+      <div style="margin-top:14px">
+       <sc-for list="{{ mSummaryRows }}" as="r" hint-placeholder-count="5">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--hair)">
+         <span style="font-family:var(--mono);font-size:10.5px;color:var(--ink2);letter-spacing:.3px">{{ r.k }}</span>
+         <span style="{{ r.vStyle }}">{{ r.v }}</span>
+        </div>
+       </sc-for>
+      </div>
+     </div>
+
+    </div>
+   </sc-if>
+
+   <sc-if value="{{ isTQuarter }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:16px">
+     <sc-for list="{{ quarterMonths }}" as="qm" hint-placeholder-count="3">
+      <div class="mb-punch" style="position:relative;background-color:var(--paper);background-image:var(--panel-tex,radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px));background-size:5px 5px;box-shadow:var(--shadow);padding:18px 18px;flex:1 1 210px;min-width:200px">
+       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:11px">
+        <span style="font-family:var(--mono);font-size:12px;color:var(--ink);font-weight:600">{{ qm.label }}</span>
+        <span style="{{ qm.accStyle }}">{{ qm.accText }}</span>
+       </div>
+       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px">
+        <sc-for list="{{ weekdayHeads }}" as="wd" hint-placeholder-count="7">
+         <span style="text-align:center;font-family:var(--mono);font-size:7.5px;color:var(--ink2)">{{ wd }}</span>
+        </sc-for>
+       </div>
+       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">
+        <sc-for list="{{ qm.cells }}" as="c" hint-placeholder-count="35">
+         <button title="{{ c.title }}" style="{{ c.style }}" onClick="{{ c.onClick }}"><span style="{{ c.dayStyle }}">{{ c.day }}</span></button>
+        </sc-for>
+       </div>
+      </div>
+     </sc-for>
+     <div class="mb-card mb-punch" style="padding:18px 18px;flex:1 1 210px;min-width:200px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px">
+       <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+       <span style="font-family:var(--mono);font-size:9.5px;letter-spacing:1.4px;color:var(--ink2);white-space:nowrap">QUARTER SUMMARY</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:7px;margin-bottom:2px">
+       <span style="{{ qSummaryBigStyle }}">{{ qSummaryBig }}</span>
+       <span style="font-size:10.5px;color:var(--ink2)">季度命中率</span>
+      </div>
+      <div style="margin-top:10px">
+       <sc-for list="{{ qSummaryRows }}" as="r" hint-placeholder-count="5">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px dashed var(--hair)">
+         <span style="font-family:var(--mono);font-size:10px;color:var(--ink2);letter-spacing:.3px">{{ r.k }}</span>
+         <span style="{{ r.vStyle }}">{{ r.v }}</span>
+        </div>
+       </sc-for>
+      </div>
+      <div style="margin-top:14px">
+       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.5px;color:var(--ink2);margin-bottom:5px">月度走势</div>
+       <span style="position:relative;display:block">
+        <svg viewBox="0 0 220 70" preserveAspectRatio="none" style="width:100%;height:52px;display:block;overflow:visible">
+         <polyline points="{{ qLine.area }}" style="{{ qLine.areaStyle }}"></polyline>
+         <polyline points="{{ qLine.line }}" style="{{ qLine.lineStyle }}"></polyline>
+        </svg>
+        <span style="position:absolute;left:{{ qLine.dotLeft }}%;top:{{ qLine.dotTop }}%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:{{ qLine.dotColor }};pointer-events:none"></span>
+       </span>
+      </div>
+     </div>
+    </div>
+   </sc-if>
+
+   <sc-if value="{{ isTAll }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;gap:18px;align-items:stretch;flex-wrap:wrap;margin-top:16px">
+     <div class="mb-card mb-punch" style="padding:22px 26px;flex:2 1 440px;min-width:380px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+       <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+       <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">ACCURACY</span>
+       <span style="font-size:11px;color:var(--ink2)">全历史 · 每日命中率</span>
+       <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+      </div>
+      <div onMouseMove="{{ onAllBarsMove }}" onMouseLeave="{{ onAllBarsLeave }}" style="display:flex;align-items:flex-end;gap:1px;height:200px;margin-top:auto">
+       <sc-for list="{{ allBars }}" as="b" hint-placeholder-count="60">
+        <div data-d="{{ b.data }}" style="{{ b.style }}" onClick="{{ b.onClick }}"></div>
+       </sc-for>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--ink2);margin-top:6px">
+       <span>{{ allBarsStart }}</span>
+       <span style="opacity:.7">柱高 = 当日命中率 · 悬停看日期</span>
+       <span>{{ allBarsEnd }}</span>
+      </div>
+     </div>
+
+     <div style="flex:1 1 240px;min-width:230px;display:flex;flex-direction:column">
+      <div class="mb-card mb-punch" style="padding:20px 22px;flex:1 1 auto;display:flex;flex-direction:column">
+       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--ink2);white-space:nowrap">ALL SUMMARY</span>
+        <span style="flex:1;height:1px;border-top:1px dashed var(--faint)"></span>
+       </div>
+       <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
+        <span style="{{ allSummaryBigStyle }}">{{ allSummaryBig }}</span>
+        <span style="font-size:11px;color:var(--ink2)">平均命中率</span>
+       </div>
+       <div style="margin-top:12px">
+        <sc-for list="{{ allSummaryRows }}" as="r" hint-placeholder-count="4">
+         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px dashed var(--hair)">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--ink2);letter-spacing:.3px">{{ r.k }}</span>
+          <span style="{{ r.vStyle }}">{{ r.v }}</span>
+         </div>
+        </sc-for>
+       </div>
+      </div>
+     </div>
+    </div>
+   </sc-if>
+
+  </div>
+  </sc-if>
+
  </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:920},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#fa5700&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showSparklines&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;paperTexture&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:960},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#c0612f&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showSparklines&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;paperTexture&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
 class Component extends DCLogic {
-  state = { briefs: [], loaded: false, selectedIdx: 0, hoverIdx: null, themeMode: 'auto' };
+  state = {
+    briefs: [], track: null, periods: null, loaded: false,
+    themeMode: 'auto', route: { page: 'brief' },
+    chartAsset: 'nasdaq', chartHover: null, tlHover: null, tlSelected: 0, tlExpanded: false,
+    isMobile: (typeof window !== 'undefined' && window.innerWidth < 760),
+  };
 
   componentDidMount() {
     try { const t = localStorage.getItem('mb_theme'); if (t) this.setState({ themeMode: t }); } catch (e) {}
-    import('./briefs.js')
-      .then(m => this.setState({ briefs: m.BRIEFS, model: m.MODEL, loaded: true }))
-      .catch(err => console.error('Failed to load briefs.js', err));
+    this.setState({ route: this.parseHash() });
+    this._onHash = () => this.setState({ route: this.parseHash(), chartHover: null, tlHover: null, tlSelected: 0 });
+    window.addEventListener('hashchange', this._onHash);
+    this._onResize = () => { const m = window.innerWidth < 760; if (m !== this.state.isMobile) this.setState({ isMobile: m }); this.syncTlHeight(); };
+    window.addEventListener('resize', this._onResize);
+    Promise.all([import('./briefs.js'), import('./track.js'), import('./timeline.js')])
+      .then(([b, t, p]) => this.setState({ briefs: b.BRIEFS, model: b.MODEL, track: t.TRACK, periods: p.PERIODS, loaded: true }))
+      .catch(err => console.error('data load failed', err));
     this.applyAccent();
+  }
+  componentWillUnmount() { if (this._onHash) window.removeEventListener('hashchange', this._onHash); if (this._onResize) window.removeEventListener('resize', this._onResize); }
+
+  syncTlHeight() {
+    const list = this.tlListEl;
+    if (this.state.route.page !== 'timeline' || this.state.isMobile) { if (list) list.style.minHeight = ''; return; }
+    const card = this.tlReceiptEl;
+    if (!list || !card) return;
+    list.style.minHeight = card.offsetHeight + 'px';
   }
 
   componentDidUpdate() {
     this.applyAccent();
-    const na = this.activeIndex();
-    if (this._prevActive != null && this._prevActive !== na && this.receiptEl) {
-      const el = this.receiptEl;
-      el.style.animation = 'none';
-      void el.offsetWidth;
-      el.style.animation = 'receiptIn .42s cubic-bezier(.22,.61,.36,1) both';
+    if (this.state.route.page === 'timeline') this.syncTlHeight();
+    if (this.state.route.page === 'brief') {
+      const na = this.routeIdx();
+      if (this._prevActive != null && this._prevActive !== na && this.receiptEl) {
+        const el = this.receiptEl;
+        el.style.animation = 'none'; void el.offsetWidth;
+        el.style.animation = 'receiptIn .42s cubic-bezier(.22,.61,.36,1) both';
+      }
+      this._prevActive = na;
     }
-    this._prevActive = na;
+  }
+
+  parseHash() {
+    const h = (location.hash || '').replace(/^#\/?/, '');
+    const parts = h.split('/').filter(Boolean);
+    if (!parts.length) return { page: 'brief' };
+    if (parts[0] === 'timeline') return { page: 'timeline', gran: parts[1] || 'day' };
+    if (parts[0] === 'track') {
+      const a = parts[1], b = parts[2];
+      if (!a) return { page: 'track', mode: 'year', period: null };
+      if (['month', 'quarter', 'year', 'all'].includes(a)) return { page: 'track', mode: a, period: b || null };
+      if (/^\d{4}-Q\d$/.test(a)) return { page: 'track', mode: 'quarter', period: a };
+      if (/^\d{4}-\d{2}$/.test(a)) return { page: 'track', mode: 'month', period: a };
+      if (/^\d{4}$/.test(a)) return { page: 'track', mode: 'year', period: a };
+      return { page: 'track', mode: 'year', period: null };
+    }
+    if (parts[0] === 'brief') {
+      const id = parts[1] || null;
+      let gran = 'day';
+      if (id) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(id)) gran = 'day';
+        else if (/^\d{4}-Q\d$/.test(id)) gran = 'quarter';
+        else if (/^\d{4}-H\d$/.test(id)) gran = 'half';
+        else if (/^\d{4}-\d{2}$/.test(id)) gran = 'month';
+        else if (/^\d{4}$/.test(id)) gran = 'year';
+      }
+      return { page: 'brief', date: id, gran, from: parts[2] || null };
+    }
+    return { page: 'brief' };
+  }
+  nav(hash) { location.hash = hash; }
+  trackHash(mode) {
+    const T = this.state.track;
+    if (!T) return '#/track/' + mode;
+    if (mode === 'month') { const k = Object.keys(T.months).sort(); return '#/track/month/' + k[k.length - 1]; }
+    if (mode === 'quarter') { const k = Object.keys(T.quarters).sort(); return '#/track/quarter/' + k[k.length - 1]; }
+    if (mode === 'year') { const k = Object.keys(T.years).sort(); return '#/track/year/' + k[k.length - 1]; }
+    return '#/track/all';
   }
 
   applyAccent() {
-    const a = this.props.accent;
-    const el = this.rootEl;
+    const a = this.props.accent, el = this.rootEl;
     if (!el) return;
-    if (a) el.style.setProperty('--accent', a);
-    else el.style.removeProperty('--accent');
+    if (a) el.style.setProperty('--accent', a); else el.style.removeProperty('--accent');
+    const tex = (this.props.paperTexture ?? true) ? 'radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px)' : 'none';
+    el.style.setProperty('--panel-tex', tex);
+  }
+  setTheme(mode) { this.setState({ themeMode: mode }); try { localStorage.setItem('mb_theme', mode); } catch (e) {} }
+
+  routeIdx() {
+    const r = this.state.route;
+    if (r.page === 'brief' && r.date) { const i = this.state.briefs.findIndex(b => b.date === r.date); if (i >= 0) return i; }
+    return 0;
   }
 
-  setTheme(mode) {
-    this.setState({ themeMode: mode });
-    try { localStorage.setItem('mb_theme', mode); } catch (e) {}
-  }
+  // Shared deterministic PRNG (FNV-1a seed → mulberry32). Used only by the mock
+  // chart synthesizers below; real data will arrive as series and won't need it.
+  // Format a Date as local 'YYYY-MM-DD'.
+  isoOf(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
 
-  activeIndex() {
-    return this.state.hoverIdx != null ? this.state.hoverIdx : this.state.selectedIdx;
-  }
-
-  makeSpark(seed, change) {
-    let h = 2166136261 >>> 0;
-    for (let i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
-    let s = h;
-    const rnd = () => {
-      s = (s + 0x6D2B79F5) >>> 0;
-      let t = s;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-    const N = 18, vals = [];
-    let v = 0;
-    const drift = (change > 0 ? 1 : change < 0 ? -1 : 0) * 0.16;
-    for (let i = 0; i < N; i++) { v += (rnd() - 0.5) * 0.95 + drift; vals.push(v); }
+  // Map a list of values to an 18-pt sparkline polyline + end-dot (geometry only;
+  // the values themselves come precomputed from the data layer's series).
+  sparkGeom(vals) {
+    const N = vals.length || 1;
     const min = Math.min.apply(null, vals), max = Math.max.apply(null, vals), range = (max - min) || 1;
     const W = 100, H = 30, pad = 4;
-    const pts = vals.map((val, i) => {
-      const x = pad + (W - 2 * pad) * i / (N - 1);
-      const y = H - pad - (H - 2 * pad) * (val - min) / range;
-      return x.toFixed(1) + ',' + y.toFixed(1);
-    });
+    const pts = vals.map((val, i) => { const x = pad + (W - 2 * pad) * i / (N - 1); const y = H - pad - (H - 2 * pad) * (val - min) / range; return x.toFixed(1) + ',' + y.toFixed(1); });
     const lp = pts[pts.length - 1].split(',');
     return { points: pts.join(' '), dotX: +lp[0], dotY: +lp[1] };
   }
-
-  fmtVal(m) {
-    const v = m.value;
-    if (m.kind === 'yield') return v.toFixed(2) + '%';
-    if (m.kind === 'spread') return Math.round(v * 100) + 'bp';
-    if (m.kind === 'index') return v.toFixed(1);
-    if (m.kind === 'price') return v.toLocaleString('en-US');
-    return '' + v;
+  buildMetrics(b) {
+    const colorFor = c => c > 0 ? 'var(--up)' : c < 0 ? 'var(--down)' : 'var(--ink2)';
+    return b.metrics.map(m => {
+      const sp = this.sparkGeom((m.spark || []).map(p => p.value)), col = colorFor(m.change);
+      return { label: m.label, valueText: this.fmtVal(m), changeText: this.fmtChg(m),
+        changeStyle: { fontFamily: 'var(--mono)', fontSize: '12px', textAlign: 'right', color: col },
+        lineStyle: { fill: 'none', stroke: col, strokeWidth: '1.5', strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' },
+        dotFill: { fill: col }, points: sp.points, dotX: sp.dotX, dotY: sp.dotY, dotColor: col, dotTop: (sp.dotY / 30 * 100) };
+    });
   }
 
-  fmtChg(m) {
-    const c = m.change, s = c > 0 ? '+' : '';
-    if (m.kind === 'yield' || m.kind === 'spread') return s + Math.round(c * 100) + 'bp';
-    if (m.kind === 'index') return s + c.toFixed(1);
-    if (m.kind === 'price') return s + Math.round(c);
-    return s + c;
+  fmtChartVal(kind, v) { if (kind === 'yield') return v.toFixed(2) + '%'; if (kind === 'pt1') return v.toFixed(1); return Math.round(v).toLocaleString('en-US'); }
+  fmtVal(m) { const v = m.value; if (m.kind === 'yield') return v.toFixed(2) + '%'; if (m.kind === 'spread') return Math.round(v * 100) + 'bp'; if (m.kind === 'index') return v.toFixed(1); if (m.kind === 'price') return v.toLocaleString('en-US'); return '' + v; }
+  fmtChg(m) { const c = m.change, s = c > 0 ? '+' : ''; if (m.kind === 'yield' || m.kind === 'spread') return s + Math.round(c * 100) + 'bp'; if (m.kind === 'index') return s + c.toFixed(1); if (m.kind === 'price') return s + Math.round(c); return s + c; }
+
+  gradeCol(g) { return g === 'green' ? 'var(--up)' : g === 'yellow' ? 'var(--warn)' : g === 'red' ? 'var(--down)' : 'var(--hair)'; }
+
+  buildMonthBlocks(year, briefDates, T) {
+    // Per-month mini-grids (Sunday-first columns) that flex-wrap to fill width.
+    const sz = '11px';
+    const blocks = [];
+    for (let m = 1; m <= 12; m++) {
+      const first = new Date(+year, m - 1, 1), last = new Date(+year, m, 0);
+      const sun = new Date(first); sun.setDate(sun.getDate() - sun.getDay());
+      const weeks = []; let col = null;
+      for (let d = new Date(sun); d <= last; d.setDate(d.getDate() + 1)) {
+        if (d.getDay() === 0) { col = { cells: [] }; weeks.push(col); }
+        const inMonth = d >= first && d <= last;
+        const iso = this.isoOf(d);
+        const rec = inMonth ? T.days[iso] : null, has = !!rec;
+        col.cells.push({
+          data: inMonth ? (rec ? (iso + ' · ' + rec.score + '%') : iso) : '',
+          style: { width: sz, height: sz, borderRadius: '2px', background: rec ? this.gradeCol(rec.grade) : (inMonth ? 'var(--hair)' : 'transparent'), opacity: rec ? 1 : (inMonth ? 0.6 : 1), cursor: has ? 'pointer' : 'default' },
+          onClick: has ? (() => this.nav('#/brief/' + iso + '/track')) : (() => {}),
+        });
+      }
+      weeks.forEach(w => { while (w.cells.length < 7) w.cells.push({ data: '', style: { width: sz, height: sz, borderRadius: '2px', background: 'transparent' }, onClick: () => {} }); });
+      blocks.push({ label: m + '月', weeks });
+    }
+    return blocks;
+  }
+
+  buildYearSummary(year, T) {
+    const up = 'var(--up)', down = 'var(--down)', warn = 'var(--warn)', ink2 = 'var(--ink2)';
+    const y = T.years[year];
+    const mk = Object.keys(T.months).filter(k => k.slice(0, 4) === year).sort();
+    let best = null, worst = null;
+    mk.forEach(k => { const a = T.months[k].acc; if (best == null || a > T.months[best].acc) best = k; if (worst == null || a < T.months[worst].acc) worst = k; });
+    const monthName = k => k ? (+k.slice(5)) + ' 月' : '—';
+    const trend = (mk.length >= 2) ? (T.months[mk[mk.length - 1]].acc - T.months[mk[0]].acc) : 0;
+    const accCol = a => a >= 75 ? up : a >= 60 ? warn : down;
+    const rows = [
+      { k: '覆盖交易日', v: y ? y.n + ' 天' : '—', c: 'var(--ink)' },
+      { k: '≥80% 高命中', v: y ? y.high + ' 天' : '—', c: up },
+      { k: '最佳月份', v: monthName(best) + (best ? ' · ' + T.months[best].acc + '%' : ''), c: best ? accCol(T.months[best].acc) : ink2 },
+      { k: '最差月份', v: monthName(worst) + (worst ? ' · ' + T.months[worst].acc + '%' : ''), c: worst ? accCol(T.months[worst].acc) : ink2 },
+      { k: '半年趋势', v: (trend > 0 ? '↑ +' : trend < 0 ? '↓ ' : '→ ') + Math.abs(trend) + 'pt', c: trend > 0 ? up : trend < 0 ? down : ink2 },
+    ];
+    return {
+      bigAcc: y ? y.acc + '%' : '—', bigAccCol: y ? accCol(y.acc) : ink2,
+      rows: rows.map(r => ({ k: r.k, v: r.v, vStyle: { fontFamily: 'var(--mono)', fontSize: '12.5px', color: r.c, textAlign: 'right', whiteSpace: 'nowrap', flex: '0 0 auto' } })),
+    };
+  }
+
+  accColOf(a) { return a == null ? 'var(--ink2)' : a >= 75 ? 'var(--up)' : a >= 60 ? 'var(--warn)' : 'var(--down)'; }
+  mkRows(arr) { return arr.map(r => ({ k: r.k, v: r.v, vStyle: { fontFamily: 'var(--mono)', fontSize: '12.5px', color: r.c || 'var(--ink)', textAlign: 'right', whiteSpace: 'nowrap', flex: '0 0 auto' } })); }
+  bigPctStyle(col) { return { fontFamily: 'var(--mono)', fontSize: '34px', fontWeight: 600, color: col, letterSpacing: '.5px' }; }
+
+  // Static mini accuracy line for the track cards. Returns geometry + an HTML-dot
+  // position (percent) so the end marker stays a true circle under non-uniform scale.
+  miniLine(series, opts) {
+    opts = opts || {};
+    const W = opts.W || 300, H = opts.H || 90, padX = opts.padX || 6, padY = opts.padY || 14;
+    const color = opts.color || 'var(--accent)';
+    const n = series.length;
+    if (n < 2) return { empty: true, W, H, line: '', area: '', lineStyle: {}, areaStyle: {}, refStyle: {}, t75Y: '0', t75In: false, t60Y: '0', t60In: false, dotLeft: 0, dotTop: 0, dotColor: color, last: series[0] || 0 };
+    const lo = Math.max(0, Math.min.apply(null, series) - 8), hi = Math.min(100, Math.max.apply(null, series) + 8), rg = (hi - lo) || 1;
+    const yOf = v => H - padY - (H - 2 * padY) * (v - lo) / rg;
+    const xs = series.map((_, i) => padX + (W - 2 * padX) * i / (n - 1));
+    const ys = series.map(v => yOf(v));
+    const line = series.map((_, i) => xs[i].toFixed(1) + ',' + ys[i].toFixed(1)).join(' ');
+    return {
+      empty: false, W, H, line, area: padX + ',' + H + ' ' + line + ' ' + (W - padX) + ',' + H,
+      lineStyle: { fill: 'none', stroke: color, strokeWidth: '1.8', strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' },
+      areaStyle: { fill: color, opacity: 0.08, stroke: 'none' },
+      refStyle: { stroke: 'var(--faint)', strokeWidth: '1', strokeDasharray: '3 3', vectorEffect: 'non-scaling-stroke' },
+      t75Y: yOf(75).toFixed(1), t75In: 75 >= lo && 75 <= hi, t60Y: yOf(60).toFixed(1), t60In: 60 >= lo && 60 <= hi,
+      dotLeft: xs[n - 1] / W * 100, dotTop: ys[n - 1] / H * 100, dotColor: color, last: series[n - 1],
+    };
+  }
+
+  buildCalendar(monthKey, briefDates, T, compact) {
+    const [yy, mm] = monthKey.split('-').map(Number);
+    const first = new Date(yy, mm - 1, 1);
+    const lead = (first.getDay() + 6) % 7;
+    const dim = new Date(yy, mm, 0).getDate();
+    const raw = [];
+    for (let i = 0; i < lead; i++) raw.push({ blank: true });
+    for (let day = 1; day <= dim; day++) {
+      const iso = yy + '-' + ('0' + mm).slice(-2) + '-' + ('0' + day).slice(-2);
+      raw.push({ day, iso, rec: T.days[iso], has: briefDates.has(iso) });
+    }
+    return raw.map(c => {
+      if (c.blank) return { day: '', pct: '', title: '', style: { aspectRatio: '1', borderRadius: compact ? '3px' : '4px', background: 'transparent', border: 'none' }, dayStyle: { display: 'none' }, pctStyle: { display: 'none' }, onClick: () => {} };
+      const rec = c.rec, bg = rec ? this.gradeCol(rec.grade) : 'var(--hair)', lit = !!rec;
+      return {
+        day: c.day, pct: rec ? '' + rec.score : '', title: c.iso + (rec ? ' · ' + rec.score + '%' : ' · 无数据'),
+        style: { aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1px', borderRadius: compact ? '3px' : '4px', background: bg, opacity: rec ? 1 : 0.5, border: c.has ? (compact ? '1.4px solid var(--ink)' : '1.6px solid var(--ink)') : 'none', cursor: c.has ? 'pointer' : 'default', padding: 0 },
+        dayStyle: { fontFamily: 'var(--mono)', fontSize: compact ? '7.5px' : '9px', color: lit ? '#fff' : 'var(--ink2)', opacity: lit ? 0.85 : 1 },
+        pctStyle: { fontFamily: 'var(--mono)', fontSize: '11px', fontWeight: 600, color: lit ? '#fff' : 'transparent', display: compact ? 'none' : 'block' },
+        onClick: c.has ? (() => this.nav('#/brief/' + c.iso + '/track')) : (() => {}),
+      };
+    });
+  }
+
+  aggTitle(id, gran) {
+    if (gran === 'month') return id.slice(0, 4) + ' · ' + id.slice(5) + ' 月';
+    if (gran === 'quarter') return id.slice(0, 4) + ' · 第 ' + id.slice(6) + ' 季度';
+    if (gran === 'half') return id.slice(0, 4) + ' · ' + (id.slice(6) === '1' ? '上半年' : '下半年');
+    if (gran === 'year') return id + ' 年';
+    return id;
+  }
+
+  buildAgg(id, gran) {
+    const S = this.state, T = S.track, P = S.periods;
+    const up = 'var(--up)', down = 'var(--down)', warn = 'var(--warn)', ink2 = 'var(--ink2)', accent = 'var(--accent)';
+    const gc = a => a == null ? ink2 : a >= 75 ? up : a >= 60 ? warn : down;
+    const p2 = x => x < 10 ? '0' + x : '' + x;
+    const list = (P && P[gran]) || [];
+    const p = list.find(x => x.id === id) || { label: id, sub: '', headline: '暂无该周期的简报数据。', tone: 'neutral', stats: [] };
+    const out = {
+      detailNote: this.aggTitle(id, gran) + ' · DETAIL', aggTitle: this.aggTitle(id, gran), aggSub: p.sub, aggHeadline: p.headline,
+      aggStats: (p.stats || []).map(st => ({ k: st.k, v: st.v, vStyle: { fontFamily: 'var(--mono)', fontSize: '14px', color: st.d === 'up' ? up : st.d === 'down' ? down : 'var(--ink)' } })),
+    };
+    let acc = null, nDays = null, high = null, series = [], labels = [], breakdown = [];
+    if (T && gran === 'month') {
+      const o = T.months[id]; if (o) { acc = o.acc; nDays = o.n; high = o.high; }
+      Object.keys(T.days).filter(k => k.slice(0, 7) === id).sort().forEach(k => {
+        series.push(T.days[k].score); labels.push(+k.slice(8));
+        breakdown.push({ label: k.slice(5).replace('-', '/'), value: T.days[k].score + '%', color: gc(T.days[k].score), onClick: () => this.nav('#/brief/' + k) });
+      });
+    } else if (T) {
+      const yy = id.slice(0, 4); let months = [];
+      if (gran === 'quarter') { const qn = +id.slice(6); for (let m = (qn - 1) * 3 + 1; m <= qn * 3; m++) months.push(yy + '-' + p2(m)); }
+      else if (gran === 'half') { const hn = +id.slice(6); for (let m = (hn - 1) * 6 + 1; m <= hn * 6; m++) months.push(yy + '-' + p2(m)); }
+      else if (gran === 'year') { for (let m = 1; m <= 12; m++) months.push(yy + '-' + p2(m)); }
+      let sum = 0, cnt = 0, hi = 0;
+      months.forEach(mk => { const o = T.months[mk]; if (o) { series.push(o.acc); labels.push((+mk.slice(5)) + '月'); sum += o.sum; cnt += o.n; hi += o.high; breakdown.push({ label: (+mk.slice(5)) + ' 月', value: o.acc + '%', color: gc(o.acc), onClick: () => this.nav('#/brief/' + mk) }); } });
+      if (gran === 'quarter' && T.quarters[id]) { acc = T.quarters[id].acc; nDays = T.quarters[id].n; high = T.quarters[id].high; }
+      else if (gran === 'year' && T.years[id]) { acc = T.years[id].acc; nDays = T.years[id].n; high = T.years[id].high; }
+      else if (cnt) { acc = Math.round(sum / cnt); nDays = cnt; high = hi; }
+    }
+    out.aggBreakdownTitle = gran === 'month' ? '每日命中率' : '各月命中率';
+    out.aggBreakdown = breakdown.map(b => ({ label: b.label, value: b.value, onClick: b.onClick,
+      dotStyle: { width: '8px', height: '8px', borderRadius: '2px', background: b.color, flex: '0 0 auto' },
+      rowStyle: { display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', borderBottom: '1px dashed var(--hair)', padding: '7px 2px', cursor: 'pointer' } }));
+    if (acc != null) {
+      out.aggHasScore = true; out.aggScoreText = acc + '%';
+      out.aggScoreBadgeStyle = { fontFamily: 'var(--mono)', fontSize: '12px', letterSpacing: '.5px', color: gc(acc), background: 'transparent', border: '1px solid ' + gc(acc), borderRadius: '20px', padding: '7px 15px', cursor: 'pointer', whiteSpace: 'nowrap', flex: '0 0 auto' };
+      out.aggScoreClick = () => { if (gran === 'month') this.nav('#/track/month/' + id); else if (gran === 'quarter') this.nav('#/track/quarter/' + id); else if (gran === 'year') this.nav('#/track/year/' + id); else this.nav('#/track/all'); };
+      out.aggNarrative = '本期由 ' + nDays + ' 个交易日聚合,整体命中率 ' + acc + '%,其中达到 ≥80% 的交易日共 ' + high + ' 天。点击下方任一子周期可继续下钻。';
+    } else { out.aggHasScore = false; out.aggNarrative = '该周期暂无打标数据(后端尚未生成命中率)。'; }
+    const n = series.length;
+    if (n >= 2) {
+      const W = 320, H = 100, pad = 10;
+      const lo = Math.min.apply(null, series) - 6, hiV = Math.max.apply(null, series) + 6, rg = (hiV - lo) || 1;
+      const xs = series.map((_, i) => pad + (W - 2 * pad) * i / (n - 1));
+      const ys = series.map(v => H - pad - (H - 2 * pad) * (v - lo) / rg);
+      const lp = series.map((_, i) => xs[i].toFixed(1) + ',' + ys[i].toFixed(1)).join(' ');
+      out.aggHasChart = true; out.aggChartLine = lp; out.aggChartArea = '0,' + H + ' ' + lp + ' ' + W + ',' + H;
+      out.aggChartLineStyle = { fill: 'none', stroke: accent, strokeWidth: '1.8', strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' };
+      out.aggChartAreaStyle = { fill: accent, opacity: 0.08, stroke: 'none' };
+      out.aggChartDotStyle = { fill: accent, vectorEffect: 'non-scaling-stroke' };
+      out.aggCX = xs[n - 1].toFixed(1); out.aggCY = ys[n - 1].toFixed(1);
+      out.aggChartCur = series[n - 1] + '%'; out.aggChartLabel = '' + labels[n - 1];
+      out.aggChartStart = '' + labels[0]; out.aggChartEnd = '' + labels[n - 1];
+    } else out.aggHasChart = false;
+    return out;
   }
 
   renderVals() {
     const S = this.state;
-    const ink2 = 'var(--ink2)', up = 'var(--up)', down = 'var(--down)', accent = 'var(--accent)';
+    const ink2 = 'var(--ink2)', up = 'var(--up)', down = 'var(--down)', accent = 'var(--accent)', warn = 'var(--warn)';
     const colorFor = c => c > 0 ? up : c < 0 ? down : ink2;
     const dirInfo = d => d === 'up' ? { ch: '↑', col: up } : d === 'down' ? { ch: '↓', col: down } : { ch: '·', col: ink2 };
     const toneCol = t => t === 'risk-on' ? up : t === 'risk-off' ? down : ink2;
-    const tab = active => ({
-      padding: '5px 13px', fontSize: '11px', fontFamily: 'var(--mono)', letterSpacing: '.5px',
-      border: 'none', borderRadius: '7px', cursor: 'pointer',
-      background: active ? 'var(--paper)' : 'transparent',
-      color: active ? 'var(--ink)' : 'var(--ink2)',
-      boxShadow: active ? '0 1px 3px rgba(0,0,0,.14)' : 'none', transition: 'all .18s'
-    });
+    const toneText = t => t === 'risk-on' ? 'RISK-ON' : t === 'risk-off' ? 'RISK-OFF' : 'NEUTRAL';
+    const toneTagStyle = t => ({ fontFamily: 'var(--mono)', fontSize: '9px', letterSpacing: '.8px', color: toneCol(t), border: '1px solid ' + toneCol(t), borderRadius: '3px', padding: '1px 6px', whiteSpace: 'nowrap' });
+    const tm = S.themeMode, page = S.route.page;
 
-    const tm = S.themeMode;
-    const ai = this.activeIndex();
-
-    const timeline = S.briefs.map((b, i) => {
-      const isA = i === ai;
-      const dot = toneCol(b.tone);
-      return {
-        dateShort: b.date.slice(5).replace('-', '.'),
-        weekday: b.weekday,
-        headline: b.headline,
-        rowStyle: { position: 'relative', display: 'block', width: '100%', textAlign: 'left', border: 'none', background: isA ? 'var(--paper2)' : 'transparent', borderRadius: '8px', padding: '9px 12px 9px 30px', marginBottom: '1px', cursor: 'pointer', transition: 'background .18s, opacity .18s', opacity: isA ? 1 : 0.6 },
-        dotStyle: { position: 'absolute', left: '9px', top: '14px', width: isA ? '11px' : '8px', height: isA ? '11px' : '8px', transform: 'translateX(-50%)', borderRadius: '50%', background: dot, boxShadow: isA ? ('0 0 0 3px var(--paper2), 0 0 0 4.5px ' + accent) : '0 0 0 3px var(--paper)', transition: 'all .2s' },
-        dateStyle: { fontFamily: 'var(--mono)', fontSize: '12.5px', fontWeight: 600, color: isA ? 'var(--ink)' : 'var(--ink2)', letterSpacing: '.3px' },
-        wdStyle: { fontFamily: 'var(--mono)', fontSize: '10px', color: 'var(--ink2)', marginLeft: '7px' },
-        hlStyle: { fontSize: '11.5px', lineHeight: 1.4, marginTop: '3px', color: isA ? 'var(--ink)' : 'var(--ink2)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
-        onEnter: () => this.setState({ hoverIdx: i }),
-        onLeave: () => this.setState({ hoverIdx: null }),
-        onClick: () => this.setState({ selectedIdx: i, hoverIdx: null }),
-      };
-    });
+    const tab = active => ({ padding: '5px 13px', fontSize: '11px', fontFamily: 'var(--mono)', letterSpacing: '.5px', border: 'none', borderRadius: '7px', cursor: 'pointer', background: active ? 'var(--paper)' : 'transparent', color: active ? 'var(--ink)' : 'var(--ink2)', boxShadow: active ? '0 1px 3px rgba(0,0,0,.14)' : 'none', transition: 'all .18s' });
+    const navTab = active => ({ padding: '10px 14px', marginBottom: '-1px', fontSize: '12.5px', fontFamily: 'var(--sans)', fontWeight: active ? 700 : 500, border: 'none', background: 'transparent', color: active ? 'var(--ink)' : 'var(--ink2)', borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent', cursor: 'pointer', transition: 'color .18s' });
 
     const view = {
-      loaded: S.loaded, notLoaded: !S.loaded, timeline, model: S.model || 'DeepSeek', themeMode: tm,
+      loaded: S.loaded, notLoaded: !S.loaded, model: S.model || 'DeepSeek', themeMode: tm,
+      isBrief: page === 'brief', isTimeline: page === 'timeline', isTrack: page === 'track',
       tabAuto: tab(tm === 'auto'), tabLight: tab(tm === 'light'), tabDark: tab(tm === 'dark'),
       onAuto: () => this.setTheme('auto'), onLight: () => this.setTheme('light'), onDark: () => this.setTheme('dark'),
-      sparks: this.props.showSparklines ?? true,
-      texture: this.props.paperTexture ?? true,
+      navBrief: navTab(page === 'brief'), navTimeline: navTab(page === 'timeline'), navTrack: navTab(page === 'track'),
+      goBrief: () => this.nav('#/brief'), goTimeline: () => this.nav('#/timeline'), goTrack: () => this.nav('#/track'),
+      sparks: this.props.showSparklines ?? true, texture: this.props.paperTexture ?? true,
+      backLinkStyle: { border: 'none', background: 'transparent', color: 'var(--ink2)', fontSize: '12px', cursor: 'pointer', padding: '2px 2px', fontFamily: 'var(--sans)', flex: '0 0 auto' },
+      backLabel: (S.route && S.route.from === 'track') ? '‹ 命中率' : '‹ 时间线',
+      backTo: () => this.nav((S.route && S.route.from === 'track') ? '#/track' : '#/timeline'),
       rootRef: el => { this.rootEl = el; this.applyAccent(); },
       receiptRef: el => { this.receiptEl = el; },
+      hdrStyle: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '16px', flexWrap: 'nowrap' },
+      hdrStyleMb: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '16px', flexWrap: 'nowrap', marginBottom: '18px' },
+      hdrLeftStyle: { flex: '1 1 auto', minWidth: 0 },
+      hdrBarStyle: { display: 'flex', gap: '2px', padding: '3px', background: 'var(--paper2)', borderRadius: '9px', flex: '0 0 auto' },
     };
 
-    const b = S.briefs[ai];
-    if (b) {
-      const metrics = b.metrics.map(m => {
-        const sp = this.makeSpark(b.date + m.key, m.change);
-        const col = colorFor(m.change);
-        return {
-          label: m.label, valueText: this.fmtVal(m), changeText: this.fmtChg(m),
-          changeStyle: { fontFamily: 'var(--mono)', fontSize: '12px', textAlign: 'right', color: col },
-          lineStyle: { fill: 'none', stroke: col, strokeWidth: '1.5', strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' },
-          dotFill: { fill: col }, points: sp.points, dotX: sp.dotX, dotY: sp.dotY
-        };
-      });
-      const reviews = (b.reviews || []).map(r => {
-        const map = r.status === 'held' ? { ch: '✓', col: up, lab: '已兑现' } : r.status === 'invalidated' ? { ch: '✕', col: down, lab: '已失效' } : { ch: '○', col: accent, lab: '待观察' };
-        return {
-          ifThen: r.ifThen, note: r.note, markChar: map.ch, statusLabel: map.lab,
-          markStyle: { flex: '0 0 auto', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: map.col, border: ('1.5px solid ' + map.col), marginTop: '1px' },
-          statusStyle: { fontFamily: 'var(--mono)', fontSize: '9.5px', color: map.col, letterSpacing: '.5px' }
-        };
-      });
-      const catMap = {
-        fact: { lab: '事实', col: 'var(--ink)', bg: 'var(--paper2)', bd: 'var(--faint)' },
-        read: { lab: '解读', col: 'var(--accent)', bg: 'transparent', bd: 'var(--accent)' },
-        both: { lab: '事实+解读', col: 'var(--blue)', bg: 'transparent', bd: 'var(--blue)' },
-        noise: { lab: '噪音', col: 'var(--ink2)', bg: 'transparent', bd: 'var(--faint)' }
-      };
-      const news = b.news.map(n => {
-        const c = catMap[n.cat] || catMap.fact, di = dirInfo(n.dir);
-        return {
-          title: n.title, source: n.source, assets: n.assets, catLabel: c.lab,
-          catStyle: { flex: '0 0 auto', fontFamily: 'var(--mono)', fontSize: '9px', letterSpacing: '.5px', padding: '2px 6px', borderRadius: '4px', color: c.col, background: c.bg, border: ('1px solid ' + c.bd), whiteSpace: 'nowrap' },
-          dirChar: di.ch, dirStyle: { fontFamily: 'var(--mono)', fontSize: '12px', color: di.col, flex: '0 0 auto' },
-          titleStyle: { flex: '1 1 auto', fontSize: '12px', lineHeight: 1.45, color: n.cat === 'noise' ? 'var(--ink2)' : 'var(--ink)', textWrap: 'pretty' }
-        };
-      });
-      const impacts = b.impacts.map(im => {
-        const di = dirInfo(im.dir);
-        return { asset: im.asset, watch: im.watch, dirChar: di.ch, dirStyle: { fontFamily: 'var(--mono)', fontSize: '12px', color: di.col, flex: '0 0 auto', width: '12px', textAlign: 'center' } };
-      });
-      Object.assign(view, {
-        date: b.date, weekday: b.weekday, issue: b.issue, time: b.time, headline: b.headline,
-        metrics, facts: b.facts, reads: b.reads, hypotheses: b.hypotheses, impacts,
-        reviews, hasReviews: (b.reviews || []).length > 0, news,
-      });
-    }
+    const bgran = page === 'brief' ? (S.route.gran || 'day') : null;
+    view.isBriefDay = S.loaded && page === 'brief' && bgran === 'day';
+    view.isBriefAgg = S.loaded && page === 'brief' && bgran !== 'day';
+    view.showBack = !!(page === 'brief' && S.route.date);
+
+    const h = { ink2, up, down, accent, warn, colorFor, dirInfo, toneCol, toneText, toneTagStyle, tab, navTab };
+    this.buildBriefView(view, S, h);
+    this.buildTimelineView(view, S, h);
+    this.buildTrackView(view, S, h);
     return view;
+  }
+
+  buildBriefView(view, S, h) {
+    const { ink2, up, down, accent, warn, colorFor, dirInfo, toneCol, toneText, toneTagStyle, tab, navTab } = h;
+    const page = S.route.page;
+    // ---------- DETAIL (dashboard) ----------
+    if (view.isBriefDay) {
+      const ai = this.routeIdx();
+      const b = S.briefs[ai];
+      if (b) {
+        view.detailNote = '第 ' + b.issue + ' 刊 · DETAIL';
+        const metrics = this.buildMetrics(b);
+
+        const mget = k => b.metrics.find(m => m.key === k);
+        const assets = [
+          { key: 'nasdaq', label: 'NASDAQ', kind: 'int', end: b.q.nasdaq[0], chg: b.q.nasdaq[1], amp: b.q.nasdaq[0] * 0.022 },
+          { key: 'gold', label: 'GOLD', kind: 'int', end: mget('gold').value, chg: mget('gold').change, amp: mget('gold').value * 0.018 },
+          { key: 'dxy', label: 'DXY', kind: 'pt1', end: mget('dxy').value, chg: mget('dxy').change, amp: 1.4 },
+          { key: 'us10y', label: 'US10Y', kind: 'yield', end: mget('us10y').value, chg: mget('us10y').change, amp: 0.22 },
+          { key: 'vix', label: 'VIX', kind: 'pt1', end: mget('vix').value, chg: mget('vix').change, amp: 3.2 },
+          { key: 'btc', label: 'BTC', kind: 'int', end: b.q.btc[0], chg: b.q.btc[1], amp: b.q.btc[0] * 0.05 },
+        ];
+        const ca = assets.find(a => a.key === S.chartAsset) || assets[0];
+        view.chartTabs = assets.map(a => ({ label: a.label, onClick: () => this.setState({ chartAsset: a.key, chartHover: null }),
+          style: { padding: '3px 8px', fontFamily: 'var(--mono)', fontSize: '9.5px', letterSpacing: '.3px', border: '1px solid ' + (a.key === ca.key ? 'var(--accent)' : 'var(--hair)'), borderRadius: '4px', background: a.key === ca.key ? 'var(--paper2)' : 'transparent', color: a.key === ca.key ? 'var(--accent)' : 'var(--ink2)', cursor: 'pointer' } }));
+        // 30D price series comes precomputed from the data layer ({date,value}[]).
+        const ser = (b.priceSeries && b.priceSeries[ca.key]) || [];
+        const vals = ser.map(p => p.value), dates = ser.map(p => p.date);
+        const mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals), rg = (mx - mn) || 1;
+        const W = 320, H = 110, pad = 9;
+        const xs = vals.map((_, i) => (W * i / 29));
+        const ys = vals.map(v => H - pad - (H - 2 * pad) * (v - mn) / rg);
+        const linePts = vals.map((_, i) => xs[i].toFixed(1) + ',' + ys[i].toFixed(1)).join(' ');
+        const ccol = ca.chg >= 0 ? up : down;
+        const hi = S.chartHover != null ? S.chartHover : 29;
+        view.chartLine = linePts; view.chartArea = '0,' + H + ' ' + linePts + ' ' + W + ',' + H;
+        view.chartLineStyle = { fill: 'none', stroke: ccol, strokeWidth: '1.6', strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' };
+        view.chartAreaStyle = { fill: ccol, opacity: 0.07, stroke: 'none' };
+        view.chartCX = xs[hi].toFixed(1); view.chartCY = ys[hi].toFixed(1);
+        view.chartDotLeft = (xs[hi] / W * 100); view.chartDotTop = (ys[hi] / H * 100); view.chartDotColor = ccol;
+        view.chartCrossStyle = { stroke: 'var(--ink2)', strokeWidth: '1', strokeDasharray: '2 2', opacity: S.chartHover != null ? 0.55 : 0, vectorEffect: 'non-scaling-stroke' };
+        view.chartDotStyle = { fill: ccol, vectorEffect: 'non-scaling-stroke' };
+        view.chartHoverVal = this.fmtChartVal(ca.kind, vals[hi]); view.chartHoverDate = dates[hi];
+        view.chartStartDate = dates[0]; view.chartEndDate = dates[29];
+        view.chartRef = el => { this.chartEl = el; };
+        view.onChartMove = (e) => { const el = this.chartEl; if (!el) return; const r = el.getBoundingClientRect(); const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left; let idx = Math.round(cx / r.width * 29); idx = Math.max(0, Math.min(29, idx)); if (idx !== S.chartHover) this.setState({ chartHover: idx }); };
+        view.onChartLeave = () => this.setState({ chartHover: null });
+
+        const reviews = (b.reviews || []).map(r => {
+          const map = r.status === 'held' ? { ch: '✓', col: up, lab: '已兑现' } : r.status === 'invalidated' ? { ch: '✕', col: down, lab: '已失效' } : { ch: '○', col: accent, lab: '待观察' };
+          return { ifThen: r.ifThen, note: r.note, markChar: map.ch, statusLabel: map.lab,
+            markStyle: { flex: '0 0 auto', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: map.col, border: ('1.5px solid ' + map.col), marginTop: '1px' },
+            statusStyle: { fontFamily: 'var(--mono)', fontSize: '9.5px', color: map.col, letterSpacing: '.5px' } };
+        });
+        const catMap = { fact: { lab: '事实', col: 'var(--ink)', bg: 'var(--paper2)', bd: 'var(--faint)' }, read: { lab: '解读', col: 'var(--accent)', bg: 'transparent', bd: 'var(--accent)' }, both: { lab: '事实+解读', col: 'var(--blue)', bg: 'transparent', bd: 'var(--blue)' }, noise: { lab: '噪音', col: 'var(--ink2)', bg: 'transparent', bd: 'var(--faint)' } };
+        const news = b.news.map(n => {
+          const c = catMap[n.cat] || catMap.fact, di = dirInfo(n.dir);
+          return { title: n.title, source: n.source, assets: n.assets, catLabel: c.lab,
+            catStyle: { flex: '0 0 auto', fontFamily: 'var(--mono)', fontSize: '9px', letterSpacing: '.5px', padding: '2px 6px', borderRadius: '4px', color: c.col, background: c.bg, border: ('1px solid ' + c.bd), whiteSpace: 'nowrap' },
+            dirChar: di.ch, dirStyle: { fontFamily: 'var(--mono)', fontSize: '12px', color: di.col, flex: '0 0 auto' },
+            titleStyle: { flex: '1 1 auto', fontSize: '12px', lineHeight: 1.45, color: n.cat === 'noise' ? 'var(--ink2)' : 'var(--ink)', textWrap: 'pretty' } };
+        });
+        const impacts = b.impacts.map(im => { const di = dirInfo(im.dir); return { asset: im.asset, watch: im.watch, dirChar: di.ch, dirStyle: { fontFamily: 'var(--mono)', fontSize: '12px', color: di.col, flex: '0 0 auto', width: '12px', textAlign: 'center' } }; });
+
+        const sc = S.track && S.track.days[b.date];
+        if (sc) {
+          const gcol = this.gradeCol(sc.grade);
+          view.hasScore = true; view.scoreText = sc.score + '%';
+          view.scoreBadgeStyle = { fontFamily: 'var(--mono)', fontSize: '12px', letterSpacing: '.5px', color: gcol, background: 'transparent', border: '1px solid ' + gcol, borderRadius: '20px', padding: '7px 15px', cursor: 'pointer', whiteSpace: 'nowrap', flex: '0 0 auto' };
+          view.onScoreClick = () => this.nav('#/track/month/' + b.date.slice(0, 7));
+        } else { view.hasScore = false; }
+
+        Object.assign(view, { date: b.date, weekday: b.weekday, issue: b.issue, time: b.time, headline: b.headline,
+          metrics, facts: b.facts, reads: b.reads, hypotheses: b.hypotheses, impacts, reviews, hasReviews: (b.reviews || []).length > 0, news });
+      }
+    }
+
+    if (view.isBriefAgg) { Object.assign(view, this.buildAgg(S.route.date, S.route.gran)); }
+  }
+
+  buildTimelineView(view, S, h) {
+    const { ink2, up, down, accent, warn, colorFor, dirInfo, toneCol, toneText, toneTagStyle, tab, navTab } = h;
+    const page = S.route.page;
+    // ---------- TIMELINE (left moments + right receipt overview) ----------
+    if (page === 'timeline') {
+      const gran = S.route.gran || 'day';
+      const granDefs = [['day', '日'], ['month', '月'], ['quarter', '季'], ['half', '半年'], ['year', '年']];
+      view.granTabs = granDefs.map(([k, l]) => ({ label: l, onClick: () => this.nav('#/timeline/' + k), style: tab(gran === k) }));
+      const notes = { day: '左列选时刻 · 右侧小票概览 · 详情按钮在小票右上角', month: '左列选月份 · 右侧月度概览 · 右上角进月度详情', quarter: '左列选季度 · 右上角进季度详情', half: '左列选半年 · 右上角进半年详情', year: '左列选年份 · 右上角进年度详情' };
+      view.granNote = notes[gran] || '';
+      const isDay = gran === 'day';
+      const list = isDay ? S.briefs : ((S.periods && S.periods[gran]) || []);
+      const statVStyle = d => ({ fontFamily: 'var(--mono)', fontSize: '13px', color: d === 'up' ? up : d === 'down' ? down : 'var(--ink)' });
+
+      const sel = Math.max(0, Math.min(S.tlSelected, list.length - 1));
+      const act = (S.tlHover != null && S.tlHover < list.length) ? S.tlHover : sel;
+
+      const mob = S.isMobile;
+      view.isMobile = mob; view.tlDesktop = !mob; view.tlMobile = mob;
+      view.tlRowStyle = mob
+        ? { display: 'flex', flexDirection: 'column', gap: '16px' }
+        : { display: 'flex', gap: '30px', alignItems: 'flex-start', flexWrap: 'wrap' };
+      view.tlListStyle = mob
+        ? { display: 'flex', flexDirection: 'row', gap: '8px', overflowX: 'auto', padding: '4px 2px 10px', WebkitOverflowScrolling: 'touch' }
+        : { flex: '0 0 266px', minWidth: '228px', position: 'relative', maxHeight: 'calc(100vh - 238px)', overflowY: 'auto', padding: '6px 10px 6px 6px', WebkitMaskImage: 'linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 22px),transparent 100%)', maskImage: 'linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 22px),transparent 100%)' };
+      view.tlReceiptColStyle = mob
+        ? { display: 'flex', justifyContent: 'center' }
+        : { flex: '1 1 360px', minWidth: '300px', display: 'flex', justifyContent: 'center' };
+
+      view.tlList = list.map((it, i) => {
+        const isA = i === act, tone = it.tone;
+        if (mob) {
+          return {
+            primary: isDay ? it.date.slice(5).replace('-', '.') : it.label,
+            secondary: isDay ? it.weekday : it.sub,
+            headline: it.headline,
+            rowStyle: { flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', border: isA ? ('1px solid ' + accent) : '1px solid var(--hair)', background: isA ? 'var(--paper2)' : 'var(--paper)', borderRadius: '10px', padding: '8px 12px', cursor: 'pointer', transition: 'all .18s', opacity: isA ? 1 : 0.7 },
+            dotStyle: { width: '8px', height: '8px', borderRadius: '50%', background: toneCol(tone), boxShadow: isA ? ('0 0 0 2.5px var(--paper2), 0 0 0 4px ' + accent) : 'none' },
+            labelWrapStyle: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' },
+            primaryStyle: { fontFamily: 'var(--mono)', fontSize: '12.5px', fontWeight: 600, color: isA ? 'var(--ink)' : 'var(--ink2)', letterSpacing: '.3px', whiteSpace: 'nowrap' },
+            secondaryStyle: { fontFamily: 'var(--mono)', fontSize: '9px', color: 'var(--ink2)', whiteSpace: 'nowrap' },
+            hlStyle: {},
+            onEnter: () => {}, onLeave: () => {},
+            onClick: () => this.setState({ tlSelected: i, tlHover: null }),
+          };
+        }
+        return {
+          primary: isDay ? it.date.slice(5).replace('-', '.') : it.label,
+          secondary: isDay ? it.weekday : it.sub,
+          headline: it.headline,
+          rowStyle: { position: 'relative', display: 'block', width: '100%', textAlign: 'left', border: 'none', background: isA ? 'var(--paper2)' : 'transparent', borderRadius: '8px', padding: '9px 12px 9px 34px', marginBottom: '2px', cursor: 'pointer', transition: 'background .18s, opacity .18s', opacity: isA ? 1 : 0.62 },
+          dotStyle: { position: 'absolute', left: '13px', top: '14px', width: isA ? '11px' : '8px', height: isA ? '11px' : '8px', transform: 'translateX(-50%)', borderRadius: '50%', background: toneCol(tone), boxShadow: isA ? ('0 0 0 3px var(--paper2), 0 0 0 4.5px ' + accent) : '0 0 0 3px var(--bg)', transition: 'all .2s' },
+          labelWrapStyle: { display: 'flex', alignItems: 'baseline' },
+          primaryStyle: { fontFamily: 'var(--mono)', fontSize: '13px', fontWeight: 600, color: isA ? 'var(--ink)' : 'var(--ink2)', letterSpacing: '.3px', whiteSpace: 'nowrap' },
+          secondaryStyle: { fontFamily: 'var(--mono)', fontSize: '10px', color: 'var(--ink2)', marginLeft: '7px', whiteSpace: 'nowrap' },
+          hlStyle: { fontSize: '11.5px', lineHeight: 1.4, marginTop: '3px', color: isA ? 'var(--ink)' : 'var(--ink2)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+          onEnter: () => this.setState({ tlHover: i }), onLeave: () => this.setState({ tlHover: null }),
+          onClick: () => this.setState({ tlSelected: i, tlHover: null }),
+        };
+      });
+
+      const a = list[act];
+      view.tlIsDay = isDay && !!a; view.tlIsAgg = !isDay && !!a;
+      view.ovDetailStyle = { position: 'absolute', top: '13px', right: '15px', zIndex: 4, fontFamily: 'var(--mono)', fontSize: '10px', letterSpacing: '.5px', color: '#fff', background: 'var(--accent)', border: 'none', borderRadius: '20px', padding: '5px 13px', cursor: 'pointer', boxShadow: '0 5px 14px -4px rgba(0,0,0,.45)' };
+      view.tlListRef = el => { this.tlListEl = el; };
+      view.tlReceiptRef = el => { this.tlReceiptEl = el; if (el) requestAnimationFrame(() => this.syncTlHeight()); };
+
+      if (isDay && a) {
+        const sc = S.track && S.track.days[a.date];
+        Object.assign(view, {
+          ovDate: a.date, ovWeekday: a.weekday, ovIssue: a.issue, ovTime: a.time, ovHeadline: a.headline,
+          ovMetrics: this.buildMetrics(a),
+          ovCall: (a.hypotheses || []).map(h => ({ ifThen: h.ifThen })),
+          ovDetail: () => this.nav('#/brief/' + a.date + '/timeline'),
+        });
+        const catMap2 = { fact: { lab: '事实', col: 'var(--ink)', bg: 'var(--paper2)', bd: 'var(--faint)' }, read: { lab: '解读', col: 'var(--accent)', bg: 'transparent', bd: 'var(--accent)' }, both: { lab: '事实+解读', col: 'var(--blue)', bg: 'transparent', bd: 'var(--blue)' }, noise: { lab: '噪音', col: 'var(--ink2)', bg: 'transparent', bd: 'var(--faint)' } };
+        view.ovNews = (a.news || []).map(n => {
+          const c = catMap2[n.cat] || catMap2.fact, di = dirInfo(n.dir);
+          return { title: n.title, source: n.source, assets: n.assets, catLabel: c.lab,
+            catStyle: { flex: '0 0 auto', fontFamily: 'var(--mono)', fontSize: '9px', letterSpacing: '.5px', padding: '2px 6px', borderRadius: '4px', color: c.col, background: c.bg, border: ('1px solid ' + c.bd), whiteSpace: 'nowrap' },
+            dirChar: di.ch, dirStyle: { fontFamily: 'var(--mono)', fontSize: '12px', color: di.col, flex: '0 0 auto' },
+            titleStyle: { flex: '1 1 auto', fontSize: '12px', lineHeight: 1.45, color: n.cat === 'noise' ? 'var(--ink2)' : 'var(--ink)', textWrap: 'pretty' } };
+        });
+        view.ovExpanded = S.tlExpanded;
+        view.ovToggleLabel = S.tlExpanded ? '收起新闻' : '展开新闻分类';
+        view.ovToggle = () => this.setState(st => ({ tlExpanded: !st.tlExpanded }));
+        view.ovToggleStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', marginTop: '16px', padding: '7px 0', background: 'transparent', border: '1px dashed var(--faint)', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: '10px', letterSpacing: '.5px', color: 'var(--ink2)' };
+        view.ovToggleTriStyle = { display: 'inline-block', transition: 'transform .2s', transform: S.tlExpanded ? 'rotate(180deg)' : 'rotate(0deg)', fontSize: '11px' };
+        if (sc) {
+          const gcol = this.gradeCol(sc.grade);
+          view.ovHasScore = true; view.ovScoreText = sc.score + '%';
+          view.ovScoreBadgeStyle = { marginTop: '10px', fontFamily: 'var(--mono)', fontSize: '10px', letterSpacing: '.5px', color: gcol, background: 'transparent', border: '1px solid ' + gcol, borderRadius: '20px', padding: '3px 11px', cursor: 'pointer' };
+          view.ovScoreClick = () => this.nav('#/track/month/' + a.date.slice(0, 7));
+        } else { view.ovHasScore = false; }
+      } else if (a) {
+        const T = S.track;
+        const gc = x => x >= 75 ? up : x >= 60 ? warn : down;
+        const accObj = T ? (gran === 'month' ? T.months[a.id] : gran === 'quarter' ? T.quarters[a.id] : gran === 'year' ? T.years[a.id] : null) : null;
+        Object.assign(view, {
+          ovTitle: this.aggTitle(a.id, gran), ovSub: a.sub, ovHeadline: a.headline,
+          ovStats: a.stats.map(st => ({ k: st.k, v: st.v, vStyle: statVStyle(st.d) })),
+          ovDetail: () => this.nav('#/brief/' + a.id + '/timeline'),
+        });
+        if (accObj) {
+          view.ovHasScore = true; view.ovScoreText = accObj.acc + '%';
+          view.ovScoreBadgeStyle = { marginTop: '10px', fontFamily: 'var(--mono)', fontSize: '10px', letterSpacing: '.5px', color: gc(accObj.acc), background: 'transparent', border: '1px solid ' + gc(accObj.acc), borderRadius: '20px', padding: '3px 11px', cursor: 'pointer' };
+          view.ovScoreClick = () => { if (gran === 'month') this.nav('#/track/month/' + a.id); else if (gran === 'quarter') this.nav('#/track/quarter/' + a.id); else if (gran === 'year') this.nav('#/track/year/' + a.id); else this.nav('#/track/all'); };
+        } else { view.ovHasScore = false; }
+      }
+    }
+  }
+
+  buildTrackView(view, S, h) {
+    const { ink2, up, down, accent, warn, colorFor, dirInfo, toneCol, toneText, toneTagStyle, tab, navTab } = h;
+    const page = S.route.page;
+    // ---------- TRACK RECORD ----------
+    if (page === 'track' && S.track) {
+      const T = S.track, mode = S.route.mode || 'year';
+      const briefDates = new Set(S.briefs.map(b => b.date));
+      const modeDefs = [['month', '月度'], ['quarter', '季度'], ['year', '年度'], ['all', 'ALL']];
+      view.trackModes = modeDefs.map(([k, l]) => ({ label: l, onClick: () => this.nav(this.trackHash(k)), style: tab(mode === k) }));
+      view.isTMonth = mode === 'month'; view.isTQuarter = mode === 'quarter'; view.isTYear = mode === 'year'; view.isTAll = mode === 'all';
+      view.weekdayHeads = ['一', '二', '三', '四', '五', '六', '日'];
+      view.hasPeriodNav = mode !== 'all';
+      view.trackTipRef = el => { this.trackTipEl = el; };
+
+      const navBtn = (enabled) => ({ border: 'none', background: 'transparent', color: enabled ? 'var(--ink2)' : 'var(--hair)', fontSize: '20px', cursor: enabled ? 'pointer' : 'default', padding: '0 6px' });
+
+      if (mode === 'year') {
+        const yk = Object.keys(T.years).sort();
+        const yr = (S.route.period && T.years[S.route.period]) ? S.route.period : yk[yk.length - 1];
+        const y = T.years[yr], yi = yk.indexOf(yr);
+        const prev = yi > 0 ? yk[yi - 1] : null, next = yi < yk.length - 1 ? yk[yi + 1] : null;
+        view.periodLabel = yr + ' 年';
+        view.periodPrevStyle = navBtn(!!prev); view.periodNextStyle = navBtn(!!next);
+        view.onPeriodPrev = () => { if (prev) this.nav('#/track/year/' + prev); };
+        view.onPeriodNext = () => { if (next) this.nav('#/track/year/' + next); };
+        view.trackSummary = y ? (yr + ' 年 · 整体命中率 ' + y.acc + '% · 共 ' + y.n + ' 个交易日 · 其中 ' + y.high + ' 天达到 ≥80%。绿/黄/红 = 当日 AI 判断命中高/中/低,灰格为非交易日或未打标。') : '';
+        view.monthBlocks = this.buildMonthBlocks(yr, briefDates, T);
+        view.onHeatMove = (e) => { const el = this.trackTipEl; if (!el) return; const t = e.target; const d = t && t.getAttribute && t.getAttribute('data-d'); if (d) { el.textContent = d; el.style.opacity = '1'; el.style.left = (e.clientX + 12) + 'px'; el.style.top = (e.clientY + 14) + 'px'; } else { el.style.opacity = '0'; } };
+        view.onHeatLeave = () => { if (this.trackTipEl) this.trackTipEl.style.opacity = '0'; };
+        const ys = this.buildYearSummary(yr, T);
+        view.ySummaryBig = ys.bigAcc; view.ySummaryBigStyle = { fontFamily: 'var(--mono)', fontSize: '34px', fontWeight: 600, color: ys.bigAccCol, letterSpacing: '.5px' }; view.ySummaryRows = ys.rows;
+      } else if (mode === 'month') {
+        const mk = Object.keys(T.months).sort();
+        const cur = (S.route.period && T.months[S.route.period]) ? S.route.period : mk[mk.length - 1];
+        const m = T.months[cur], ci = mk.indexOf(cur);
+        const prev = ci > 0 ? mk[ci - 1] : null, next = ci < mk.length - 1 ? mk[ci + 1] : null;
+        view.periodLabel = cur.replace('-', ' · ');
+        view.periodPrevStyle = navBtn(!!prev); view.periodNextStyle = navBtn(!!next);
+        view.onPeriodPrev = () => { if (prev) this.nav('#/track/month/' + prev); };
+        view.onPeriodNext = () => { if (next) this.nav('#/track/month/' + next); };
+        view.trackSummary = m ? (cur.replace('-', ' 年 ') + ' 月 · 命中率 ' + m.acc + '% · ' + m.n + ' 个交易日。点带描边的日期进入当日详情。') : '';
+        view.calCells = this.buildCalendar(cur, briefDates, T, false);
+        view.calFootnote = m ? ('本月命中率 ' + m.acc + '% · ' + m.n + ' 个交易日 · ≥80% 共 ' + m.high + ' 天') : '';
+        const dayKeys = Object.keys(T.days).filter(k => k.slice(0, 7) === cur).sort();
+        view.mLine = this.miniLine(dayKeys.map(k => T.days[k].score), { W: 380, H: 150, color: accent });
+        view.mLineStart = dayKeys.length ? (+dayKeys[0].slice(8)) + '日' : '';
+        view.mLineEnd = dayKeys.length ? (+dayKeys[dayKeys.length - 1].slice(8)) + '日' : '';
+        let bd = null, wd2 = null; dayKeys.forEach(k => { const s = T.days[k].score; if (bd == null || s > T.days[bd].score) bd = k; if (wd2 == null || s < T.days[wd2].score) wd2 = k; });
+        const mPrev = prev ? T.months[prev] : null, mTrend = (m && mPrev) ? (m.acc - mPrev.acc) : 0;
+        view.mSummaryBig = m ? m.acc + '%' : '—'; view.mSummaryBigStyle = this.bigPctStyle(this.accColOf(m ? m.acc : null));
+        view.mSummaryRows = this.mkRows([
+          { k: '覆盖交易日', v: m ? m.n + ' 天' : '—' },
+          { k: '≥80% 高命中', v: m ? m.high + ' 天' : '—', c: 'var(--up)' },
+          { k: '最佳交易日', v: bd ? (+bd.slice(8)) + '日 · ' + T.days[bd].score + '%' : '—', c: bd ? this.accColOf(T.days[bd].score) : null },
+          { k: '最差交易日', v: wd2 ? (+wd2.slice(8)) + '日 · ' + T.days[wd2].score + '%' : '—', c: wd2 ? this.accColOf(T.days[wd2].score) : null },
+          { k: '环比上月', v: mPrev ? ((mTrend > 0 ? '↑ +' : mTrend < 0 ? '↓ ' : '→ ') + Math.abs(mTrend) + 'pt') : '—', c: mTrend > 0 ? up : mTrend < 0 ? down : ink2 },
+        ]);
+      } else if (mode === 'quarter') {
+        const qk = Object.keys(T.quarters).sort();
+        const cur = (S.route.period && T.quarters[S.route.period]) ? S.route.period : qk[qk.length - 1];
+        const q = T.quarters[cur], ci = qk.indexOf(cur);
+        const prev = ci > 0 ? qk[ci - 1] : null, next = ci < qk.length - 1 ? qk[ci + 1] : null;
+        view.periodLabel = cur.replace('-Q', ' · 第 ') + ' 季度';
+        view.periodPrevStyle = navBtn(!!prev); view.periodNextStyle = navBtn(!!next);
+        view.onPeriodPrev = () => { if (prev) this.nav('#/track/quarter/' + prev); };
+        view.onPeriodNext = () => { if (next) this.nav('#/track/quarter/' + next); };
+        view.trackSummary = q ? (cur.replace('-Q', ' 年第 ') + ' 季度 · 命中率 ' + q.acc + '% · 共 ' + q.n + ' 个交易日 · ≥80% ' + q.high + ' 天。') : '';
+        const yy = +cur.slice(0, 4), qn = +cur.slice(6);
+        const months = [(qn - 1) * 3 + 1, (qn - 1) * 3 + 2, (qn - 1) * 3 + 3].map(mm => yy + '-' + ('0' + mm).slice(-2));
+        view.quarterMonths = months.map(mk => {
+          const ma = T.months[mk];
+          const acc = ma ? ma.acc : null;
+          const acol = acc == null ? ink2 : acc >= 75 ? up : acc >= 60 ? warn : down;
+          return { label: mk.replace('-', ' · ') + ' 月', accText: acc == null ? '无数据' : acc + '%', accStyle: { fontFamily: 'var(--mono)', fontSize: '11px', color: acol }, cells: this.buildCalendar(mk, briefDates, T, true) };
+        });
+        let qb = null, qw = null; months.forEach(mm => { const o = T.months[mm]; if (!o) return; if (qb == null || o.acc > T.months[qb].acc) qb = mm; if (qw == null || o.acc < T.months[qw].acc) qw = mm; });
+        const qFirst = T.months[months[0]], qLast = T.months[months[months.length - 1]];
+        const qTrend = (qFirst && qLast) ? (qLast.acc - qFirst.acc) : 0;
+        view.qSummaryTitle = cur.replace('-Q', ' 第 ') + ' 季度';
+        view.qSummaryBig = q ? q.acc + '%' : '—'; view.qSummaryBigStyle = this.bigPctStyle(this.accColOf(q ? q.acc : null));
+        view.qSummaryRows = this.mkRows([
+          { k: '覆盖交易日', v: q ? q.n + ' 天' : '—' },
+          { k: '≥80% 高命中', v: q ? q.high + ' 天' : '—', c: 'var(--up)' },
+          { k: '最佳月份', v: qb ? (+qb.slice(5)) + '月 · ' + T.months[qb].acc + '%' : '—', c: qb ? this.accColOf(T.months[qb].acc) : null },
+          { k: '最差月份', v: qw ? (+qw.slice(5)) + '月 · ' + T.months[qw].acc + '%' : '—', c: qw ? this.accColOf(T.months[qw].acc) : null },
+          { k: '季内趋势', v: (qTrend > 0 ? '↑ +' : qTrend < 0 ? '↓ ' : '→ ') + Math.abs(qTrend) + 'pt', c: qTrend > 0 ? up : qTrend < 0 ? down : ink2 },
+        ]);
+        view.qLine = this.miniLine(months.map(mm => T.months[mm]).filter(Boolean).map(o => o.acc), { W: 220, H: 70, color: accent });
+      } else if (mode === 'all') {
+        const mk = Object.keys(T.months).sort();
+        const accs = mk.map(k => T.months[k].acc);
+        const n = accs.length;
+        const avg = Math.round(accs.reduce((a, c) => a + c, 0) / n);
+        // full-history DAILY bars
+        const dayKeys = Object.keys(T.days).sort();
+        view.trackSummary = '全历史 · 覆盖 ' + n + ' 个月 / ' + dayKeys.length + ' 个交易日 · 平均命中率 ' + avg + '%。每根柱子是一个交易日的命中率,悬停查看日期。';
+        view.allBars = dayKeys.map(k => {
+          const s = T.days[k].score, col = this.gradeCol(T.days[k].grade);
+          return { data: k + ' · ' + s + '%', style: { flex: '1 1 0', minWidth: '0', height: s + '%', background: col, borderRadius: '1px', cursor: 'pointer' }, onClick: () => this.nav('#/brief/' + k + '/track') };
+        });
+        view.allBarsStart = dayKeys[0]; view.allBarsEnd = dayKeys[dayKeys.length - 1];
+        view.allTipRef = el => { this.allTipEl = el; };
+        view.onAllBarsMove = (e) => { const el = this.trackTipEl; if (!el) return; const t = e.target, d = t && t.getAttribute && t.getAttribute('data-d'); if (d) { el.textContent = d; el.style.opacity = '1'; el.style.left = (e.clientX + 12) + 'px'; el.style.top = (e.clientY + 14) + 'px'; } else { el.style.opacity = '0'; } };
+        view.onAllBarsLeave = () => { if (this.trackTipEl) this.trackTipEl.style.opacity = '0'; };
+        let ab = mk[0], aw = mk[0]; mk.forEach(k => { if (T.months[k].acc > T.months[ab].acc) ab = k; if (T.months[k].acc < T.months[aw].acc) aw = k; });
+        const aTrend = T.months[mk[n - 1]].acc - T.months[mk[0]].acc;
+        view.allSummaryBig = avg + '%'; view.allSummaryBigStyle = this.bigPctStyle(this.accColOf(avg));
+        view.allSummaryRows = this.mkRows([
+          { k: '覆盖月份', v: n + ' 个月' },
+          { k: '最佳月份', v: ab.slice(0, 4) + '/' + (+ab.slice(5)) + '月 · ' + T.months[ab].acc + '%', c: this.accColOf(T.months[ab].acc) },
+          { k: '最差月份', v: aw.slice(0, 4) + '/' + (+aw.slice(5)) + '月 · ' + T.months[aw].acc + '%', c: this.accColOf(T.months[aw].acc) },
+          { k: '首尾趋势', v: (aTrend > 0 ? '↑ +' : aTrend < 0 ? '↓ ' : '→ ') + Math.abs(aTrend) + 'pt', c: aTrend > 0 ? up : aTrend < 0 ? down : ink2 },
+        ]);
+      }
+    }
   }
 }
 </script>
