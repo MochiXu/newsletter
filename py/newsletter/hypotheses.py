@@ -12,7 +12,7 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-from .providers import select_provider
+from .llm.providers import select_provider
 
 FIELDS = ["created_date", "if_then", "invalidation", "status", "resolved_date", "verdict", "note"]
 

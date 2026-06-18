@@ -13,7 +13,7 @@ import urllib.request
 from dataclasses import dataclass
 from xml.etree import ElementTree as ET
 
-from .providers import select_provider
+from .llm.providers import select_provider
 
 # 默认 RSS 源(免鉴权)。可由调用方覆盖;失效的源会被静默跳过。
 DEFAULT_FEEDS = [
