@@ -1,0 +1,23 @@
+{
+  "pull_date": "2026-06-18",
+  "rows": 33405,
+  "series": [
+    "CPILFESL",
+    "DFII10",
+    "DGS10",
+    "DGS2",
+    "DTWEXBGS",
+    "FEDFUNDS",
+    "NASDAQCOM",
+    "PAYEMS",
+    "SP500",
+    "T10Y2Y",
+    "T10YIE",
+    "UNRATE",
+    "UUP",
+    "VIXCLS",
+    "XAUUSD"
+  ],
+  "date_min": "2014-06-01",
+  "date_max": "2026-06-17"
+}

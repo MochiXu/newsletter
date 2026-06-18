@@ -1,0 +1,318 @@
+{
+  "date": "2026-06-18",
+  "weekday": "周四",
+  "issue": 1,
+  "time": "07:00 CST",
+  "tone": "neutral",
+  "headline": "美债曲线继续走平、通胀预期骤降，黄金跌破MA200，美股高位小幅回调，整体呈现「利率下行但风险偏好谨慎」的过渡态",
+  "metrics": [
+    {
+      "key": "sp500",
+      "label": "标普500",
+      "value": 7511.35,
+      "change": -42.94,
+      "kind": "index"
+    },
+    {
+      "key": "nasdaqcom",
+      "label": "纳指",
+      "value": 26376.34,
+      "change": -307.6,
+      "kind": "index"
+    },
+    {
+      "key": "vixcls",
+      "label": "VIX",
+      "value": 16.41,
+      "change": 0.21,
+      "kind": "index"
+    },
+    {
+      "key": "dgs2",
+      "label": "US2Y",
+      "value": 4.07,
+      "change": -0.02,
+      "kind": "yield"
+    },
+    {
+      "key": "dgs10",
+      "label": "US10Y",
+      "value": 4.47,
+      "change": -0.01,
+      "kind": "yield"
+    },
+    {
+      "key": "t10y2y",
+      "label": "2s10s",
+      "value": 0.38,
+      "change": -0.02,
+      "kind": "spread"
+    },
+    {
+      "key": "dfii10",
+      "label": "实际10Y",
+      "value": 2.15,
+      "change": -0.02,
+      "kind": "yield"
+    },
+    {
+      "key": "t10yie",
+      "label": "通胀预期",
+      "value": 2.29,
+      "change": -0.03,
+      "kind": "yield"
+    },
+    {
+      "key": "dtwexbgs",
+      "label": "广义美元",
+      "value": 119.5073,
+      "change": -0.6101,
+      "kind": "index"
+    },
+    {
+      "key": "xauusd",
+      "label": "黄金",
+      "value": 4310.9076,
+      "change": -20.4619,
+      "kind": "price"
+    }
+  ],
+  "facts": [
+    "标普500收于7,511.35，日跌42.94点（-0.57%）；纳指收于26,376.34，日跌307.60点（-1.15%）。",
+    "VIX收于16.41，日升0.21，处于15-20中性区间。",
+    "US10Y收于4.47%，日降1bp；US2Y收于4.07%，日降2bp；2s10s利差38bp，日缩2bp。",
+    "实际利率10Y收于2.15%，日降2bp；通胀预期收于2.29%，日降3bp，20日累计下降15bp。",
+    "广义美元指数收于119.51，日跌0.61（-0.51%）。",
+    "黄金收于4,310.9，日跌20.46（-0.47%）；较MA200低3.6%，处于下方；20日累计下跌5.1%。",
+    "标普500较MA200高8.7%，52周分位93.0%；纳指较MA200高11.9%，52周分位89.6%。",
+    "60日跨资产相关：标普~10Y -0.65，标普~VIX -0.80，黄金~实际利率 -0.40，黄金~广义美元 -0.44。",
+    "代码判定的regime：equity_trend=above_ma200；vol_regime=mid/easing；curve=normal/flattening；real_rate=flat；inflation_expectations=falling；dollar=weak。"
+  ],
+  "reads": [
+    "当前处于「股在高位、波动中性、曲线走平、通胀预期快速下行、美元偏弱」的组合，并非典型risk-on或risk-off，更像降息预期与衰退担忧交织的过渡期。",
+    "通胀预期20日骤降15bp而实际利率仅微升2bp，说明名义利率下行主要由通胀预期压缩驱动，市场可能在定价「需求走弱→通胀加速回落」的逻辑。",
+    "黄金跌破MA200且20日跌幅达5.1%，与实际利率、美元均呈负相关（-0.40/-0.44），但实际利率和美元近日同步走低，黄金却未受益——暗示当前黄金定价中避险溢价消退或存在流动性/仓位层面的抛压。",
+    "2s10s持续走平（20日缩15bp）而2Y仅微升，属于牛平（长端下行更快），通常对应增长预期下修而非紧缩加码。",
+    "广义美元偏弱（z=-0.29）且日跌0.61，与通胀预期下行、实际利率走平的环境一致，但美元走弱尚未有效传导至黄金和美股。"
+  ],
+  "hypotheses": [
+    {
+      "ifThen": "若通胀预期继续快速下行（20日再降超10bp），则实际利率将被动走高，对黄金和成长股形成额外压力。",
+      "invalidation": "名义10Y同步下行且幅度超过通胀预期降幅，实际利率未升反降。"
+    },
+    {
+      "ifThen": "若美元维持弱势（广义美元跌破MA200且z-score转负），而实际利率不再上行，则黄金有望在当前位置企稳反弹。",
+      "invalidation": "美元继续走弱但黄金同步下跌，说明主导因素已切换为流动性/仓位/避险需求消退。"
+    },
+    {
+      "ifThen": "若VIX持续在15-20区间运行且未突破20，则当前美股高位窄幅震荡格局延续，成长/价值分化由利率预期主导。",
+      "invalidation": "VIX突破20且标普500跌破MA20。"
+    },
+    {
+      "ifThen": "若2s10s利差从当前38bp继续收窄至30bp以下，则市场对增长放缓的定价加深，顺周期资产（工业、金融）相对跑输。",
+      "invalidation": "利差收窄由2Y上行驱动（紧缩预期升温），而非长端下行。"
+    }
+  ],
+  "impacts": [
+    {
+      "asset": "标普500",
+      "watch": "关注MA20（约7,450附近）支撑；若跌破则短期动量可能转弱，但MA200上方8.7%仍属强势区间。",
+      "dir": "watch"
+    },
+    {
+      "asset": "纳指",
+      "watch": "成长股对通胀预期下行敏感；若实际利率被动走高，高估值板块承压更大。",
+      "dir": "down"
+    },
+    {
+      "asset": "黄金",
+      "watch": "已跌破MA200且20日跌幅显著；需观察4,200-4,250区间能否形成支撑，美元走弱是潜在企稳条件。",
+      "dir": "down"
+    },
+    {
+      "asset": "US10Y",
+      "watch": "通胀预期快速压缩若持续，名义利率仍有下行空间，但需警惕实际利率被动走高的反作用。",
+      "dir": "down"
+    },
+    {
+      "asset": "广义美元",
+      "watch": "已接近MA200（约119.5附近），若跌破则确认弱势，对新兴市场和大宗构成中期利好。",
+      "dir": "down"
+    },
+    {
+      "asset": "VIX",
+      "watch": "16.41处于中性区间，若标普继续回调推升VIX至18以上，则风险偏好将进一步收敛。",
+      "dir": "up"
+    }
+  ],
+  "reviews": [
+    {
+      "ifThen": "若黄金在广义美元不跌、VIX 不升的条件下继续站稳 4400 以上，则黄金与实际利率/美元的负相关关系正在弱化，去美元化或央行购金成为主导定价因子。",
+      "status": "invalidated",
+      "note": "黄金今日4310.9，已回落至4200-4400区间内且低于4400；同时广义美元下跌(Δ-0.61)、VIX微升(Δ+0.21)，条件不满足。但失效条件为回落至4200以下，当前4310.9仍高于4200，严格按失效条件尚未触发。不过假设前提'站稳4400以上'已不成立，综合判断为open更合适。"
+    },
+    {
+      "ifThen": "若广义美元与 DXY 的背离持续扩大，则反映全球贸易格局分化——美国对非欧日英经济体保持强势，可能压制新兴市场资产。",
+      "status": "open",
+      "note": "今日广义美元119.51(Δ-0.61)下跌，但数据未提供DXY读数，无法判断两者背离是否持续扩大或收敛。缺乏足够信息判定。"
+    },
+    {
+      "ifThen": "若 2Y 收益率在未来一周跌破 4.0%，则 2s10s 利差将走陡至 0.50% 以上，确认牛陡 regime，利好成长股与黄金。",
+      "status": "open",
+      "note": "今日2Y收益率4.07%，未跌破4.0%也未反弹至4.20%以上，处于中间地带，尚无定论。"
+    },
+    {
+      "ifThen": "若广义美元与 DXY 的背离持续扩大（广义美元继续上行而 DXY 跌破 99），则反映全球贸易摩擦加剧或新兴市场承压，对新兴市场资产不利。",
+      "status": "open",
+      "note": "今日广义美元119.51(Δ-0.61)下跌，但未提供DXY读数，无法判断两者背离是否持续扩大或收敛至10点以内。"
+    },
+    {
+      "ifThen": "若通胀预期继续快速下行（20日再降超10bp），则实际利率将被动走高，对黄金和成长股形成额外压力。",
+      "status": "open",
+      "note": ""
+    },
+    {
+      "ifThen": "若美元维持弱势（广义美元跌破MA200且z-score转负），而实际利率不再上行，则黄金有望在当前位置企稳反弹。",
+      "status": "open",
+      "note": ""
+    },
+    {
+      "ifThen": "若VIX持续在15-20区间运行且未突破20，则当前美股高位窄幅震荡格局延续，成长/价值分化由利率预期主导。",
+      "status": "open",
+      "note": ""
+    },
+    {
+      "ifThen": "若2s10s利差从当前38bp继续收窄至30bp以下，则市场对增长放缓的定价加深，顺周期资产（工业、金融）相对跑输。",
+      "status": "open",
+      "note": ""
+    }
+  ],
+  "news": [
+    {
+      "title": "Federal Reserve issues FOMC statement",
+      "source": "Fed",
+      "cat": "fact",
+      "assets": [
+        "美债",
+        "美元",
+        "美股"
+      ],
+      "dir": "watch",
+      "link": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm"
+    },
+    {
+      "title": "Federal Reserve Board and Federal Open Market Committee release economic projections from the June 16-17 FOMC meeting",
+      "source": "Fed",
+      "cat": "fact",
+      "assets": [
+        "美债",
+        "美元",
+        "美股"
+      ],
+      "dir": "watch",
+      "link": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617b.htm"
+    },
+    {
+      "title": "Federal Reserve Board announces final rule that establishes data standards for certain information collections",
+      "source": "Fed",
+      "cat": "fact",
+      "assets": [
+        "银行股"
+      ],
+      "dir": "watch",
+      "link": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260611a.htm"
+    },
+    {
+      "title": "Federal Reserve Board announces that results from its annual bank stress test will be released on Wednesday, June 24, at 4 p.m. EDT.",
+      "source": "Fed",
+      "cat": "fact",
+      "assets": [
+        "银行股"
+      ],
+      "dir": "watch",
+      "link": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260609a.htm"
+    },
+    {
+      "title": "Agencies remove additional references to reputation risk",
+      "source": "Fed",
+      "cat": "fact",
+      "assets": [
+        "银行股"
+      ],
+      "dir": "up",
+      "link": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260602a.htm"
+    },
+    {
+      "title": "Chairman Warsh drastically alters Fed rate statement. Here's what's changed",
+      "source": "CNBC",
+      "cat": "read",
+      "assets": [
+        "美债",
+        "美元",
+        "美股"
+      ],
+      "dir": "watch",
+      "link": "https://www.cnbc.com/2026/06/17/june-fed-meeting-redline.html"
+    },
+    {
+      "title": "Chairman Warsh abstains from giving rate forecast as several members signal a hike in 2026",
+      "source": "CNBC",
+      "cat": "both",
+      "assets": [
+        "美债",
+        "美元"
+      ],
+      "dir": "up",
+      "link": "https://www.cnbc.com/2026/06/17/fed-projections-call-for-a-rate-hike-in-2026-but-chairman-warsh-likely-abstained.html"
+    },
+    {
+      "title": "Trump says he likes idea of blaming Vance if Iran deal doesn't work out",
+      "source": "CNBC",
+      "cat": "fact",
+      "assets": [
+        "原油",
+        "美元"
+      ],
+      "dir": "watch",
+      "link": "https://www.cnbc.com/2026/06/17/trump-vance-iran-deal-nuclear-g7.html"
+    },
+    {
+      "title": "2-year Treasury yield rockets higher as many Fed officials signal possible hike this year",
+      "source": "CNBC",
+      "cat": "both",
+      "assets": [
+        "美债",
+        "美元"
+      ],
+      "dir": "up",
+      "link": "https://www.cnbc.com/2026/06/17/treasury-yields-investors-await-warsh-fed-decision.html"
+    },
+    {
+      "title": "Fed holds interest rates steady: Here's what that means for credit cards, savings rates, mortgages and car loans",
+      "source": "CNBC",
+      "cat": "read",
+      "assets": [
+        "美债",
+        "消费信贷"
+      ],
+      "dir": "watch",
+      "link": "https://www.cnbc.com/2026/06/17/fed-interest-rates-unchanged-june.html"
+    },
+    {
+      "title": "I’m 20, and I’ll be watching Kevin Warsh and the Fed today. Here’s why you should, too.",
+      "source": "MarketWatch",
+      "cat": "noise",
+      "assets": [],
+      "dir": "watch",
+      "link": "https://www.marketwatch.com/story/im-20-and-ill-be-watching-kevin-warsh-and-the-fed-this-week-heres-why-you-should-too-73c3e34d?mod=mw_rss_topstories"
+    },
+    {
+      "title": "Three powerful forces are draining family wealth — and your estate plan is completely unprepared",
+      "source": "MarketWatch",
+      "cat": "noise",
+      "assets": [],
+      "dir": "watch",
+      "link": "https://www.marketwatch.com/story/the-great-wealth-transfer-is-real-but-the-irs-or-a-nursing-home-might-get-your-money-first-d0c46676?mod=mw_rss_topstories"
+    }
+  ]
+}
