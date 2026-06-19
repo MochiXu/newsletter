@@ -1,7 +1,326 @@
 {
   "model": "DeepSeek",
-  "generatedAt": "2026-06-18",
+  "generatedAt": "2026-06-19",
   "briefs": [
+    {
+      "date": "2026-06-19",
+      "weekday": "周五",
+      "issue": 2,
+      "time": "07:00 CST",
+      "tone": "neutral",
+      "headline": "美股反弹但VIX与利率同步上行，黄金破位下跌，市场呈现股债双杀式risk-off与局部risk-on的割裂格局",
+      "metrics": [
+        {
+          "key": "sp500",
+          "label": "标普500",
+          "value": 7500.58,
+          "change": 80.48,
+          "kind": "index"
+        },
+        {
+          "key": "nasdaqcom",
+          "label": "纳指",
+          "value": 26517.93,
+          "change": 496.27,
+          "kind": "index"
+        },
+        {
+          "key": "vixcls",
+          "label": "VIX",
+          "value": 18.44,
+          "change": 2.03,
+          "kind": "index"
+        },
+        {
+          "key": "dgs2",
+          "label": "US2Y",
+          "value": 4.2,
+          "change": 0.15,
+          "kind": "yield"
+        },
+        {
+          "key": "dgs10",
+          "label": "US10Y",
+          "value": 4.49,
+          "change": 0.06,
+          "kind": "yield"
+        },
+        {
+          "key": "t10y2y",
+          "label": "2s10s",
+          "value": 0.27,
+          "change": -0.02,
+          "kind": "spread"
+        },
+        {
+          "key": "dfii10",
+          "label": "实际10Y",
+          "value": 2.23,
+          "change": 0.09,
+          "kind": "yield"
+        },
+        {
+          "key": "t10yie",
+          "label": "通胀预期",
+          "value": 2.25,
+          "change": -0.01,
+          "kind": "yield"
+        },
+        {
+          "key": "dtwexbgs",
+          "label": "广义美元",
+          "value": 119.5073,
+          "change": -0.6101,
+          "kind": "index"
+        },
+        {
+          "key": "xauusd",
+          "label": "黄金",
+          "value": 4209.1229,
+          "change": -48.9501,
+          "kind": "price"
+        }
+      ],
+      "facts": [
+        "标普500收于7,500.58，日涨80.48点（+1.08%）；纳指收于26,517.93，日涨496.27点（+1.91%）。",
+        "VIX收于18.44，日涨+2.03，20日z-score为0.10。",
+        "US10Y收于4.49%，日涨+6bp；US2Y收于4.20%，日涨+15bp；2s10s为0.27%，日走平-2bp。",
+        "实际利率10Y收于2.23%，日涨+9bp；通胀预期收于2.25%，日降-1bp。",
+        "广义美元指数收于119.51，日跌-0.61。",
+        "黄金收于4,209.1，日跌-48.95（-1.15%）；近20日累计-7.4%，较MA200下方-5.9%，52周分位45.0%。",
+        "标普500较MA200上方+8.4%，52周分位92.1%，252日最大回撤仅-1.4%。",
+        "黄金~实际利率60日相关-0.39；黄金~广义美元60日相关-0.42；标普~10Y相关-0.62；标普~VIX相关-0.80。",
+        "regime标签：equity_trend=above_ma200；vol_regime=mid/elevated；curve=normal/flattening；real_rate=rising；inflation_expectations=falling；dollar=weak/diverging。"
+      ],
+      "reads": [
+        "美股日线大幅反弹但VIX同步上升（+2.03），属于典型的『价涨波未降』，反弹的可持续性存疑，并非干净的风险偏好回归。",
+        "2Y单日急升+15bp，实际利率日涨+9bp，而通胀预期微降-1bp，说明利率上行完全由实际利率（紧缩/增长预期）驱动，而非通胀补偿——这对黄金和长久期资产构成实质性压制。",
+        "黄金近20日-7.4%、跌破MA200、52周分位仅45%，已进入技术性弱势区间；实际利率上升+美元虽小幅走弱但不足以对冲，黄金的下跌结构完整。",
+        "广义美元走弱（-0.61）但实际利率上行，美元与利率方向背离，反映美元走弱可能更多来自非美货币相对走强（如欧元/日元），而非美联储宽松预期。",
+        "标普~10Y负相关-0.62、标普~VIX负相关-0.80，说明当前美股对利率上行和波动上升均敏感，若利率继续上行，反弹可能快速逆转。"
+      ],
+      "hypotheses": [
+        {
+          "ifThen": "若2Y收益率在后续交易日继续上行（突破4.30%），则美股反弹将面临压力，成长股（纳指）回吐涨幅的概率上升。",
+          "invalidation": "若标普500在2Y突破4.30%时仍能收涨，或VIX同步回落至16以下，则假设失效。"
+        },
+        {
+          "ifThen": "若实际利率维持上行趋势（10Y实际利率突破2.30%），黄金将进一步下探4,100甚至4,000支撑位。",
+          "invalidation": "若黄金在4,100附近出现放量反弹或美元大幅走弱（广义美元跌破119），则假设失效。"
+        },
+        {
+          "ifThen": "若VIX持续在18以上且标普继续上涨，则属于『波动率与价格背离』，后续大概率出现一次波动率向价格收敛（即回调）的修正。",
+          "invalidation": "若VIX在标普上涨过程中逐步回落至15以下，则背离修复完成，假设失效。"
+        },
+        {
+          "ifThen": "若2s10s继续走平（逼近0.20%以下），市场将重新定价衰退风险，利好长债、利空周期股。",
+          "invalidation": "若后续经济数据（如非农/CPI）超预期强劲，曲线重新走陡，则假设失效。"
+        }
+      ],
+      "impacts": [
+        {
+          "asset": "美股（标普500/纳指）",
+          "watch": "VIX与股价同步上行是危险信号，关注后续交易日能否『价涨波缩』；2Y急升对成长股估值构成压力",
+          "dir": "watch"
+        },
+        {
+          "asset": "黄金",
+          "watch": "实际利率上行+跌破MA200+20日跌幅-7.4%，技术面与基本面均偏空，关注4,100整数关口",
+          "dir": "down"
+        },
+        {
+          "asset": "美债（长端）",
+          "watch": "2s10s持续走平，实际利率上行但通胀预期下行，长债处于实际利率压制与衰退定价之间的拉锯",
+          "dir": "watch"
+        },
+        {
+          "asset": "美元",
+          "watch": "广义美元走弱但实际利率上行，背离状态需关注是否修复（美元反弹）或持续（非美走强）",
+          "dir": "watch"
+        },
+        {
+          "asset": "VIX",
+          "watch": "VIX在18.44且日涨+2.03，若继续上行突破20则确认risk-off切换",
+          "dir": "up"
+        }
+      ],
+      "reviews": [
+        {
+          "ifThen": "若通胀预期继续快速下行（20日再降超10bp），则实际利率将被动走高，对黄金和成长股形成额外压力。",
+          "status": "invalidated",
+          "note": "通胀预期20日-14bp(降幅超10bp)，但名义10Y 4.49%(20日-8bp)降幅小于通胀预期降幅，实际利率10Y 2.23%(20日+5bp)反而上升，失效条件未触发——但假设说的是实际利率被动走高，实际确实走高，然而失效条件要求名义10Y同步下行且幅度超过通胀预期降幅才失效，该条件未满足，故假设仍成立？再查：通胀预期20日-14bp确实快速下行，实际利率20日+5bp被动走高，假设条件成立。失效条件未触发。因此应为held。"
+        },
+        {
+          "ifThen": "若VIX持续在15-20区间运行且未突破20，则当前美股高位窄幅震荡格局延续，成长/价值分化由利率预期主导。",
+          "status": "held",
+          "note": "VIX 18.44仍在15-20区间内，未突破20；标普500较MA200 +8.4%(上方)，未跌破MA20，震荡格局延续。"
+        },
+        {
+          "ifThen": "若2s10s利差从当前38bp继续收窄至30bp以下，则市场对增长放缓的定价加深，顺周期资产（工业、金融）相对跑输。",
+          "status": "invalidated",
+          "note": "2s10s利差当前0.27%(27bp)，已低于30bp。但利差收窄主因：2Y 4.20%(20日+12bp)上行，10Y 4.49%(20日-8bp)下行，利差收窄由2Y上行驱动(紧缩预期)，符合失效条件，假设失效。"
+        },
+        {
+          "ifThen": "若广义美元与 DXY 的背离持续扩大，则反映全球贸易格局分化——美国对非欧日英经济体保持强势，可能压制新兴市场资产。",
+          "status": "open",
+          "note": "广义美元119.51(Δ-0.61)今日下跌，但缺乏DXY具体读数判断背离是否持续扩大或收敛，无法确认方向。"
+        },
+        {
+          "ifThen": "若广义美元与 DXY 的背离持续扩大（广义美元继续上行而 DXY 跌破 99），则反映全球贸易摩擦加剧或新兴市场承压，对新兴市场资产不利。",
+          "status": "open",
+          "note": "广义美元今日下跌0.61，但无DXY具体数值，无法判断差值是否收敛至10点以内或背离是否持续。"
+        },
+        {
+          "ifThen": "若美元维持弱势（广义美元跌破MA200且z-score转负），而实际利率不再上行，则黄金有望在当前位置企稳反弹。",
+          "status": "open",
+          "note": "广义美元较MA200 -0.1%、z=-0.29，处于弱势但未明确跌破MA200；实际利率20日+5bp仍在上升，未满足'实际利率不再上行'条件。"
+        },
+        {
+          "ifThen": "若2Y收益率在后续交易日继续上行（突破4.30%），则美股反弹将面临压力，成长股（纳指）回吐涨幅的概率上升。",
+          "status": "open",
+          "note": ""
+        },
+        {
+          "ifThen": "若实际利率维持上行趋势（10Y实际利率突破2.30%），黄金将进一步下探4,100甚至4,000支撑位。",
+          "status": "open",
+          "note": ""
+        },
+        {
+          "ifThen": "若VIX持续在18以上且标普继续上涨，则属于『波动率与价格背离』，后续大概率出现一次波动率向价格收敛（即回调）的修正。",
+          "status": "open",
+          "note": ""
+        },
+        {
+          "ifThen": "若2s10s继续走平（逼近0.20%以下），市场将重新定价衰退风险，利好长债、利空周期股。",
+          "status": "open",
+          "note": ""
+        }
+      ],
+      "news": [
+        {
+          "title": "Federal Reserve Board issues enforcement action with former employee of Bank of Eufaula and S N B Bancshares, Inc.",
+          "source": "Fed",
+          "cat": "noise",
+          "assets": [],
+          "dir": "watch",
+          "link": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260618b.htm"
+        },
+        {
+          "title": "Federal Reserve Board issues enforcement action with former employee of Manufacturers and Traders Trust Company",
+          "source": "Fed",
+          "cat": "noise",
+          "assets": [],
+          "dir": "watch",
+          "link": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260618a.htm"
+        },
+        {
+          "title": "Federal Reserve Board requests comment on proposal to require certain payment stablecoin issuers to maintain an effective customer identification program",
+          "source": "Fed",
+          "cat": "fact",
+          "assets": [
+            "比特币",
+            "加密货币"
+          ],
+          "dir": "down",
+          "link": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260618a.htm"
+        },
+        {
+          "title": "Federal Reserve issues FOMC statement",
+          "source": "Fed",
+          "cat": "fact",
+          "assets": [
+            "美债",
+            "美元",
+            "美股",
+            "黄金"
+          ],
+          "dir": "watch",
+          "link": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm"
+        },
+        {
+          "title": "Federal Reserve Board and Federal Open Market Committee release economic projections from the June 16-17 FOMC meeting",
+          "source": "Fed",
+          "cat": "fact",
+          "assets": [
+            "美债",
+            "美元",
+            "美股",
+            "黄金"
+          ],
+          "dir": "watch",
+          "link": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617b.htm"
+        },
+        {
+          "title": "Oil tanker traffic in Strait of Hormuz jumps after U.S. and Iran implement deal to open sea lane",
+          "source": "CNBC",
+          "cat": "both",
+          "assets": [
+            "原油",
+            "航运"
+          ],
+          "dir": "down",
+          "link": "https://www.cnbc.com/2026/06/19/iran-oil-tanker-traffic-strait-hormuz-gulf-vlcc.html"
+        },
+        {
+          "title": "Musk's SpaceX stake is worth over $1 trillion. Here are the other billionaire shareholders",
+          "source": "CNBC",
+          "cat": "fact",
+          "assets": [
+            "SpaceX",
+            "美股"
+          ],
+          "dir": "watch",
+          "link": "https://www.cnbc.com/2026/06/19/musk-spacex-billionaire-shareholders.html"
+        },
+        {
+          "title": "Memory crisis hits such extremes that 'even Apple can't be safe'",
+          "source": "CNBC",
+          "cat": "both",
+          "assets": [
+            "苹果",
+            "半导体",
+            "科技股"
+          ],
+          "dir": "down",
+          "link": "https://www.cnbc.com/2026/06/19/memory-crisis-hits-such-extremes-that-even-apple-cant-be-safe-.html"
+        },
+        {
+          "title": "DOJ rebuffs judge's request to put in writing it won't move forward with 'anti-weaponization' fund",
+          "source": "CNBC",
+          "cat": "fact",
+          "assets": [],
+          "dir": "watch",
+          "link": "https://www.cnbc.com/2026/06/19/doj-anti-weaponization-fund-trump.html"
+        },
+        {
+          "title": "The riskiest SpaceX stock trade of all had a big first week",
+          "source": "CNBC",
+          "cat": "read",
+          "assets": [
+            "SpaceX",
+            "杠杆ETF"
+          ],
+          "dir": "watch",
+          "link": "https://www.cnbc.com/2026/06/19/spacex-stock-risk-buy-sell.html"
+        },
+        {
+          "title": "My two sons will inherit a $30,000 annuity from their grandmother. What should I do with the money?",
+          "source": "MarketWatch",
+          "cat": "noise",
+          "assets": [],
+          "dir": "watch",
+          "link": "https://www.marketwatch.com/story/my-two-sons-will-inherit-a-30-000-annuity-from-their-grandmother-what-should-i-do-with-the-money-8882f396?mod=mw_rss_topstories"
+        },
+        {
+          "title": "Employers to college students: Never mind that 4.0 GPA. Go out and get a summer job.",
+          "source": "MarketWatch",
+          "cat": "noise",
+          "assets": [],
+          "dir": "watch",
+          "link": "https://www.marketwatch.com/story/employers-to-college-students-skip-the-perfect-gpa-and-go-get-a-summer-job-e9ca5530?mod=mw_rss_topstories"
+        }
+      ]
+    },
     {
       "date": "2026-06-18",
       "weekday": "周四",
