@@ -23,6 +23,22 @@ V1 已把 `target_date` 贯穿管线,**回填就是对交易日做 for 循环、
 
 FRED 给的是**当前已修正**值;CPI/GDP/非农等宏观会被反复修正,回填时用修正值=偷看未来。**ALFRED** 存每日发布时的历史版本(vintage)可解决此问题——**但只对会被修正的宏观序列有意义**。日频市场数据(收益率/VIX/价格)从不修正。既然 V2 的被打分判断**只用市场序列、宏观仅作背景**,就**绕开了 vintage**,不需要 ALFRED。它只在未来把「宏观数据本身」放进被回测信号时(v3+)才相关。
 
+## 1b. 关于 LLM 回填的「记忆污染」(比 vintage 更根本,落地前必须对齐)
+
+回填时**市场数据是 point-in-time 切的(干净)**,但 **LLM 的权重/知识是「现在」的**——它可能
+「记得」`target_date` 之后发生了什么(训练语料里就有)。于是回填出的「历史预测」可能是**用记忆作弊**,
+命中率虚高,**测的不是预测能力,是记忆力**。
+
+- 污染程度取决于 **provider 的知识截止**:截止早于回填区间→较干净;覆盖该区间→污染重。
+  **落地第一件事:确认所用模型的知识截止。**
+- **多年回填(S5)几乎必然污染**(模型当然知道 2010–2020)→ 只能当**前端历史素材**,**不能当能力评估**。
+- **唯一完全诚实的评估 = 向前/实时积累**:从上线起每天产预测,随时间用真实走势打分。慢但干净;
+  日报本就天天产 → 前向 track record 自然增长。
+
+→ **把「命中率」分两类、分开标注**:
+  - **(a) 前向实盘命中率** = 诚实主结论(上线后逐日累积);
+  - **(b) 回填命中率** = 辅助/历史填充,**必须标注「含模型记忆污染,仅供参考」**,且仅「模型截止后」的日子稍可信。
+
 ## 2. 总体设计:在 V1 之上点亮 L4 评估层
 
 ```
@@ -176,7 +192,7 @@ eval/outcomes.py  # 未来实现值:fwd_ret(asset,h)/fwd_drawdown/fwd_vix_chg/fw
 eval/scoring.py   # (StructuredJudgment, outcomes) → 每个 资产×周期 判 correct/partial/wrong
 eval/baselines.py # 朴素基准:永远看多 / 动量(跟随近20d方向) / 随机
 eval/metrics.py   # 命中率 · 校准 · vs-baseline 技能差 · (可选)PnL/Sharpe/maxDD
-eval/report.py    # 评估汇总 data/eval/summary.json + 人读 md;逐报告标签 data/eval/<date>.json
+eval/report.py    # 评估汇总 data/eval/summary.json + 人读 md;逐报告标签 data/eval/<date>.json;前端 track-record data/eval/track.json
 ```
 
 ### 打分规则(方向性)
@@ -196,6 +212,30 @@ eval/report.py    # 评估汇总 data/eval/summary.json + 人读 md;逐报告标
 - **可评估覆盖**:逐周期能打分的报告数(见下样本约束);
 - (可选,进阶)按判断调仓的假想 PnL / Sharpe / 最大回撤 vs 买入持有。
 
+### 前端命中率对齐:track-record 契约(`data/eval/track.json`)
+
+前端 `frontend/desgin/resource/track.js` 想要「每日 score(0-100)+ grade(绿/黄/红)+ 月/季/年 accuracy」,
+但本层是按**资产×周期**打分,要桥三处:
+
+- **gap A(4 资产×多周期 → 每日一个 0-100)**:每日 score = 当日 4 条预测在**固定 5d 周期**的命中率
+  (5d 最快结算,可按 confidence 加权);深周期(20/60d)进 `byAsset` 表,不混进每日 heatmap。
+  **grade 不用裸命中率(会自欺)→ 用 vs 基准的技能带**(hit−baseline:正=绿/平=黄/负=红)。
+- **gap B(最近的日子还没法打分)**:5d 预测要 T+5 才结算 → 当周预测 `status="pending"`,前端染灰
+  (track.js 本就把无数据日染灰)。
+- **gap C(裸命中率骗人)**:展示必须带 **vs baseline 技能差 + 样本量 + 周期**;孤零零一个分数 = 误导。
+
+契约(镜像 track.js 形状 + 诚实字段):
+```jsonc
+{
+  "source": "forward | backfill",        // 诚实标注来源(backfill 含记忆污染,见 §1b)
+  "primaryHorizon": "h_5d",
+  "days":    { "2026-06-13": { "score": 75, "grade": "green", "n": 4, "status": "final" },
+               "2026-06-20": { "status": "pending" } },          // 喂 heatmap
+  "byAsset": { "NASDAQCOM": { "h_5d": { "hit": 0.62, "baseline": 0.55, "skill": 0.07, "n": 40 } } },  // 诚实主结论
+  "rollups": { "months": { "2026-06": { "acc": 68, "skill": 6, "n": 18 } } }   // track.js 要的月/季/年
+}
+```
+
 ### 样本与周期硬约束(必须在报告里写明,不能假装覆盖)
 
 | 周期 | 需未来 | 2026 回填(~115 日)可评估点 | 结论 |
@@ -214,6 +254,8 @@ eval/report.py    # 评估汇总 data/eval/summary.json + 人读 md;逐报告标
 - [ ] vs-baseline 技能差(核心结论)
 - [ ] 置信度校准 + block bootstrap 区间
 - [ ] 条件型假设打分(含「未触发」单列)
+- [ ] 产出 `data/eval/track.json`(days/byAsset/rollups + source 标注)供前端
+- [ ] forward / backfill 分开标注;命中率展示带 baseline+样本量(诚实底线)
 - [ ] 覆盖与样本约束如实标注
 
 ---
@@ -223,11 +265,16 @@ eval/report.py    # 评估汇总 data/eval/summary.json + 人读 md;逐报告标
 **目标**:回填后 `briefs.json` 已是真实历史 → 前端从 9 天 demo 切到真实(`loadBriefs` 已就绪:真实非空即用真实)。
 
 **设计**:跑完回填提交 `briefs.json` → 前端自动用真实数据;`demoBriefs.ts` 降为「真实为空时的最终兜底」或移除。历史报告 `news_mode=none` 时无新闻节(前端空态已支持);除 headline 指标表外,前端还渲染 S1-A 的 `signals` 块 + S1-B 的结构化判断。
-- *(可选,后续)* 把 L4 逐报告标签(✅/✕/部分)显示到前端历史报告上——属前端契约升级,留到那时统一做。
+
+**命中率 / track-record 展示(对齐 §S3 契约)**:
+- **先上**:`reviews[]`(逐条 held/invalidated/open)是**已有的真实** track record,前端先展示它,别等聚合命中率。
+- **再上**:聚合命中率读 `data/eval/track.json`——heatmap 用 `days`(pending 染灰)、技能表用 `byAsset`、月/季/年用 `rollups`。
+- **红线**:真打分跑出来前,前端**绝不显示命中率数字**;展示必带 baseline + 样本量;backfill 来源要标注(见 §1b)。
 
 **验收**:前端显示 2026 真实历史、无 `[object Object]`、空新闻节正常。
 - [ ] 回填产出并提交 `briefs.json`
 - [ ] 前端切真实(demo 降兜底/移除)
+- [ ] track.json 接入前端(heatmap/技能表/rollups;pending 染灰、带 baseline、标 source)
 
 ---
 
@@ -247,4 +294,5 @@ V1 的假设追踪(`hypotheses.py`)是**人读、逐条**的定性验证;V2 的 
 
 - **point-in-time 是红线**:市场切 `obs_date<=T`;新闻按 `news_mode` 严格日期上界;宏观不进被打分信号。
 - **诚实优先**:覆盖不足/无法评估的周期**如实标注**,不假装覆盖。
+- **回填记忆污染是红线**(§1b):命中率以**前向实盘**为主;回填命中率必标「仅供参考」;真打分前前端不显示任何命中率。
 - **密钥/环境/规范**:四家 key 仅存 `.env`(已 gitignore);本地跑 conda env `myTools`;全量 type hints + pydantic 守边界。
