@@ -134,13 +134,21 @@ def build_report(
     merged: list[dict[str, Any]] = []
     settings = get_settings()
     if news_mode == "live" and not settings.news_disabled:
+        # fetch 与 classify 解耦:抓到了就展示;分类(LLM)失败只降级为「未分类新闻」,
+        # 绝不因分类报错把已抓到的新闻(都带链接)一并丢掉。
         try:
             items = news_mod.fetch_news()
-            classified = news_mod.classify(items)
+        except Exception as e:  # noqa: BLE001
+            items = []
+            log.warning("新闻抓取失败,跳过: %s", e)
+        if items:
+            classified = None
+            try:
+                classified = news_mod.classify(items)
+            except Exception as e:  # noqa: BLE001
+                log.warning("新闻分类失败,展示未分类新闻: %s", e)
             merged = _merge_news(items, classified)
             log.info("抓取 %s 条新闻(%s)", len(items), "已分类" if classified else "未分类")
-        except Exception as e:  # noqa: BLE001
-            log.warning("新闻抓取/分类失败,跳过: %s", e)
 
     signals = render.build_signals(snap)
     brief = render.build_brief(

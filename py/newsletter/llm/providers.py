@@ -87,37 +87,41 @@ class OpenAICompatProvider:
     def call_structured(
         self, system: str, user: str, tool_name: str, description: str, schema: dict
     ) -> dict:
-        body = _http_post_json(
-            self.url,
-            {"content-type": "application/json", "authorization": f"Bearer {self.api_key}"},
-            {
-                "model": self.model,
-                "max_tokens": 4096,
-                "temperature": 0.3,
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ],
-                "tools": [
-                    {
-                        "type": "function",
-                        "function": {"name": tool_name, "description": description, "parameters": schema},
-                    }
-                ],
-                "tool_choice": {"type": "function", "function": {"name": tool_name}},
-            },
-        )
-        base = body.get("base_resp")  # MiniMax 等把错误塞在 HTTP 200 的 base_resp
-        if isinstance(base, dict) and base.get("status_code") not in (0, None):
-            raise RuntimeError(f"{self.name} 返回错误: {base}")
-        choices = body.get("choices")
-        if not choices:
-            raise RuntimeError(f"{self.name} 响应无 choices: {str(body)[:200]}")
-        msg = choices[0].get("message", {})
-        calls = msg.get("tool_calls")
-        if calls:
-            return json.loads(calls[0]["function"]["arguments"])
-        return _extract_json(msg.get("content") or "")
+        headers = {"content-type": "application/json", "authorization": f"Bearer {self.api_key}"}
+        payload = {
+            "model": self.model,
+            "max_tokens": 4096,
+            "temperature": 0.3,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {"name": tool_name, "description": description, "parameters": schema},
+                }
+            ],
+            "tool_choice": {"type": "function", "function": {"name": tool_name}},
+        }
+        # LLM 偶发非法 JSON(如字符串内未转义引号)→ 重试一次(非零温度,二次大概率合法)。
+        last_err: Exception | None = None
+        for _ in range(2):
+            body = _http_post_json(self.url, headers, payload)
+            base = body.get("base_resp")  # MiniMax 等把错误塞在 HTTP 200 的 base_resp
+            if isinstance(base, dict) and base.get("status_code") not in (0, None):
+                raise RuntimeError(f"{self.name} 返回错误: {base}")
+            choices = body.get("choices")
+            if not choices:
+                raise RuntimeError(f"{self.name} 响应无 choices: {str(body)[:200]}")
+            msg = choices[0].get("message", {})
+            calls = msg.get("tool_calls")
+            raw = calls[0]["function"]["arguments"] if calls else (msg.get("content") or "")
+            try:
+                return json.loads(raw) if calls else _extract_json(raw)
+            except (json.JSONDecodeError, ValueError) as e:
+                last_err = e
+        raise RuntimeError(f"{self.name} 结构化输出 JSON 解析失败(已重试): {last_err}")
 
 
 # 预设 OpenAI 兼容端点:(url, key_env, model_env, default_model)。模型名会随各家目录更新。
