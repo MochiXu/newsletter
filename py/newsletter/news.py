@@ -15,11 +15,13 @@ from xml.etree import ElementTree as ET
 
 from .llm.providers import select_provider
 
-# 默认 RSS 源(免鉴权)。可由调用方覆盖;失效的源会被静默跳过。
+# 默认 RSS 源(免鉴权,偏宏观/市场)。可由调用方覆盖;失效的源会被静默跳过。
+# 顺序 = 优先级(权威央行在前,受 total 截断时优先保留);均已实测能拉到带链接的条目。
 DEFAULT_FEEDS = [
-    ("Fed", "https://www.federalreserve.gov/feeds/press_all.xml"),
-    ("CNBC", "https://www.cnbc.com/id/100003114/device/rss/rss.html"),
-    ("MarketWatch", "https://feeds.content.dowjones.io/public/rss/mw_topstories"),
+    ("Fed", "https://www.federalreserve.gov/feeds/press_all.xml"),  # 美联储新闻
+    ("ECB", "https://www.ecb.europa.eu/rss/press.xml"),  # 欧洲央行新闻
+    ("MarketWatch", "https://feeds.content.dowjones.io/public/rss/mw_marketpulse"),  # 市场/经济快讯
+    ("CNBC", "https://www.cnbc.com/id/20910258/device/rss/rss.html"),  # CNBC 经济(非泛新闻)
 ]
 
 
@@ -109,8 +111,11 @@ def fetch_feed(source: str, url: str, timeout: int = 15) -> list[NewsItem]:
         return parse_feed(source, resp.read())
 
 
-def fetch_news(feeds=None, per_feed: int = 5, total: int = 12) -> list[NewsItem]:
-    """抓取并汇总多个源;单源失败静默跳过;按标题去重后截断到 total 条。"""
+def fetch_news(feeds=None, per_feed: int = 3, total: int = 12) -> list[NewsItem]:
+    """抓取并汇总多个源;单源失败静默跳过;按标题去重后截断到 total 条。
+
+    per_feed 默认 3:让多个源均衡进入(避免靠前的源把 total 名额占满,挤掉后面的源)。
+    """
     feeds = feeds or DEFAULT_FEEDS
     collected: list[NewsItem] = []
     for source, url in feeds:

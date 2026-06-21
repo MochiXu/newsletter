@@ -65,10 +65,15 @@ def build_metrics(long_df: pd.DataFrame, target_date: str) -> list[Metric]:
 
 
 def build_news(merged: list[dict[str, Any]]) -> list[News]:
+    """组装前端新闻列表。展示层过滤:丢弃「噪音」类与无链接项(点不开的不展示)。"""
     out: list[News] = []
     for n in merged or []:
         cat_cn = n.get("category")
         cat = NewsCat(_CAT_EN[cat_cn]) if cat_cn in _CAT_EN else None
+        if cat == NewsCat.NOISE:
+            continue  # 噪音不展示
+        if not (n.get("link") or "").strip():
+            continue  # 无源链接(前端点不开)不展示
         out.append(
             News(
                 title=n.get("title", ""),

@@ -28,18 +28,19 @@ class TestBuildMetrics(unittest.TestCase):
 
 
 class TestBuildNews(unittest.TestCase):
-    def test_cat_mapping_and_none(self):
+    def test_cat_mapping_filter_noise_and_nolink(self):
         merged = [
-            {"source": "Fed", "title": "T1", "category": "事实", "affected_assets": ["美债"], "direction": "up", "link": "u"},
-            {"source": "CNBC", "title": "T2"},  # 未分类
-            {"source": "MW", "title": "T3", "category": "噪音", "direction": "bad"},  # 非法 dir → watch
+            {"source": "Fed", "title": "T1", "category": "事实", "affected_assets": ["美债"], "direction": "up", "link": "u1"},
+            {"source": "CNBC", "title": "T2", "direction": "bad", "link": "u2"},  # 未分类 + 非法 dir → watch
+            {"source": "MW", "title": "T3", "category": "噪音", "direction": "down", "link": "u3"},  # 噪音 → 丢弃
+            {"source": "X", "title": "T4", "category": "事实", "link": ""},  # 无链接 → 丢弃
         ]
         news = render.build_news(merged)
+        self.assertEqual([n.title for n in news], ["T1", "T2"])  # 噪音/无链接被过滤掉
         self.assertEqual(news[0].cat, NewsCat.FACT)
         self.assertEqual(news[0].dir, Dir.UP)
-        self.assertIsNone(news[1].cat)
-        self.assertEqual(news[2].cat, NewsCat.NOISE)
-        self.assertEqual(news[2].dir, Dir.WATCH)
+        self.assertIsNone(news[1].cat)  # 未分类
+        self.assertEqual(news[1].dir, Dir.WATCH)  # 非法 dir → watch
 
 
 class TestBuildReviews(unittest.TestCase):
