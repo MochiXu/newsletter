@@ -26,6 +26,7 @@ from .models import (
     NewsCat,
     Review,
     ReviewStatus,
+    Signal,
     Tone,
 )
 
@@ -61,6 +62,15 @@ def build_metrics(long_df: pd.DataFrame, target_date: str) -> list[Metric]:
                 kind=spec.metric_kind,  # type: ignore[arg-type]
             )
         )
+    return out
+
+
+def build_signals(snap: dict[str, float]) -> list[Signal]:
+    """据特征视图注册表,把特征快照(snap)序列化成前端 signals 列表(缺失项自动跳过)。"""
+    out: list[Signal] = []
+    for key, label, unit, group in features.FEATURE_VIEW:
+        if key in snap:
+            out.append(Signal(key=key, label=label, value=round(float(snap[key]), 6), unit=unit, group=group))
     return out
 
 
@@ -106,6 +116,9 @@ def build_brief(
     reviews: list[Review],
     news: list[News],
     issue: int = 0,
+    *,
+    signals: list[Signal] | None = None,
+    regime: dict[str, str] | None = None,
 ) -> Brief:
     """组装单日 Brief(契约)。llm 为 None(无 provider)时四层留空、tone 中性。"""
     b = llm or LLMBrief()
@@ -116,6 +129,8 @@ def build_brief(
         tone=b.tone,
         headline=b.headline,
         metrics=metrics,
+        signals=signals or [],
+        regime=regime or {},
         facts=b.facts,
         reads=b.interpretation,
         hypotheses=[
@@ -150,6 +165,21 @@ def render_markdown(brief: Brief, macro: list[dict[str, Any]] | None = None) -> 
 
     if macro:
         p += ["## 月频宏观(背景)"] + [f"- {m['label']}:{m['value']}({m['obs_date']})" for m in macro] + [""]
+
+    if brief.signals:
+        p += ["## 技术指标(代码计算)"]
+        by_group: dict[str, list[str]] = {}
+        order: list[str] = []
+        for s in brief.signals:
+            if s.group not in by_group:
+                by_group[s.group] = []
+                order.append(s.group)
+            by_group[s.group].append(f"{s.label} {_sig_fmt(s.unit, s.value)}")
+        for g in order:
+            p.append(f"- **{_SIG_GROUP_CN.get(g, g)}**:" + "; ".join(by_group[g]))
+        p.append("")
+    if brief.regime:
+        p += ["## regime(代码判定)", "- " + "; ".join(f"{k}={v}" for k, v in brief.regime.items()), ""]
 
     if brief.facts:
         p += ["## 事实层"] + [f"- {x}" for x in brief.facts] + [""]
@@ -260,6 +290,27 @@ def upsert_briefs_json(paths: Paths, brief: Brief, model: str) -> int:
         json.dumps(payload.to_json_obj(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     return len(dates_asc)
+
+
+_SIG_GROUP_CN = {
+    "trend": "趋势", "momentum": "动量", "vol": "波动与风险", "rates": "利率与通胀",
+    "dollar": "美元", "cross_asset": "跨资产相关", "range": "52周分位",
+}
+
+
+def _sig_fmt(unit: str, v: float) -> str:
+    """按 unit 格式化技术指标(与前端 format 约定一致)。"""
+    if unit == "pct":
+        return f"{v * 100:+.1f}%"
+    if unit == "pct0":
+        return f"{v * 100:.1f}%"
+    if unit == "bp":
+        return f"{v:+.0f}bp"
+    if unit == "z":
+        return f"z={v:.2f}"
+    if unit == "yield":
+        return f"{v:.2f}%"
+    return f"{v:.2f}"  # corr
 
 
 def _fmt(v: float) -> str:

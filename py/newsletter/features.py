@@ -152,6 +152,50 @@ def metric_level_change(long_df: pd.DataFrame, sid: str, target_date: str) -> tu
     return level, change
 
 
+# ── 特征视图注册表(signals 块的单一事实源)──────────────────────────────
+# 决定「哪些特征露出给前端、叫什么名、什么单位、归哪组」。值取自 snapshot_at(snap),与喂 LLM 的
+# prompt 特征块同读一份 snap(故数值一致)。unit:pct=带符号%、pct0=无符号%、bp、z、corr、yield(电平%)。
+# 顺序即前端分组展示顺序。缺失的键(早期历史 NaN)在 build_signals 中自动跳过。
+FEATURE_VIEW: tuple[tuple[str, str, str, str], ...] = (
+    # 趋势:距 200 日均线
+    ("SP500_px_vs_ma200", "标普500 距MA200", "pct", "trend"),
+    ("NASDAQCOM_px_vs_ma200", "纳指 距MA200", "pct", "trend"),
+    ("XAUUSD_px_vs_ma200", "黄金 距MA200", "pct", "trend"),
+    ("DTWEXBGS_px_vs_ma200", "广义美元 距MA200", "pct", "trend"),
+    # 动量:近 20 日(价格类收益率 / 利率类 bp 变化)
+    ("SP500_ret_20", "标普500 近20日", "pct", "momentum"),
+    ("NASDAQCOM_ret_20", "纳指 近20日", "pct", "momentum"),
+    ("XAUUSD_ret_20", "黄金 近20日", "pct", "momentum"),
+    ("DGS10_chg_20", "10Y 近20日", "bp", "momentum"),
+    ("DGS2_chg_20", "2Y 近20日", "bp", "momentum"),
+    ("DFII10_chg_20", "实际10Y 近20日", "bp", "momentum"),
+    # 波动与风险
+    ("VIXCLS_z_252", "VIX z分数", "z", "vol"),
+    ("SP500_vol_20", "标普 20日年化波动", "pct0", "vol"),
+    ("SP500_vol_60", "标普 60日年化波动", "pct0", "vol"),
+    ("SP500_maxdd_252", "标普 252日最大回撤", "pct", "vol"),
+    ("XAUUSD_maxdd_252", "黄金 252日最大回撤", "pct", "vol"),
+    # 利率与通胀(电平)
+    ("DGS2_level", "2Y 收益率", "yield", "rates"),
+    ("DGS10_level", "10Y 收益率", "yield", "rates"),
+    ("T10Y2Y_level", "2s10s 利差", "yield", "rates"),
+    ("DFII10_level", "10Y 实际利率", "yield", "rates"),
+    ("T10YIE_level", "通胀预期", "yield", "rates"),
+    # 美元
+    ("DTWEXBGS_z_252", "广义美元 z分数", "z", "dollar"),
+    ("usd_broad_vs_narrow_div_20", "广义vs窄口径 20日背离", "pct", "dollar"),
+    # 跨资产 60 日滚动相关
+    ("corr_SP500_DGS10_60", "标普~10Y", "corr", "cross_asset"),
+    ("corr_SP500_VIXCLS_60", "标普~VIX", "corr", "cross_asset"),
+    ("corr_XAUUSD_DFII10_60", "黄金~实际利率", "corr", "cross_asset"),
+    ("corr_XAUUSD_DTWEXBGS_60", "黄金~广义美元", "corr", "cross_asset"),
+    # 极值 / 位置:52 周区间分位
+    ("SP500_rangepct_252", "标普500 52周分位", "pct0", "range"),
+    ("NASDAQCOM_rangepct_252", "纳指 52周分位", "pct0", "range"),
+    ("XAUUSD_rangepct_252", "黄金 52周分位", "pct0", "range"),
+)
+
+
 def macro_latest(long_df: pd.DataFrame, target_date: str) -> list[dict[str, object]]:
     """月频宏观在 target_date 前的最新读数(只作背景,不进特征/回测)。"""
     out: list[dict[str, object]] = []

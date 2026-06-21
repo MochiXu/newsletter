@@ -226,6 +226,16 @@ class Metric(_CamelModel):
     kind: MetricKind
 
 
+class Signal(_CamelModel):
+    """技术指标一条(代码计算,signals 块)。value 的解读由 unit 决定。"""
+
+    key: str
+    label: str
+    value: float
+    unit: str  # pct=带符号% | pct0=无符号% | bp | z | corr | yield=电平%
+    group: str  # trend | momentum | vol | rates | dollar | cross_asset | range
+
+
 class Hypothesis(_CamelModel):
     if_then: str = Field(alias="ifThen")
     invalidation: str
@@ -265,6 +275,8 @@ class Brief(_CamelModel):
     tone: Tone = Tone.NEUTRAL
     headline: str = ""
     metrics: list[Metric] = Field(default_factory=list)
+    signals: list[Signal] = Field(default_factory=list)  # 技术指标(代码计算)
+    regime: dict[str, str] = Field(default_factory=dict)  # 代码派生的 regime 标签
     facts: list[str] = Field(default_factory=list)
     reads: list[str] = Field(default_factory=list)  # 解读层(后端 interpretation)
     hypotheses: list[Hypothesis] = Field(default_factory=list)

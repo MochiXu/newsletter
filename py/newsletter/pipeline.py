@@ -142,7 +142,11 @@ def build_report(
         except Exception as e:  # noqa: BLE001
             log.warning("新闻抓取/分类失败,跳过: %s", e)
 
-    brief = render.build_brief(target_date, llm_brief, metrics, reviews, render.build_news(merged))
+    signals = render.build_signals(snap)
+    brief = render.build_brief(
+        target_date, llm_brief, metrics, reviews, render.build_news(merged),
+        signals=signals, regime=reg,
+    )
     if persist_features:
         try:
             RawStore(PATHS).write_features(target_date, pd.DataFrame([{"date": target_date, **snap}]))
