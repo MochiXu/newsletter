@@ -91,6 +91,11 @@ DAILY_IDS: tuple[str, ...] = tuple(s.series_id for s in CATALOG if s.kind != KIN
 MACRO_IDS: tuple[str, ...] = tuple(s.series_id for s in CATALOG if s.kind == KIND_MACRO_M)
 DISPLAY_METRICS: tuple[SeriesSpec, ...] = tuple(s for s in CATALOG if s.metric_kind is not None)
 
+# 预测 roster:LLM 只对这几个固定方向各给且只给一条由特征驱动的预测
+# (股/金/汇/债四角;见 docs/refactor/v2-progress.md S1)。改这里即改 schema/prompt 的约束。
+PREDICTION_TARGET_IDS: tuple[str, ...] = ("NASDAQCOM", "XAUUSD", "DTWEXBGS", "DGS2")
+PREDICTION_TARGETS: tuple[SeriesSpec, ...] = tuple(SPEC_BY_ID[sid] for sid in PREDICTION_TARGET_IDS)
+
 
 def build_sources(settings) -> dict[str, Source]:
     """按配置构造各源实例(缺 key 的源仍构造,fetch 时抛 FetchError 自动降级)。"""

@@ -113,7 +113,18 @@ def build_brief(
         metrics=metrics,
         facts=b.facts,
         reads=b.interpretation,
-        hypotheses=[Hypothesis(if_then=h.if_then, invalidation=h.invalidation) for h in b.hypotheses],
+        hypotheses=[
+            Hypothesis(
+                if_then=h.if_then,
+                invalidation=h.invalidation,
+                asset=h.asset,
+                direction=h.direction,
+                horizon=h.horizon,
+                confidence=h.confidence,
+                key_factors=h.key_factors,
+            )
+            for h in b.hypotheses
+        ],
         impacts=[Impact(asset=i.asset, watch=i.watch, dir=i.direction) for i in b.impact],
         reviews=reviews,
         news=news,
@@ -140,9 +151,17 @@ def render_markdown(brief: Brief, macro: list[dict[str, Any]] | None = None) -> 
     if brief.reads:
         p += ["## 解读层(判断,非事实)"] + [f"- {x}" for x in brief.reads] + [""]
     if brief.hypotheses:
-        p += ["## 假设层(可证伪)"]
+        p += ["## 假设层(对固定方向的预测,可证伪)"]
+        _pdir = {"up": "↑", "down": "↓", "flat": "→"}
+        _phz = {"next_1d": "次日", "h_5d": "5日", "h_20d": "20日", "h_60d": "60日"}
         for h in brief.hypotheses:
-            p.append(f"- **若**:{h.if_then}  \n  **失效条件**:{h.invalidation}")
+            tag = ""
+            if h.asset:
+                tag = f"**{h.asset} {_pdir.get(h.direction.value, '')}{_phz.get(h.horizon.value, '')}**"
+                if h.confidence:
+                    tag += f"(信心 {h.confidence:.0%})"
+                tag += " — "
+            p.append(f"- {tag}**若**:{h.if_then}  \n  **失效条件**:{h.invalidation}")
         p.append("")
     if brief.impacts:
         p += ["## 影响层(观察点,非建议)"]

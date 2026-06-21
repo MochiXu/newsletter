@@ -51,6 +51,23 @@ class ReviewStatus(str, Enum):
     OPEN = "open"
 
 
+class PredDir(str, Enum):
+    """预测方向(用于固定 roster 的假设/判断)。"""
+
+    UP = "up"
+    DOWN = "down"
+    FLAT = "flat"
+
+
+class Horizon(str, Enum):
+    """预测期限(交易日)枚举——固定档便于回测跨日聚合。"""
+
+    NEXT_1D = "next_1d"
+    H_5D = "h_5d"
+    H_20D = "h_20d"
+    H_60D = "h_60d"
+
+
 # ── 归一化辅助 ──────────────────────────────────────────────────────────
 
 
@@ -96,13 +113,65 @@ def _coerce_dir(v: Any) -> Any:
     return "watch"
 
 
+def _coerce_pred_dir(v: Any) -> Any:
+    if isinstance(v, str):
+        s = v.strip().lower()
+        return s if s in ("up", "down", "flat") else "flat"
+    return "flat"
+
+
+def _coerce_horizon(v: Any) -> Any:
+    if isinstance(v, str):
+        s = v.strip().lower().replace("-", "_")
+        return s if s in ("next_1d", "h_5d", "h_20d", "h_60d") else "h_20d"
+    return "h_20d"
+
+
+def _coerce_conf(v: Any) -> float:
+    """置信度归一到 [0,1];模型偶尔给 0~100 则除以 100;不可解析归 0。"""
+    try:
+        x = float(v)
+    except (TypeError, ValueError):
+        return 0.0
+    if x > 1.0:
+        x = x / 100.0
+    return max(0.0, min(1.0, x))
+
+
 # ── LLM 原始输出(容错)──────────────────────────────────────────────────
 
 
 class LLMHypothesis(BaseModel):
+    """一条对固定 roster 方向的、由特征驱动的可证伪预测(对应 emit_brief.hypotheses)。"""
+
     model_config = ConfigDict(extra="ignore")
+    asset: str = ""  # 预测对象(catalog.PREDICTION_TARGET_IDS 之一)
+    direction: PredDir = PredDir.FLAT
+    horizon: Horizon = Horizon.H_20D
+    confidence: float = 0.0
+    key_factors: list[str] = Field(default_factory=list)
     if_then: str = ""
     invalidation: str = ""
+
+    @field_validator("direction", mode="before")
+    @classmethod
+    def _dir(cls, v: Any) -> Any:
+        return _coerce_pred_dir(v)
+
+    @field_validator("horizon", mode="before")
+    @classmethod
+    def _hz(cls, v: Any) -> Any:
+        return _coerce_horizon(v)
+
+    @field_validator("confidence", mode="before")
+    @classmethod
+    def _conf(cls, v: Any) -> float:
+        return _coerce_conf(v)
+
+    @field_validator("key_factors", mode="before")
+    @classmethod
+    def _kf(cls, v: Any) -> list[str]:
+        return _coerce_str_list(v)
 
 
 class LLMImpact(BaseModel):
@@ -160,6 +229,11 @@ class Metric(_CamelModel):
 class Hypothesis(_CamelModel):
     if_then: str = Field(alias="ifThen")
     invalidation: str
+    asset: str = ""
+    direction: PredDir = PredDir.FLAT
+    horizon: Horizon = Horizon.H_20D
+    confidence: float = 0.0
+    key_factors: list[str] = Field(default_factory=list, alias="keyFactors")
 
 
 class Impact(_CamelModel):

@@ -7,7 +7,15 @@
 
 from __future__ import annotations
 
+from .. import catalog
+
 BRIEF_TOOL = "emit_brief"
+
+# 预测 roster(单一事实源 = catalog.PREDICTION_TARGETS):约束假设层「不超不漏」。
+_PRED = [(s.series_id, s.metric_label or s.label) for s in catalog.PREDICTION_TARGETS]
+_PRED_IDS = [sid for sid, _ in _PRED]
+_PRED_N = len(_PRED_IDS)
+_PRED_DESC = "、".join(f"{lab}={sid}" for sid, lab in _PRED)
 
 # emit_brief 的 JSON Schema —— Anthropic 作 tool input_schema,OpenAI 兼容作 function parameters。
 BRIEF_SCHEMA: dict = {
@@ -31,15 +39,41 @@ BRIEF_SCHEMA: dict = {
         },
         "hypotheses": {
             "type": "array",
+            "minItems": _PRED_N,
+            "maxItems": _PRED_N,
+            "description": (
+                f"假设层 = 对固定 {_PRED_N} 个方向各给且只给一条由特征驱动的预测;"
+                f"asset 必须恰好覆盖且不重复:{_PRED_DESC}。禁止凑数;低把握给低 confidence;"
+                "失效条件须可度量(绑定该序列+具体阈值+期限)"
+            ),
             "items": {
                 "type": "object",
                 "properties": {
-                    "if_then": {"type": "string", "description": "若 X 则预期 Y"},
-                    "invalidation": {"type": "string", "description": "失效条件 Z"},
+                    "asset": {"type": "string", "enum": _PRED_IDS, "description": "预测对象(固定 roster,不可重复)"},
+                    "direction": {
+                        "type": "string",
+                        "enum": ["up", "down", "flat"],
+                        "description": "未来方向:up=上行,down=下行,flat=横盘/中性",
+                    },
+                    "horizon": {
+                        "type": "string",
+                        "enum": ["next_1d", "h_5d", "h_20d", "h_60d"],
+                        "description": "预测期限(交易日):次日/5日/20日/60日",
+                    },
+                    "confidence": {"type": "number", "description": "0~1 置信度(用于校准);低把握就给低值,别都给高"},
+                    "key_factors": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "驱动该预测的具体特征/读数(取自给定特征块)",
+                    },
+                    "if_then": {"type": "string", "description": "人读:若 X(具体阈值)则预期 Y"},
+                    "invalidation": {
+                        "type": "string",
+                        "description": "可度量失效条件:绑定该序列+具体阈值+期限,能被未来数据客观判定",
+                    },
                 },
-                "required": ["if_then", "invalidation"],
+                "required": ["asset", "direction", "horizon", "confidence", "key_factors", "if_then", "invalidation"],
             },
-            "description": "假设层:可证伪命题,每条必须带失效条件",
         },
         "impact": {
             "type": "array",
@@ -67,7 +101,10 @@ SYSTEM = (
     "你会收到:今日各资产的**已由代码计算好的技术特征**(收益率/变化量/均线/波动率/相关性/"
     "z-score/regime 标签等)、月频宏观最新读数、以及一份『宏观传导图』。"
     "硬性纪律:(1) 基于给定特征推理,**不要自行心算或臆造数字**;(2) 严格区分事实与判断;"
-    "(3) 假设必须可证伪(给出失效条件);(4) 只给『观察点』,绝不给买/卖建议,不承诺收益;"
-    "(5) 中文输出,简洁、有信息量;(6) 给出当日 tone,并为每条影响层资产标注 direction。"
-    "通过 emit_brief 输出四层简报。"
+    f"(3) **假设层 = 对固定 roster({_PRED_DESC})各给且只给一条由特征驱动的预测**:"
+    "写明方向(up/down/flat)、期限 horizon、置信度 confidence(0~1)、驱动特征 key_factors、"
+    "以及**可度量的失效条件**(绑定该序列+具体阈值+期限,能被未来数据客观判定);"
+    "**不要凑数、不要超出或漏掉这几个方向**,低把握就给低 confidence;"
+    "(4) 只给『观察点』,绝不给买/卖建议,不承诺收益;(5) 中文输出,简洁、有信息量;"
+    "(6) 给出当日 tone,并为每条影响层资产标注 direction。通过 emit_brief 输出四层简报。"
 )

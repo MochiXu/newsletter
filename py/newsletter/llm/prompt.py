@@ -124,7 +124,9 @@ def build_user(feature_block: str, linkage_map: str) -> str:
         + "\n\n## 宏观传导图(你的推理依据)\n"
         + linkage_map
         + "\n\n请基于以上**已算好的特征**,通过 emit_brief 输出四层简报:"
-        "事实层复述关键特征;解读层标注为判断(当前 regime、特征含义);假设层给可证伪命题与失效条件;"
+        "事实层复述关键特征;解读层标注为判断(当前 regime、特征含义);"
+        "假设层 = 对固定的纳指/黄金/广义美元/2Y 四个方向**各给且只给一条由特征驱动的预测**"
+        "(写明 direction/horizon/confidence/key_factors 与可度量失效条件,低把握给低 confidence,禁止凑数);"
         "影响层给观察点并标注 direction;另给当日 tone。"
         "若接口不支持函数调用,直接输出符合 emit_brief 参数结构的 JSON,不要包裹多余文字。"
     )
