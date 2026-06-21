@@ -6,6 +6,9 @@
 >
 > **V2 范围锁定(本期)**:回填 **2026 年初 → 今**(机制跑通再延伸多年);评估以 **5d / 20d** 为主。
 > 新闻做成**双模式开关**(默认不含 / 可选 GDELT 补历史)。
+>
+> **现状(2026-06-22)**:V1 日报已实跑(`data/briefs/` 含 06-17..06-20),`target_date` 贯穿管线、
+> `news_mode` 双模式已就位、前端 `loadBriefs` 就绪——V2 的前置条件已具备;以下各步全部待建。
 
 ---
 
@@ -78,7 +81,7 @@ L4 评估层(V2 核心)  ◀────┘  用 T+h 真实走势给 T 的判断
 **验收**:回填 2026 全年产出 `briefs/<date>.json`(含结构化判断);抽查某日报告不含其后任何数据/新闻;两种 `news_mode` 均跑通。
 - [ ] 交易日历 + 幂等续跑循环
 - [ ] point-in-time 市场切片 + 因果校验
-- [ ] `news_mode=none`(默认)
+- [x] `news_mode=none`(默认)——管线侧已就位(`pipeline.py` / CLI `--no-news`);仅缺回填主循环
 - [ ] GDELT 慢查脚本:5 秒节流逐日抓 → 本地 markdown 缓存(`data/news_cache/gdelt/<date>.md`),可分次填、入库
 - [ ] `news_mode=gdelt`:优先读缓存(命中不重查)+ 财经过滤 + 严格日期上界
 - [ ] 全年回填一次,人工抽查无偷看未来
@@ -158,8 +161,8 @@ eval/report.py    # 评估汇总 data/eval/summary.json + 人读 md;逐报告标
 
 V1 的假设追踪(`hypotheses.py`)是**人读、逐条**的定性验证;V2 的 L4 是**系统化、可统计**的定量评估。二者互补:L4 接管"打分/统计",假设追踪保留为人面向的叙事层。后续可让结构化判断与假设共用一套复盘出口。
 
-## 跨步注意事项(承 v1-progress)
+## 跨步注意事项
 
 - **point-in-time 是红线**:市场切 `obs_date<=T`;新闻按 `news_mode` 严格日期上界;宏观不进被打分信号。
 - **诚实优先**:覆盖不足/无法评估的周期**如实标注**,不假装覆盖。
-- **密钥/环境/规范**:同 [v1-progress.md](v1-progress.md)(`.env`、conda `myTools`、type hints + pydantic 守边界)。
+- **密钥/环境/规范**:四家 key 仅存 `.env`(已 gitignore);本地跑 conda env `myTools`;全量 type hints + pydantic 守边界。

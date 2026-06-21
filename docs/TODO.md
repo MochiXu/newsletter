@@ -1,53 +1,44 @@
 # 路线图 / 详细 TODO
 
 > 本文件是项目的**中央待办**:汇总未来里程碑、按模块的任务、已知技术债、开放问题与变现路线。
-> 模块文档([data-plane](data-plane.md) / [intelligence-plane](intelligence-plane.md))里的「待办」是局部视图,
-> 全局看这里。完成的项打 `[x]`。
+> 全局待办看这里;完成的项打 `[x]`。架构与已完成进度见 [refactor 文档](refactor/readme.md)。
 
-> **当前状态(2026-06-17):系统已上线自跑。** M0/M1/M2 全部完成并合并到 `main`;每日 cron
-> (北京 07:00)用 DeepSeek 产出完整四层简报 + 新闻分类 + 假设复盘,推送到飞书(已配置实测)。
-> 接下来的重心从「建设」转为「dogfood 使用 + 内容打磨」——见 §6。
+> **当前状态(2026-06-22):V1 数据质量重构已完成。** 后端为**纯 Python 分层管线**
+> (代码算特征 → LLM 只解释),Rust 数据平面已退役;M0/M1/M2 + V1 重构均已合并 `main`,
+> 每日 cron(北京 07:00)用 DeepSeek 产出四层简报 + 新闻分类 + 假设复盘并推飞书。
+> V2(回填 + 预测价值评估)设计已成稿待实现,见 [refactor/v2-progress](refactor/v2-progress.md)。
+> 重心为「dogfood 使用 + 内容打磨」——见 §6。
 
 ---
 
-## 1. 里程碑路线
+## 1. 路线
 
-### M0 数据平面 — ✅ 已完成并上线
-真实 FRED + Yahoo 数据每日入库(CSV + markdown,git-as-database)。已重构为面向多源扩展的
-分层结构(Source trait / thiserror / log)——新增数据源成本极低。
+> 早期 M0/M1/M2 建设阶段的历史时间线见 [CHANGELOG](CHANGELOG.md);数据质量重构(V1/V2)分步进度见
+> [refactor/readme](refactor/readme.md)。多市场/进阶扩展(A股/港股、个股、CFTC、FedWatch、dashboard 等)
+> **已搁置以保持宏观聚焦**,见 [parked-scope](parked-scope.md)。
 
-### M1 智能平面 — ✅ 完成并实跑
-四层简报 + 飞书推送;DeepSeek 真实 key 端到端验证,飞书 webhook 已配置并测通。
+### ✅ 已完成
+- 全球宏观脊柱数据采集(FRED/TwelveData/Tiingo/Yahoo 兜底)+ 每日四层简报 + 新闻分类 + 假设追踪复盘。
+- **V1 数据质量重构**:纯 Python 分层管线、代码算特征、parquet 原始层,DeepSeek 端到端实跑验证。
 
-### M2 新闻分类 + 假设追踪 — ✅ 完成并实跑
-RSS 抓取 + 分类(事实/解读/影响资产)+ 可证伪假设次日复盘,均经 DeepSeek 实跑。
+### 🚧 进行中规划 — V2 报告的预测价值评估
+回填历史报告 + 结构化判断 + 用未来走势打分(关键:vs naive baseline 的技能差)。
+设计与分步进度见 [refactor/v2-progress](refactor/v2-progress.md)。
 
-### M3 · 第 2 月 — 接入更多市场 + 公开前打磨
-- [ ] **A股 / 港股影响层**:数据源(新浪/东财/AkShare 口径)、时区(北京白天)、合规口径单独处理
-- [ ] 美股指数 / 个股、加密(BTC/ETH)的「影响层」映射做细
+### 近期(dogfood + 打磨,见 §6)
 - [ ] 固定简报格式、固定发布时间、建立 voice
+- [ ] 连续运行让 `hypotheses.csv` 攒出真实复盘记录(信任引擎的价值靠时间)
 - [ ] 开始发给 5–10 个朋友收反馈(免费,先证明留存)
-- [ ] **假设追踪积累**:连续运行,让 hypotheses.csv 攒出真实复盘记录(信任引擎的价值靠时间)
-
-### M4 · 第 3 月+ — 深度功能 + 考虑变现
-- [ ] **单一资产交易框架生成器**(给某资产生成结构化交易假设)
-- [ ] **CFTC 持仓(COT)**:CFTC Socrata API(免费,每周五发布周二数据)
-- [ ] **ETF flow**:加密 ETF 用 Farside;股/债 ETF 暂无免费 API,往后放
-- [ ] **FedWatch**:从 30 天联邦基金期货(ZQ)自己算隐含加息/降息概率(无免费 API;也是学习项目)
-- [ ] Web dashboard(可视化数据 + 历史假设命中率)
-- [ ] 考虑公开 + 付费墙(见 §5)
 
 ---
 
 ## 2. 按模块的 TODO
 
-### 数据平面(Rust,`src/`)
-- [ ] DXY / 黄金换更贴盘口的源(目前 DXY 用 Yahoo `DX-Y.NYB`、黄金用 COMEX 期货;FRED 伦敦金价序列已下架)
-- [ ] 序列增多后从 blocking 切 async 并发抓取(`tokio`)
-- [ ] 加 CFTC COT、FedWatch(ZQ 隐含概率)、ETF flow(见 M4)
-- [ ] A股/港股数据源(M3)
-- [ ] **引入 SQLite 接缝**:目前 M0/M1/M2 全用 CSV(git-as-database);量大或需复杂查询时,Rust 写 SQLite、Python 读 SQLite,替代直接读 CSV
-- [ ] 数据校验/告警:某序列连续 N 天缺失或异常跳变时显式报警(现有新鲜度校验 >14 天判陈旧)
+### 数据采集层(`py/newsletter/sources/` + `catalog.py`)
+- [x] 黄金改用 Twelve Data `XAU/USD` 现货、窄口径美元用 Tiingo `UUP` 代理(V1 已落地;FRED 无可用金价/真 DXY)
+- [ ] 数据校验/告警:某序列连续 N 天缺失或异常跳变时显式报警
+- [ ] 序列增多后评估并发抓取(目前 `sources/base.py` 用 stdlib `urllib` + 礼貌间隔/退避,够用)
+- 进阶数据源(CFTC/FedWatch/ETF flow)与多市场(A股/港股)数据源**已搁置**,见 [parked-scope](parked-scope.md)。
 
 ### 智能平面(Python,`py/newsletter/`)
 - [x] **用真实 LLM key 跑出完整四层 + 新闻分类 + 假设复盘**(已用 **DeepSeek** 端到端实跑验证)
@@ -58,7 +49,6 @@ RSS 抓取 + 分类(事实/解读/影响资产)+ 可证伪假设次日复盘,均
 - [ ] 新闻源扩充 + 质量过滤:`DEFAULT_FEEDS` 现为 Fed/CNBC/MarketWatch;加央行/财经源,去广告/低质
 - [ ] 假设复盘质量:LLM 判定 held/invalidated/open 需人工抽查;考虑给「依据数据点」要求
 - [ ] 「偏离预期」需要 consensus / 经济日历预期值——数据源待定(见 §4)
-- [ ] M1 从直接读 CSV 改为读 SQLite 接缝(配合数据平面)
 
 ### 多模型 provider(`providers.py`)
 - [x] **DeepSeek** 真实 key 端到端冒烟(OpenAI 兼容端点 + function calling 路径验证通过)
@@ -73,20 +63,17 @@ RSS 抓取 + 分类(事实/解读/影响资产)+ 可证伪假设次日复盘,均
 - [ ] 飞书 text → **富文本卡片**(`lark_md`),四层简报渲染更好看
 - [ ] 邮件 newsletter(Resend / Buttondown / beehiiv)——未来付费的主渠道
 - [ ] Telegram(若之后可用)
-- [ ] Web dashboard(M4)
 
-### 展示平面(前端,`frontend/app/`)— F0–F4 已完成
-- [x] React18+Vite+TS 小票阅读器:数据契约 + 后端 JSON 导出 + 主题 + 时间线 + 五节内容 + Tweaks + 响应式(明暗/桌面/移动均验证)
-- [ ] **真实数据接管**:管线连续运行让 `data/briefs.json` 攒够内容,前端从 9 天 demo 自动切到真实(`loadBriefs` 已就绪)
-- [ ] **部署**:纯静态产物,挂 GitHub Pages / 任意静态托管(F5)
-- [ ] **esbuild 开发期 RCE 告警**(`npm audit` 3 条 high,经 vite→plugin-react 传递):仅影响构建工具、不进生产产物;修复需破坏性升级 vite,择机处理
-- [ ] 详情走势图 / 跨日搜索 / PDF 导出 / 多模型对比(设计稿 §11,后续)
+### 展示平面(前端,`frontend/app/`)
+- 前端将**按 `frontend/design` 重新设计改写**(旧实现 + 旧前端文档已作废);改写时以新设计为准。
+- [ ] 真实历史数据接管:回填后 `data/briefs.json` 为真实历史,前端切真实(与 V2 回填配合)。
+- [ ] 部署:纯静态产物,挂 GitHub Pages / 任意静态托管。
 
 ### 基础设施 / CI
-- [ ] CI 缓存 Rust 构建(已用 `Swatinem/rust-cache`);Python 无依赖无需缓存
+- [x] CI 改纯 Python(`setup-python` + `pip` 缓存;无 Rust 构建)
 - [ ] 失败可见性:简报部分序列失败/无分类时,除日志外发通知(现有 `::warning::` 注解)
-- [ ] `data/briefs`、`data/snapshots`、`hypotheses.csv` 随 cron 累积,定期归档/清理脚本
-- [ ] 回填脚本:用历史数据重建 observations / 重跑简报
+- [ ] `data/briefs`、`data/raw`、`hypotheses.csv` 随 cron 累积,定期归档/清理脚本
+- [ ] 回填脚本(V2):逐日 `target_date` 重跑简报(严格 point-in-time),见 [refactor/v2-progress](refactor/v2-progress.md)
 
 ---
 
@@ -100,8 +87,8 @@ RSS 抓取 + 分类(事实/解读/影响资产)+ 可证伪假设次日复盘,均
 - **新闻分类靠 `index` 对齐**:模型回填我们给的序号(对翻译/改写标题免疫)。若模型连 index 都填错
   且标题也对不上,该条退化为未分类(不会错位贴到别条——有意的安全取舍)。
 - **假设复盘依赖 LLM 判断**:held/invalidated/open 的判定质量取决于模型,需人工抽查。
-- **SQLite 接缝尚未引入**:DESIGN 设想 SQLite 作两半接缝,目前实际用 CSV/markdown(git-as-database)。
-  够用;复杂查询/大数据量时再引入。
+- **原始层用 parquet(git-as-database)**:V1 已把数据落盘从 CSV 改为 `data/raw/*.parquet`;
+  对外产物(briefs JSON/md、`hypotheses.csv`)走 git。复杂查询/大数据量时再评估 DuckDB。
 - **数据源脆弱性**:Yahoo 限流(已加礼貌间隔+退避)、Stooq 反爬(已弃用)、RSS 源可能失效/限流
   (单源失败静默跳过)。
 - **仓库体积**:每日往 `data/` 提交快照+简报,长期会变大;需归档策略。
@@ -114,7 +101,7 @@ RSS 抓取 + 分类(事实/解读/影响资产)+ 可证伪假设次日复盘,均
   TradingEconomics / 自建?多数有反爬或付费)。
 - **linkage map v1 的迭代**:由作者口述规则、AI 整理成 markdown?还是从简报复盘里自动提炼?
 - **默认 provider / model**:成本 vs 质量怎么权衡(日报 sonnet/gpt-4o-mini,深度 opus)。
-- **发布时区与多市场**:美国数据凌晨定、A股白天、加密 7×24——单一 07:00 发布是否够,还是分场次。
+- **发布时区**:美国数据凌晨定盘,单一北京 07:00 发布(总结隔夜美国 session)是否够。
 
 ---
 
@@ -135,8 +122,8 @@ RSS 抓取 + 分类(事实/解读/影响资产)+ 可证伪假设次日复盘,均
 基建已就绪(✅ DeepSeek 跑通、✅ 飞书配置实测、✅ 合并 main、✅ cron + secrets 齐全),
 重心转为 **dogfood 使用 + 内容打磨**(对应锁定决策「先自用 2-3 个月再公开」):
 
-1. **每天读简报**,判断是否比刷推特信息量大、哪里没用——这是 M1 的真正验收
+1. **每天读简报**,判断是否比刷推特信息量大、哪里没用——这是四层简报的真正验收
 2. **每天维护 `linkage_map.md`**(5 分钟复盘 → 修订):核心 IP + 学经济的载体 + 飞轮发动机
 3. **让假设追踪攒数据**:连续运行,`hypotheses.csv` 才会出现真实的 ✅已兑现/❌已失效 记录
 4. **盯前几天的 cron**:推送是否每天到、有无序列失败(Yahoo 限流/RSS 挂)、简报质量 → 调 prompt
-5. 然后才是 M3:A股/港股影响层 + 固定格式/voice,开始发给 5–10 个朋友
+5. 固定简报格式/voice,开始发给 5–10 个朋友收反馈(多市场扩展已搁置,见 [parked-scope](parked-scope.md))

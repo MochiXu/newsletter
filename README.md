@@ -57,6 +57,7 @@
 
 ```
 py/newsletter/             # 纯 Python 数据管线
+  README.md                # 后端代码现状与设计思路
   config.py                # 配置(密钥/路径/特征窗口,类型化)
   models.py                # pydantic 契约(LLM 输出归一化 + 前端 Brief)
   sources/                 # 数据源适配:base + fred/twelvedata/tiingo/yahoo
@@ -76,7 +77,7 @@ data/                      # git-as-database
   hypotheses.csv           # 假设追踪日志
 frontend/app/              # 展示平面:React+Vite+TS 小票阅读器
 .github/workflows/daily.yml# 每日 cron:拉数 → 简报 → 提交回仓库 →(可选)推飞书
-DESIGN.md  docs/           # 设计哲学 + 模块文档 + 重构设计(docs/refactor/)
+DESIGN.md  docs/           # 设计哲学 + 重构设计/路线图/变更日志
 ```
 
 ## 快速开始
@@ -134,11 +135,11 @@ Secrets(`FRED_API_KEY` / `TWELVEDATA_API_KEY` / `TIINGO_API_TOKEN` / provider ke
 
 ## 文档
 
-- [DESIGN.md](DESIGN.md) — 高层设计、四层结构、已锁定决策
-- [docs/refactor/](docs/refactor/readme.md) — **数据质量重构**:总纲 + [V1](docs/refactor/v1-progress.md) + [V2](docs/refactor/v2-progress.md)
-- [docs/intelligence-plane.md](docs/intelligence-plane.md) — 智能平面早期模块细节(部分被重构取代)
-- [docs/frontend-plane.md](docs/frontend-plane.md) — 展示平面(React 小票阅读器)
-- [docs/TODO.md](docs/TODO.md) — 路线图 / 未来 TODO / 技术债
+- [py/newsletter/README.md](py/newsletter/README.md) — **后端代码现状与设计思路**(读代码先看这份)
+- [DESIGN.md](DESIGN.md) — 愿景、产品哲学、四层结构、已锁定决策
+- [docs/refactor/](docs/refactor/readme.md) — **数据质量重构**:架构/进度总纲 + [V1](docs/refactor/v1-progress.md) + [V2](docs/refactor/v2-progress.md)
+- [docs/TODO.md](docs/TODO.md) — 路线图 / 技术债 / 开放问题
+- [docs/parked-scope.md](docs/parked-scope.md) — 搁置范围(多市场等,保持宏观聚焦)
 - [docs/CHANGELOG.md](docs/CHANGELOG.md) — 工作历史 / 进度日志
 
 ## 免责声明
