@@ -60,6 +60,7 @@ def build_metrics(long_df: pd.DataFrame, target_date: str) -> list[Metric]:
                 value=round(level, 4),
                 change=round(change, 4),
                 kind=spec.metric_kind,  # type: ignore[arg-type]
+                spark=features.metric_spark(long_df, spec.series_id, target_date),
             )
         )
     return out

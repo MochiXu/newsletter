@@ -66,6 +66,14 @@ class TestFeatureCorrectness(unittest.TestCase):
         self.assertAlmostEqual(level, 4.48)
         self.assertAlmostEqual(change, 0.08)  # 真实变动,非 0
 
+    def test_metric_spark_tail_causal(self):
+        # 取 <= target 的最近 n 个真实观测;不偷看未来
+        dates = [pd.Timestamp("2026-06-10"), pd.Timestamp("2026-06-12"),
+                 pd.Timestamp("2026-06-15"), pd.Timestamp("2026-06-20")]
+        long = _long("DGS10", dates, [4.40, 4.42, 4.45, 4.50])
+        spark = features.metric_spark(long, "DGS10", "2026-06-18", n=2)
+        self.assertEqual(spark, [4.42, 4.45])  # 截到 06-18,最近2点,06-20 被排除
+
 
 class TestCausality(unittest.TestCase):
     """红线:target_date 的特征绝不依赖其后任何数据。"""

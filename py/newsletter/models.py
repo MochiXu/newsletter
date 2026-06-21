@@ -224,6 +224,7 @@ class Metric(_CamelModel):
     value: float
     change: float
     kind: MetricKind
+    spark: list[float] = Field(default_factory=list)  # 最近~20真实收盘(因果),前端画 sparkline
 
 
 class Signal(_CamelModel):

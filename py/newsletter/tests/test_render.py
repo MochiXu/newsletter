@@ -25,6 +25,7 @@ class TestBuildMetrics(unittest.TestCase):
         self.assertAlmostEqual(m.value, 4.47)
         self.assertAlmostEqual(m.change, 0.07)
         self.assertEqual(m.kind.value, "yield")
+        self.assertEqual(m.spark, [4.40, 4.47])  # 真实观测尾部序列(因果),供前端 sparkline
 
 
 class TestBuildNews(unittest.TestCase):
