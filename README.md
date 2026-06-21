@@ -138,6 +138,7 @@ Secrets(`FRED_API_KEY` / `TWELVEDATA_API_KEY` / `TIINGO_API_TOKEN` / provider ke
 - [py/newsletter/README.md](py/newsletter/README.md) — **后端代码现状与设计思路**(读代码先看这份)
 - [DESIGN.md](DESIGN.md) — 愿景、产品哲学、四层结构、已锁定决策
 - [docs/refactor/](docs/refactor/readme.md) — **数据质量重构**:架构/进度总纲 + [V1](docs/refactor/v1-progress.md) + [V2](docs/refactor/v2-progress.md)
+- [docs/frontend-rebuild.md](docs/frontend-rebuild.md) — 前端重做指南(数据契约 + 设计稿映射 + 缺口状态)
 - [docs/TODO.md](docs/TODO.md) — 路线图 / 技术债 / 开放问题
 - [docs/parked-scope.md](docs/parked-scope.md) — 搁置范围(多市场等,保持宏观聚焦)
 - [docs/CHANGELOG.md](docs/CHANGELOG.md) — 工作历史 / 进度日志
