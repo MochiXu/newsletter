@@ -18,6 +18,17 @@
 
 ---
 
+## 2026-06-23 — 简报页体验打磨(全区块打孔 + 响应式两列 + 术语 hover)
+
+紧接多模型之后的前端打磨。详见 [frontend-rebuild.md](frontend-rebuild.md)。
+
+- **全区块撕齿打孔**:简报页所有卡片(数据卡 + AI 四层 + 复盘)统一 `<Card punch>`。
+- **AI BRIEF 四层拆成 4 个独立面板**(`FactsPanel/ReadsPanel/HypothesisPanel/ImpactPanel`),配合**声明式两列排版**(顺序集中一处定义)+ flex-wrap 响应式(宽屏两列 → 窄屏自动单列,无手写断点):左列 市场/价格/技术指标/假设层/新闻,右列 事实/解读/影响/复盘。
+- **统一 portal Tooltip**(`components/Tooltip.tsx`):渲染到 `#mb-root`(fixed + 夹取/翻转),不被打孔 mask 裁、不受 transform 漂移;词条跨行时跟随鼠标。
+- **术语 hover**:① SIGNALS regime 徽章;② 事实/解读正文里的 regime token(`key=value`/复合)与行话(higher-for-longer/熊平/牛陡/倒挂)虚下划线 + 中文解释(`glossary.ts` 单一源,中英双语备好,**保留 LLM 原文措辞、不改 prompt**)。信心标注也迁到统一 Tooltip。
+- **影响层英文代码**:`render._split_asset` 把 LLM 自由文本(`纳指 (NASDAQCOM)`/裸代码)规范成中文名 + `Impact.code`;前端显示中文、代码进 hover;schema prompt 要求影响层用中文短名。
+- 后端离线单测 62 → **63**(影响层 asset 规范化)。
+
 ## 2026-06-23 — 多模型简报 + 中转站接入(每模型视图 + 代码级共识 + 前端切换器)
 
 属 V1.5 延续。让多个模型各出一份解读、展示分歧;「该信谁」不靠 LLM 收敛,留给 V2 战绩。详见 [v1.5-progress.md §4](refactor/v1.5-progress.md)。

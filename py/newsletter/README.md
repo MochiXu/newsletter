@@ -47,14 +47,14 @@
 | `regime.py` | 基于特征**纯代码派生** regime 标签(股票趋势 / 波动率档 / 收益率曲线 / 实际利率 / 美元强弱),不让 LLM 猜 |
 | `llm/` | `providers`(多模型可插拔:`select_providers` 读 `LLM_MODELS` 逐个构建;OpenAI 兼容家走 **JSON mode**;`AnthropicProvider` 支持中转站 base_url + AUTH_TOKEN + 三路 tool 解析兜底;`_compat_url` 补 `/v1/...`)、`schema`(四层 + tag/figs 的 JSON Schema)、`prompt`(`build_feature_block`)、`style`(`TEXT_STYLE`)、`service`(`generate_brief` 单模型 / `generate_briefs` 多模型逐个降级) |
 | `textnorm.py` | 确定性中英文排版规范化(`normalize_text`:全角标点→ASCII、中英盘古空格、双引号→单引号;不拆 `MA200/2s10s/9bp`)。render 落库前对所有展示文本统一应用 |
-| `render.py` | LLM 输出 → pydantic 校验/归一化 + `normalize_text`(+ figure 补单位/去死)→ `build_metrics`(含 spark)/ `build_signals` / `build_price_series` / `build_view`(单模型六层)/ `build_consensus`(跨模型代码投票)/ `build_brief`(脊柱 + views + consensus)/ `render_markdown` / `render_text`(取主视图)/ `upsert_briefs_json` |
+| `render.py` | LLM 输出 → pydantic 校验/归一化 + `normalize_text`(+ figure 补单位/去死)→ `build_metrics`(含 spark)/ `build_signals` / `build_price_series` / `build_view`(单模型六层)/ `build_consensus`(跨模型代码投票)/ `build_brief`(脊柱 + views + consensus)/ `_split_asset`(影响层 asset 规范成中文名 + 提取英文 `code`)/ `render_markdown` / `render_text`(取主视图)/ `upsert_briefs_json` |
 | `news.py` | RSS/Atom 抓取(stdlib)+ LLM 分类(事实/解读/影响资产);**按模型回填的 `index` 对齐**,免疫 LLM 改写/翻译标题 |
 | `hypotheses.py` | 假设追踪复盘(`hypotheses.csv`):登记新假设、对**往日** open 假设复盘 held/invalidated/open(不拿当天数据自我验证),按天幂等 |
 | `pipeline.py` | 编排:`fetch_and_store` → `build_report`(算特征→**多模型 LLM**→假设(以主模型为准)→新闻→组装多视图 Brief + 共识)→ `write_outputs`;`target_date` 贯穿,各 LLM 环节独立 try/except 降级 |
 | `__main__.py` | CLI:`--date` / `--no-news` / `--history-years` / `-v` |
 | `deliver/feishu.py` | 飞书机器人推送(HMAC 签名可选;失败不阻断,已存 md) |
 | `framework/linkage_map.md` | 核心 IP:人工维护的宏观传导图,运行时读入喂给 LLM |
-| `tests/` | 62 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析/补单位 + 多模型视图/共识 + 向后兼容旧 str[] facts 与旧扁平 brief 迁移) |
+| `tests/` | 63 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析/补单位 + 多模型视图/共识 + 影响层 asset 规范化 + 向后兼容旧 str[] facts 与旧扁平 brief 迁移) |
 
 ## 数据源分工(已接入)
 
