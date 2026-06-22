@@ -18,13 +18,16 @@ from .textnorm import normalize_text
 from .models import (
     Brief,
     BriefsPayload,
+    ConsensusItem,
     Dir,
     Hypothesis,
     Impact,
     LLMBrief,
     Metric,
+    ModelView,
     News,
     NewsCat,
+    OFFLINE_MODEL_ID,
     PricePoint,
     Review,
     ReviewStatus,
@@ -170,30 +173,12 @@ def build_reviews(hyp_rows: list[dict[str, Any]], target_date: str) -> list[Revi
     return out
 
 
-def build_brief(
-    target_date: str,
-    llm: LLMBrief | None,
-    metrics: list[Metric],
-    reviews: list[Review],
-    news: list[News],
-    issue: int = 0,
-    *,
-    signals: list[Signal] | None = None,
-    regime: dict[str, str] | None = None,
-    price_series: dict[str, list[PricePoint]] | None = None,
-) -> Brief:
-    """组装单日 Brief(契约)。llm 为 None(无 provider)时四层留空、tone 中性。"""
+def build_view(llm: LLMBrief | None) -> ModelView:
+    """单个模型的"解释层"产出 → ModelView(六层,文本经规范化)。llm 为 None 则空视图、tone 中性。"""
     b = llm or LLMBrief()
-    return Brief(
-        date=target_date,
-        weekday=weekday_cn(target_date),
-        issue=issue,
+    return ModelView(
         tone=b.tone,
         headline=normalize_text(b.headline),
-        metrics=metrics,
-        signals=signals or [],
-        regime=regime or {},
-        price_series=price_series or {},
         facts=_norm_tagged(b.facts),
         reads=_norm_tagged(b.interpretation),
         hypotheses=[
@@ -209,17 +194,97 @@ def build_brief(
             for h in b.hypotheses
         ],
         impacts=[Impact(asset=i.asset, watch=normalize_text(i.watch), dir=i.direction) for i in b.impact],
+    )
+
+
+def build_consensus(views: dict[str, ModelView]) -> list[ConsensusItem]:
+    """对固定 roster 跨模型投票出代码级共识(多数方向 + 票数 + 认同数 + 多数方向均值信心)。
+
+    <2 个模型则无共识可言(返回空,前端不显示共识行)。平票 → flat(分歧)。纯代码、抗污染。
+    """
+    if len(views) < 2:
+        return []
+    out: list[ConsensusItem] = []
+    for asset in catalog.PREDICTION_TARGET_IDS:
+        picks = [
+            (h.direction.value, h.confidence)
+            for v in views.values()
+            for h in v.hypotheses
+            if h.asset == asset
+        ]
+        if not picks:
+            continue
+        votes = {"up": 0, "down": 0, "flat": 0}
+        for d, _ in picks:
+            votes[d] = votes.get(d, 0) + 1
+        top = max(votes.values())
+        leaders = [d for d, c in votes.items() if c == top]
+        direction = leaders[0] if len(leaders) == 1 else "flat"  # 平票 = 分歧 → flat
+        confs = [c for d, c in picks if d == direction]
+        out.append(
+            ConsensusItem(
+                asset=asset,
+                direction=direction,
+                votes=votes,
+                n=len(picks),
+                agree=votes.get(direction, 0),
+                mean_confidence=round(sum(confs) / len(confs), 4) if confs else 0.0,
+            )
+        )
+    return out
+
+
+def build_brief(
+    target_date: str,
+    views_llm: dict[str, LLMBrief | None],
+    metrics: list[Metric],
+    reviews: list[Review],
+    news: list[News],
+    issue: int = 0,
+    *,
+    signals: list[Signal] | None = None,
+    regime: dict[str, str] | None = None,
+    price_series: dict[str, list[PricePoint]] | None = None,
+) -> Brief:
+    """组装单日 Brief(契约):脊柱(代码算)+ 每模型一份 view + 代码级共识。
+
+    views_llm = {model_id: LLMBrief}(有序,[0]=主模型)。空(无 provider)时降级为单个 offline 空视图。
+    """
+    views = {mid: build_view(lb) for mid, lb in views_llm.items()}
+    if not views:
+        views = {OFFLINE_MODEL_ID: build_view(None)}  # 无 provider:单个空视图,前端走空态
+    return Brief(
+        date=target_date,
+        weekday=weekday_cn(target_date),
+        issue=issue,
+        metrics=metrics,
+        signals=signals or [],
+        regime=regime or {},
+        price_series=price_series or {},
         reviews=reviews,
         news=news,
+        models=list(views.keys()),
+        views=views,
+        consensus=build_consensus(views),
     )
+
+
+def _primary_view(brief: Brief) -> ModelView:
+    """主视图(models[0]);缺失则任取其一,再不行给空视图。供 markdown/飞书等单一文本产物用。"""
+    if brief.models and brief.models[0] in brief.views:
+        return brief.views[brief.models[0]]
+    return next(iter(brief.views.values()), ModelView())
 
 
 # ── 人读 markdown ───────────────────────────────────────────────────────
 def render_markdown(brief: Brief, macro: list[dict[str, Any]] | None = None) -> str:
+    pv = _primary_view(brief)  # 单文本产物取主模型视图
     p: list[str] = [f"# 每日宏观简报 · {brief.date}", ""]
-    if brief.headline:
-        p += [f"**{brief.headline}**", ""]
-    p += [f"_基调 tone:{brief.tone.value}_", ""]
+    if pv.headline:
+        p += [f"**{pv.headline}**", ""]
+    p += [f"_基调 tone:{pv.tone.value}_", ""]
+    if len(brief.models) > 1:
+        p += [f"_模型视图:{', '.join(brief.models)};下为主模型 {brief.models[0]}_", ""]
 
     p += ["## 数据快照(事实)", "| 指标 | 值 | 日变化 |", "|---|---:|---:|"]
     for m in brief.metrics:
@@ -244,15 +309,25 @@ def render_markdown(brief: Brief, macro: list[dict[str, Any]] | None = None) -> 
     if brief.regime:
         p += ["## regime(代码判定)", "- " + "; ".join(f"{k}={v}" for k, v in brief.regime.items()), ""]
 
-    if brief.facts:
-        p += ["## 事实层"] + [f"- {_tag_md(x.tag)}{x.text}" for x in brief.facts] + [""]
-    if brief.reads:
-        p += ["## 解读层(判断,非事实)"] + [f"- {_tag_md(x.tag)}{x.text}" for x in brief.reads] + [""]
-    if brief.hypotheses:
+    _pdir = {"up": "↑", "down": "↓", "flat": "→"}
+    if brief.consensus:
+        p += ["## 跨模型共识(预测投票)"]
+        for c in brief.consensus:
+            split = ", ".join(f"{_pdir.get(k, k)}{v}" for k, v in c.votes.items() if v)
+            p.append(
+                f"- **{c.asset}** {_pdir.get(c.direction.value, '')} — {c.agree}/{c.n} 认同"
+                f"(均值信心 {c.mean_confidence:.0%};投票 {split})"
+            )
+        p.append("")
+
+    if pv.facts:
+        p += ["## 事实层"] + [f"- {_tag_md(x.tag)}{x.text}" for x in pv.facts] + [""]
+    if pv.reads:
+        p += ["## 解读层(判断,非事实)"] + [f"- {_tag_md(x.tag)}{x.text}" for x in pv.reads] + [""]
+    if pv.hypotheses:
         p += ["## 假设层(对固定方向的预测,可证伪)"]
-        _pdir = {"up": "↑", "down": "↓", "flat": "→"}
         _phz = {"next_1d": "次日", "h_5d": "5日", "h_20d": "20日", "h_60d": "60日"}
-        for h in brief.hypotheses:
+        for h in pv.hypotheses:
             tag = ""
             if h.asset:
                 tag = f"**{h.asset} {_pdir.get(h.direction.value, '')}{_phz.get(h.horizon.value, '')}**"
@@ -261,13 +336,13 @@ def render_markdown(brief: Brief, macro: list[dict[str, Any]] | None = None) -> 
                 tag += " — "
             p.append(f"- {tag}**若**:{h.if_then}  \n  **失效条件**:{h.invalidation}")
         p.append("")
-    if brief.impacts:
+    if pv.impacts:
         p += ["## 影响层(观察点,非建议)"]
         _arrow = {"up": "↑", "down": "↓", "watch": "→"}
-        for i in brief.impacts:
+        for i in pv.impacts:
             p.append(f"- {_arrow.get(i.dir.value, '→')} **{i.asset}**:{i.watch}")
         p.append("")
-    if not brief.facts and not brief.reads:
+    if not pv.facts and not pv.reads:
         p += ["> 未配置 LLM provider(或调用失败):仅产出数据快照 + 技术特征。", ""]
 
     if brief.reviews:
@@ -293,22 +368,23 @@ def render_markdown(brief: Brief, macro: list[dict[str, Any]] | None = None) -> 
 
 
 def render_text(brief: Brief) -> str:
-    """飞书纯文本。"""
+    """飞书纯文本(取主模型视图)。"""
+    pv = _primary_view(brief)
     lines = [f"【每日宏观简报 · {brief.date}】"]
-    if brief.headline:
-        lines.append(brief.headline)
+    if pv.headline:
+        lines.append(pv.headline)
     lines.append("— 数据 —")
     for m in brief.metrics:
         lines.append(f"{m.label}: {_fmt(m.value)}(Δ{_fmt(m.change)})")
-    if brief.reads:
+    if pv.reads:
         lines.append("— 解读 —")
-        lines += [f"· {('[' + x.tag + '] ') if x.tag else ''}{x.text}" for x in brief.reads]
-    if brief.hypotheses:
+        lines += [f"· {('[' + x.tag + '] ') if x.tag else ''}{x.text}" for x in pv.reads]
+    if pv.hypotheses:
         lines.append("— 可证伪假设 —")
-        lines += [f"· 若 {h.if_then};失效:{h.invalidation}" for h in brief.hypotheses]
-    if brief.impacts:
+        lines += [f"· 若 {h.if_then};失效:{h.invalidation}" for h in pv.hypotheses]
+    if pv.impacts:
         lines.append("— 观察点(非建议)—")
-        lines += [f"· {i.asset}: {i.watch}" for i in brief.impacts]
+        lines += [f"· {i.asset}: {i.watch}" for i in pv.impacts]
     if brief.reviews:
         lines.append("— 假设复盘 —")
         _icon = {"held": "✅", "invalidated": "❌", "open": "⏳"}

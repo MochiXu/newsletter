@@ -17,7 +17,7 @@ import pandas as pd
 from . import catalog, features, hypotheses as hyp, news as news_mod, regime, render
 from .config import PATHS, Settings, get_settings
 from .deliver.feishu import push_text
-from .llm import generate_brief, select_provider
+from .llm import generate_briefs
 from .llm.prompt import build_feature_block
 from .models import Brief
 from .store import RawStore
@@ -34,9 +34,9 @@ def _today() -> str:
     return datetime.date.today().isoformat()
 
 
-def _model_name() -> str:
-    p = select_provider()
-    return _MODEL_DISPLAY.get(getattr(p, "name", ""), getattr(p, "name", "LLM")) if p else "offline"
+def _models_label(names: list[str]) -> str:
+    """模型 id 列表 → 人读标签(用于 briefs.json payload.model);空则 offline。"""
+    return " + ".join(_MODEL_DISPLAY.get(n, n) for n in names) if names else "offline"
 
 
 def _start_date(target: str, years: int) -> str:
@@ -106,24 +106,25 @@ def build_report(
     metrics_prompt = [{"label": m.label, "value": m.value, "change": m.change, "kind": m.kind.value} for m in metrics]
     block = build_feature_block(target_date, metrics_prompt, snap, reg, macro)
 
-    # 1) 四层简报
+    # 1) 四层简报(多模型:每个配置的模型各出一份;失败的模型自动跳过)
     linkage = PATHS.linkage_map.read_text(encoding="utf-8") if PATHS.linkage_map.exists() else ""
     try:
-        llm_brief = generate_brief(block, linkage)
-    except Exception as e:  # noqa: BLE001 — LLM 失败降级,不阻断
+        views_llm = generate_briefs(block, linkage)
+    except Exception as e:  # noqa: BLE001 — LLM 整体失败降级,不阻断
         log.warning("LLM 生成失败,退回特征层: %s", e)
-        llm_brief = None
+        views_llm = {}
+    primary_llm = next(iter(views_llm.values()), None)  # 主模型(视图顺序第一)用于假设追踪登记
 
-    # 2) 假设追踪:复盘往日 open(不拿当天数据自我验证),登记今天新假设
+    # 2) 假设追踪:复盘往日 open(不拿当天数据自我验证),登记今天新假设(以主模型为准)
     hyp_rows = hyp.load(PATHS.hypotheses_csv)
     try:
         open_hyps = [h for h in hyp.open_items(hyp_rows) if h.get("created_date") != target_date]
         reviews_raw = hyp.review(open_hyps, block)
         hyp.apply_reviews(open_hyps, reviews_raw, target_date)
-        if llm_brief and llm_brief.hypotheses:
+        if primary_llm and primary_llm.hypotheses:
             hyp.record_new(
                 hyp_rows, target_date,
-                [{"if_then": h.if_then, "invalidation": h.invalidation} for h in llm_brief.hypotheses],
+                [{"if_then": h.if_then, "invalidation": h.invalidation} for h in primary_llm.hypotheses],
             )
         hyp.save(PATHS.hypotheses_csv, hyp_rows)
     except Exception as e:  # noqa: BLE001
@@ -153,7 +154,7 @@ def build_report(
     signals = render.build_signals(snap)
     price_series = render.build_price_series(long_df, target_date)
     brief = render.build_brief(
-        target_date, llm_brief, metrics, reviews, render.build_news(merged),
+        target_date, views_llm, metrics, reviews, render.build_news(merged),
         signals=signals, regime=reg, price_series=price_series,
     )
     if persist_features:
@@ -172,7 +173,7 @@ def write_outputs(brief: Brief, macro: list[dict[str, Any]]) -> None:
     log.info("简报已存: %s", md_path)
 
     try:
-        days = render.upsert_briefs_json(PATHS, brief, _model_name())
+        days = render.upsert_briefs_json(PATHS, brief, _models_label(brief.models))
         log.info("已导出 briefs.json(共 %s 天)", days)
     except Exception as e:  # noqa: BLE001
         log.warning("导出 briefs.json 失败: %s", e)

@@ -38,7 +38,10 @@ def main() -> int:
         print(f"失败:{e}", file=sys.stderr)
         return 1
 
-    print(f"完成:{brief.date} · tone={brief.tone.value} · {brief.headline[:70]}")
+    pv = brief.views.get(brief.models[0]) if brief.models else None
+    tone = pv.tone.value if pv else "neutral"
+    headline = pv.headline if pv else ""
+    print(f"完成:{brief.date} · 模型 {'+'.join(brief.models) or 'offline'} · tone={tone} · {headline[:60]}")
     return 0
 
 

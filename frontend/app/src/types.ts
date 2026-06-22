@@ -80,24 +80,43 @@ export interface News {
   link: string
 }
 
-/** 单个交易日的完整简报(= 后端 Brief 契约)。 */
+/** 单个模型对当期的"解释层"产出(脊柱之外、随模型而变的六层)。 */
+export interface ModelView {
+  tone: Tone
+  headline: string
+  facts: TaggedItem[]
+  reads: TaggedItem[]
+  hypotheses: Hypothesis[]
+  impacts: Impact[]
+}
+
+/** 对固定 roster 一个资产的跨模型代码级共识(投票/认同/均值信心,平票→flat)。 */
+export interface ConsensusItem {
+  asset: string
+  direction: PredDir
+  votes: Record<string, number> // {up,down,flat} → 票数
+  n: number // 参与模型数
+  agree: number // 认同多数方向的模型数
+  meanConfidence: number // 多数方向那批的均值信心
+}
+
+/** 单个交易日的完整简报(= 后端 Brief 契约):脊柱(模型无关)+ 每模型 view + 代码共识。 */
 export interface Brief {
   date: string
   weekday: string
   issue: number
   time: string
-  tone: Tone
-  headline: string
+  // 脊柱:模型无关(代码算)
   metrics: Metric[]
   signals: Signal[]
   regime: Record<string, string>
   priceSeries: Record<string, PricePoint[]>
-  facts: TaggedItem[]
-  reads: TaggedItem[]
-  hypotheses: Hypothesis[]
-  impacts: Impact[]
   reviews: Review[]
   news: News[]
+  // 多模型解释层
+  models: string[] // 本期视图的模型 id(有序,[0]=主)
+  views: Record<string, ModelView>
+  consensus: ConsensusItem[] // ≥2 模型时才有
 }
 
 export interface BriefsPayload {

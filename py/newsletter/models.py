@@ -14,7 +14,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 # ── 枚举(值严格对齐前端 types.ts)──────────────────────────────────────────
 
@@ -102,6 +102,10 @@ def _coerce_str_list(v: Any) -> list[str]:
 
 # 事实层/解读层主题标签受控词表(单一事实源)。schema 喂给 LLM 作 enum;coercion 落库时兜底。
 FACT_TAGS: tuple[str, ...] = ("股市", "利率", "曲线", "美元", "黄金", "波动", "相关", "宏观", "事件")
+
+# 旧扁平 brief(无 views)迁移时的归档视图 id;无任何 provider 时的离线视图 id。
+LEGACY_MODEL_ID = "archive"
+OFFLINE_MODEL_ID = "offline"
 
 
 def _parse_figs(v: Any) -> list[dict[str, str]]:
@@ -360,32 +364,79 @@ class News(_CamelModel):
     link: str = ""
 
 
+class ModelView(_CamelModel):
+    """单个模型对当期的"解释层"产出(脊柱之外、随模型而变的六层:基调/导语/事实/解读/假设/影响)。
+
+    多模型时每个模型一份 view;脊柱(metrics/signals/regime/priceSeries/news/reviews)由代码算、所有模型共享。
+    """
+
+    tone: Tone = Tone.NEUTRAL
+    headline: str = ""
+    facts: list[TaggedItem] = Field(default_factory=list)  # 事实层(带主题标签)
+    reads: list[TaggedItem] = Field(default_factory=list)  # 解读层(后端 interpretation)
+    hypotheses: list[Hypothesis] = Field(default_factory=list)
+    impacts: list[Impact] = Field(default_factory=list)
+
+    @field_validator("facts", "reads", mode="before")
+    @classmethod
+    def _tagged(cls, v: Any) -> list[dict[str, str]]:
+        # 兼容旧 str[] / dict / TaggedItem 实例(见 _coerce_tagged_list)。
+        return _coerce_tagged_list(v)
+
+    @field_validator("tone", mode="before")
+    @classmethod
+    def _tone(cls, v: Any) -> Any:
+        return _coerce_tone(v)
+
+
+class ConsensusItem(_CamelModel):
+    """对固定 roster 一个资产的跨模型代码级共识:多数方向 + 各方向票数 + 认同数 + 多数方向均值信心。
+
+    纯代码投票、不调 LLM、抗污染(烂模型被票数稀释);平票→flat(分歧)。按战绩加权留给 V2 评估层。
+    """
+
+    asset: str
+    direction: PredDir = PredDir.FLAT
+    votes: dict[str, int] = Field(default_factory=dict)  # {up,down,flat} → 票数
+    n: int = 0  # 参与该资产预测的模型数
+    agree: int = 0  # 认同多数方向的模型数
+    mean_confidence: float = Field(0.0, alias="meanConfidence")  # 多数方向那批的均值信心
+
+
 class Brief(_CamelModel):
     date: str
     weekday: str
     issue: int = 0
     time: str = "07:00 CST"
-    tone: Tone = Tone.NEUTRAL
-    headline: str = ""
+    # ── 脊柱:模型无关(代码算)──
     metrics: list[Metric] = Field(default_factory=list)
     signals: list[Signal] = Field(default_factory=list)  # 技术指标(代码计算)
     regime: dict[str, str] = Field(default_factory=dict)  # 代码派生的 regime 标签
     price_series: dict[str, list[PricePoint]] = Field(
         default_factory=dict, alias="priceSeries"
     )  # 30日价格大图序列,key=metric.key(chart 资产)
-    facts: list[TaggedItem] = Field(default_factory=list)  # 事实层(带主题标签)
-    reads: list[TaggedItem] = Field(default_factory=list)  # 解读层(后端 interpretation,带主题标签)
-    hypotheses: list[Hypothesis] = Field(default_factory=list)
-    impacts: list[Impact] = Field(default_factory=list)
     reviews: list[Review] = Field(default_factory=list)
     news: list[News] = Field(default_factory=list)
+    # ── 多模型解释层 ──
+    models: list[str] = Field(default_factory=list)  # 本期视图的模型 id(有序,[0]=主模型)
+    views: dict[str, ModelView] = Field(default_factory=dict)  # 模型 id → 该模型的六层产出
+    consensus: list[ConsensusItem] = Field(default_factory=list)  # ≥2 模型时才有
 
-    @field_validator("facts", "reads", mode="before")
+    @model_validator(mode="before")
     @classmethod
-    def _tagged(cls, v: Any) -> list[dict[str, str]]:
-        # 向后兼容:旧 briefs.json 的 facts/reads 为 str[];upsert 会逐条 model_validate 历史日报,
-        # 没有这个校验器会在旧数据上抛 ValidationError。也归一化 tag、接受 TaggedItem 实例。
-        return _coerce_tagged_list(v)
+    def _migrate_legacy(cls, data: Any) -> Any:
+        """向后兼容:旧扁平 brief(顶层 tone/headline/facts/reads/hypotheses/impacts、无 views)
+        → 包成单视图 views={archive:{...}}。upsert 每次会逐条 model_validate 历史日报,旧数据不能崩。
+        """
+        if not isinstance(data, dict) or data.get("views"):
+            return data
+        legacy_keys = ("tone", "headline", "facts", "reads", "hypotheses", "impacts")
+        if any(k in data for k in legacy_keys):
+            data = dict(data)
+            view = {k: data.pop(k) for k in legacy_keys if k in data}
+            data["views"] = {LEGACY_MODEL_ID: view}
+            data.setdefault("models", [LEGACY_MODEL_ID])
+        return data
 
     def to_json_obj(self) -> dict[str, Any]:
         """emit 为前端 JSON(驼峰键、枚举取值)。"""

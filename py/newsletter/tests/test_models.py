@@ -46,18 +46,22 @@ class TestLLMNormalization(unittest.TestCase):
 
 class TestContractSerialization(unittest.TestCase):
     def test_brief_camelcase_aliases(self):
+        # 旧扁平 brief(顶层 hypotheses)→ 迁移进 views.archive 单视图;脊柱 + views/models/consensus 为新契约
         br = Brief(date="2026-06-18", weekday="周四",
                   hypotheses=[{"ifThen": "若A则B", "invalidation": "Z"}])
         obj = br.to_json_obj()
-        self.assertEqual(set(obj), {"date", "weekday", "issue", "time", "tone", "headline",
-                                    "metrics", "signals", "regime", "priceSeries", "facts", "reads",
-                                    "hypotheses", "impacts", "reviews", "news"})
-        self.assertEqual(obj["hypotheses"][0], {
+        self.assertEqual(set(obj), {"date", "weekday", "issue", "time", "metrics", "signals",
+                                    "regime", "priceSeries", "reviews", "news",
+                                    "models", "views", "consensus"})
+        self.assertEqual(obj["models"], ["archive"])
+        view = obj["views"]["archive"]
+        self.assertEqual(set(view), {"tone", "headline", "facts", "reads", "hypotheses", "impacts"})
+        self.assertEqual(view["hypotheses"][0], {
             "ifThen": "若A则B", "invalidation": "Z",
             "asset": "", "direction": "flat", "horizon": "h_20d",
             "confidence": 0.0, "keyFactors": [],
         })
-        self.assertEqual(obj["tone"], "neutral")
+        self.assertEqual(view["tone"], "neutral")
 
     def test_payload_generated_at_alias(self):
         p = BriefsPayload(model="DeepSeek", generated_at="2026-06-18",

@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from 'react'
 import type { Brief, Granularity, Route } from '../../types'
 import { nav } from '../../lib/hooks'
-import { colorFor, dirInfo, fmtChg, fmtVal, toneCol } from '../../lib/format'
+import { colorFor, dirInfo, fmtChg, fmtVal, toneCol, viewOf } from '../../lib/format'
 import { sparkGeom } from '../../lib/geometry'
 
 const GRAN_TABS: { k: Granularity; zh: string }[] = [
@@ -39,10 +39,12 @@ export default function TimelinePage({
   briefs,
   route,
   isMobile,
+  model,
 }: {
   briefs: Brief[]
   route: Route
   isMobile: boolean
+  model: string
 }) {
   const gran: Granularity = route.gran ?? 'day'
   const [hover, setHover] = useState<number | null>(null)
@@ -111,6 +113,7 @@ export default function TimelinePage({
             )}
             {briefs.map((b, i) => {
               const isA = i === act
+              const v = viewOf(b, model)
               return (
                 <button
                   key={b.date}
@@ -159,7 +162,7 @@ export default function TimelinePage({
                             width: isA ? 11 : 8,
                             height: isA ? 11 : 8,
                             borderRadius: '50%',
-                            background: toneCol(b.tone),
+                            background: toneCol(v.tone),
                             boxShadow: isA ? '0 0 0 3px var(--accent)' : 'none',
                           }
                         : {
@@ -170,7 +173,7 @@ export default function TimelinePage({
                             height: isA ? 11 : 8,
                             transform: 'translateX(-50%)',
                             borderRadius: '50%',
-                            background: toneCol(b.tone),
+                            background: toneCol(v.tone),
                             boxShadow: isA ? '0 0 0 3px var(--paper2), 0 0 0 4.5px var(--accent)' : '0 0 0 3px var(--paper)',
                             transition: 'all .2s',
                           }
@@ -204,7 +207,7 @@ export default function TimelinePage({
                         overflow: 'hidden',
                       }}
                     >
-                      {b.headline}
+                      {v.headline}
                     </span>
                   )}
                 </button>
@@ -214,7 +217,7 @@ export default function TimelinePage({
 
           {/* 右:小票概览 */}
           <div style={{ flex: isMobile ? undefined : '1 1 360px', minWidth: isMobile ? undefined : 300, display: 'flex', justifyContent: 'center' }}>
-            {a && <Overview brief={a} expanded={expanded} setExpanded={setExpanded} />}
+            {a && <Overview brief={a} model={model} expanded={expanded} setExpanded={setExpanded} />}
           </div>
         </div>
       )}
@@ -222,7 +225,18 @@ export default function TimelinePage({
   )
 }
 
-function Overview({ brief: b, expanded, setExpanded }: { brief: Brief; expanded: boolean; setExpanded: (v: boolean) => void }) {
+function Overview({
+  brief: b,
+  model,
+  expanded,
+  setExpanded,
+}: {
+  brief: Brief
+  model: string
+  expanded: boolean
+  setExpanded: (v: boolean) => void
+}) {
+  const v = viewOf(b, model)
   return (
     <div className="mb-card mb-punch" style={{ position: 'relative', width: 'min(430px,100%)' }}>
       <button
@@ -261,7 +275,7 @@ function Overview({ brief: b, expanded, setExpanded }: { brief: Brief; expanded:
         </div>
         <div style={{ borderTop: '1px dashed var(--faint)', margin: '13px 0' }} />
         <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: 'var(--ink)', textWrap: 'pretty' }}>
-          {b.headline}
+          {v.headline}
         </div>
 
         {/* MARKET DATA(紧凑) */}
@@ -299,12 +313,12 @@ function Overview({ brief: b, expanded, setExpanded }: { brief: Brief; expanded:
         </div>
 
         {/* THE CALL */}
-        {b.hypotheses.length > 0 && (
+        {v.hypotheses.length > 0 && (
           <div style={{ marginTop: 14 }}>
             <div style={{ fontFamily: 'var(--mono)', fontSize: 9.5, letterSpacing: '1.2px', color: 'var(--ink2)', marginBottom: 6 }}>
               THE CALL · 当日判断
             </div>
-            {b.hypotheses.map((h, i) => (
+            {v.hypotheses.map((h, i) => (
               <div key={i} style={{ fontSize: 11.5, lineHeight: 1.5, color: 'var(--ink)', marginBottom: 5, textWrap: 'pretty' }}>
                 <span style={{ color: 'var(--blue)', fontFamily: 'var(--mono)', marginRight: 5 }}>·</span>
                 {h.ifThen}

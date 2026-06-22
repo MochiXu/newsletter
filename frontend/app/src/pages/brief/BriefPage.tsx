@@ -1,6 +1,7 @@
 import { useEffect, useRef, type CSSProperties } from 'react'
 import type { Brief, Route, Tweaks } from '../../types'
 import { nav } from '../../lib/hooks'
+import { modelLabel, resolveModel, viewOf } from '../../lib/format'
 import { Card } from '../../components/Card'
 import MarketData from './MarketData'
 import PriceChart from './PriceChart'
@@ -11,7 +12,7 @@ import ReviewCard from './ReviewCard'
 
 interface Props {
   briefs: Brief[]
-  model: string
+  model: string // 选中的模型 id(空 = 用各日主模型)
   route: Route
   tweaks: Tweaks
 }
@@ -90,6 +91,9 @@ export default function BriefPage({ briefs, model, route, tweaks }: Props) {
   }
   if (!b) return null
 
+  const view = viewOf(b, model) // 当前模型视图(缺失回退主模型 / 空视图)
+  const activeModel = resolveModel(b, model)
+
   return (
     <div style={{ marginTop: 24 }}>
       <ReturnBar from={route.from} />
@@ -122,7 +126,7 @@ export default function BriefPage({ briefs, model, route, tweaks }: Props) {
               textWrap: 'pretty',
             }}
           >
-            {b.headline}
+            {view.headline}
           </div>
         </div>
 
@@ -135,7 +139,13 @@ export default function BriefPage({ briefs, model, route, tweaks }: Props) {
             <NewsCard news={b.news} />
           </div>
           <div style={colStyle('5')}>
-            <AiBrief facts={b.facts} reads={b.reads} hypotheses={b.hypotheses} impacts={b.impacts} />
+            <AiBrief
+              facts={view.facts}
+              reads={view.reads}
+              hypotheses={view.hypotheses}
+              impacts={view.impacts}
+              consensus={b.consensus}
+            />
             <ReviewCard reviews={b.reviews} />
           </div>
         </div>
@@ -153,7 +163,7 @@ export default function BriefPage({ briefs, model, route, tweaks }: Props) {
             letterSpacing: '.6px',
           }}
         >
-          本简报仅供研究 · 非投资建议 · NOT INVESTMENT ADVICE · GEN {model || 'LLM'}
+          本简报仅供研究 · 非投资建议 · NOT INVESTMENT ADVICE · GEN {modelLabel(activeModel) || 'LLM'}
         </div>
       </div>
     </div>

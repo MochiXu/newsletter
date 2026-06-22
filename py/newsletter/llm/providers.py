@@ -41,39 +41,71 @@ def _extract_json(text: str) -> dict:
     return json.loads(s)
 
 
+def _extract_tool_input(body: dict, tool_name: str) -> dict | None:
+    """从 Anthropic(或中转站)响应里抠出工具入参,多路兜底:
+    ① 原生 tool_use 块;② 中转站加的 OpenAI 风格 tool_calls;③ 模型把 JSON 当文本吐(```json ...```)。
+    中转站的 Claude 在复杂 schema 下不稳定(有时只回文本),靠这三路 + 上层重试稳住。都拿不到则 None。
+    """
+    for block in body.get("content", []) or []:
+        if block.get("type") == "tool_use" and block.get("name") == tool_name:
+            inp = block.get("input")
+            if isinstance(inp, dict) and inp:
+                return inp
+    for tc in body.get("tool_calls", []) or []:
+        args = (tc.get("function") or {}).get("arguments")
+        if isinstance(args, dict) and args:
+            return args
+        if isinstance(args, str) and args.strip():
+            try:
+                return _extract_json(args)
+            except (json.JSONDecodeError, ValueError):
+                pass
+    texts = "".join(b.get("text", "") for b in body.get("content", []) or [] if b.get("type") == "text")
+    if texts.strip():
+        try:
+            return _extract_json(texts)
+        except (json.JSONDecodeError, ValueError):
+            pass
+    return None
+
+
 class AnthropicProvider:
-    """Claude Messages API + tool use(强制工具调用)。"""
+    """Claude Messages API + tool use(强制工具调用)。支持自定义 base_url(中转站)。"""
 
     name = "anthropic"
-    API_URL = "https://api.anthropic.com/v1/messages"
+    DEFAULT_BASE = "https://api.anthropic.com"
 
-    def __init__(self, api_key: str, model: str):
+    def __init__(self, api_key: str, model: str, base_url: str | None = None):
         self.api_key = api_key
         self.model = model
+        self.url = (base_url or self.DEFAULT_BASE).rstrip("/") + "/v1/messages"
 
     def call_structured(
         self, system: str, user: str, tool_name: str, description: str, schema: dict
     ) -> dict:
-        body = _http_post_json(
-            self.API_URL,
-            {
-                "content-type": "application/json",
-                "x-api-key": self.api_key,
-                "anthropic-version": "2023-06-01",
-            },
-            {
-                "model": self.model,
-                "max_tokens": 8192,
-                "system": system,
-                "tools": [{"name": tool_name, "description": description, "input_schema": schema}],
-                "tool_choice": {"type": "tool", "name": tool_name},
-                "messages": [{"role": "user", "content": user}],
-            },
-        )
-        for block in body.get("content", []):
-            if block.get("type") == "tool_use" and block.get("name") == tool_name:
-                return block["input"]
-        raise RuntimeError(f"Anthropic 响应未包含 {tool_name} 工具调用")
+        headers = {
+            "content-type": "application/json",
+            "anthropic-version": "2023-06-01",
+            # 官方端点认 x-api-key;中转站多认 Authorization: Bearer——两者都带,互不干扰。
+            "x-api-key": self.api_key,
+            "authorization": f"Bearer {self.api_key}",
+        }
+        payload = {
+            "model": self.model,
+            "max_tokens": 8192,
+            "system": system,
+            "tools": [{"name": tool_name, "description": description, "input_schema": schema}],
+            "tool_choice": {"type": "tool", "name": tool_name},
+            "messages": [{"role": "user", "content": user}],
+        }
+        last = ""
+        for _ in range(3):  # 中转站 Claude 偶发只回文本/不回 tool_use → 多路兜底 + 重试
+            body = _http_post_json(self.url, headers, payload)
+            data = _extract_tool_input(body, tool_name)
+            if data is not None:
+                return data
+            last = str(body)[:200]
+        raise RuntimeError(f"Anthropic 未返回可解析的 {tool_name} 结构: {last}")
 
 
 class OpenAICompatProvider:
@@ -137,21 +169,34 @@ PRESETS = {
 _AUTO_ORDER = ["anthropic", "openai", "minimax", "deepseek", "moonshot", "zhipu", "openai-compat"]
 
 
+def _compat_url(override: str | None, default_full: str) -> str:
+    """把 *_BASE_URL 归一成完整端点:已含路径则原样;只给 host(中转站常见)则补 /v1/chat/completions。"""
+    if not override:
+        return default_full
+    ov = override.rstrip("/")
+    return ov if ("/chat/completions" in ov or "/responses" in ov or "/completions" in ov) else ov + "/v1/chat/completions"
+
+
 def _build(name: str):
     if not name:
         return None
     if name == "anthropic":
-        key = os.environ.get("ANTHROPIC_API_KEY")
-        return AnthropicProvider(key, os.environ.get("ANTHROPIC_MODEL") or "claude-sonnet-4-6") if key else None
+        # 中转站用 ANTHROPIC_AUTH_TOKEN(Bearer),官方用 ANTHROPIC_API_KEY(x-api-key);两者择一即可。
+        key = os.environ.get("ANTHROPIC_AUTH_TOKEN") or os.environ.get("ANTHROPIC_API_KEY")
+        if not key:
+            return None
+        base = os.environ.get("ANTHROPIC_BASE_URL")
+        model = os.environ.get("ANTHROPIC_MODEL") or "claude-sonnet-4-6"
+        return AnthropicProvider(key, model, base)
     if name in ("openai-compat", "generic", "custom"):
         key, url = os.environ.get("LLM_API_KEY"), os.environ.get("LLM_BASE_URL")
-        return OpenAICompatProvider("openai-compat", url, key, os.environ.get("LLM_MODEL") or "gpt-4o-mini") if (key and url) else None
+        return OpenAICompatProvider("openai-compat", _compat_url(url, url or ""), key, os.environ.get("LLM_MODEL") or "gpt-4o-mini") if (key and url) else None
     if name in PRESETS:
         url, key_env, model_env, default_model = PRESETS[name]
         key = os.environ.get(key_env)
         if not key:
             return None
-        url = os.environ.get(f"{name.upper()}_BASE_URL") or url
+        url = _compat_url(os.environ.get(f"{name.upper()}_BASE_URL"), url)
         model = os.environ.get(model_env) or os.environ.get("LLM_MODEL") or default_model
         return OpenAICompatProvider(name, url, key, model)
     return None
@@ -167,3 +212,21 @@ def select_provider():
         if p:
             return p
     return None
+
+
+def select_providers() -> list:
+    """多模型 provider 列表:`LLM_MODELS=deepseek,anthropic`(逗号分隔,顺序即视图顺序,[0]=主模型);
+    未设则回退单 provider(= `select_provider()`,保持现状)。缺 key 的自动跳过,按 name 去重。"""
+    raw = (os.environ.get("LLM_MODELS") or "").strip()
+    if not raw:
+        p = select_provider()
+        return [p] if p else []
+    out, seen = [], set()
+    for name in (n.strip().lower() for n in raw.split(",")):
+        if not name or name in seen:
+            continue
+        p = _build(name)
+        if p:
+            out.append(p)
+            seen.add(name)
+    return out

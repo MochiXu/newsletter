@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { BriefsPayload, ThemeMode, Tweaks } from './types'
 import { loadBriefs } from './data/load'
+import { allModels } from './lib/format'
 import { readTheme, readTweaks, useHashRoute, useIsMobile, writeTheme, writeTweaks } from './lib/hooks'
 import Header from './components/Header'
 import NavTabs from './components/NavTabs'
@@ -42,6 +43,7 @@ export default function App() {
   const [themeMode, setThemeMode] = useState<ThemeMode>(readTheme)
   const [tweaks, setTweaksState] = useState<Tweaks>(readTweaks)
   const [payload, setPayload] = useState<BriefsPayload | null>(null)
+  const [selectedModel, setSelectedModel] = useState<string>('')
   const rootRef = useRef<HTMLDivElement>(null)
   const route = useHashRoute()
   const isMobile = useIsMobile()
@@ -49,6 +51,13 @@ export default function App() {
   useEffect(() => {
     loadBriefs().then(setPayload)
   }, [])
+
+  const briefs = payload?.briefs ?? []
+  const availableModels = useMemo(() => allModels(briefs), [briefs])
+  // 默认选主模型;选中项在新数据里不存在时回落到第一个
+  useEffect(() => {
+    if (availableModels.length && !availableModels.includes(selectedModel)) setSelectedModel(availableModels[0])
+  }, [availableModels, selectedModel])
 
   // 注入 --accent(自定义主题色)+ --panel-tex(纸纹开关)
   useEffect(() => {
@@ -73,15 +82,13 @@ export default function App() {
     writeTweaks(t)
   }
 
-  const briefs = payload?.briefs ?? []
-  const model = payload?.model ?? ''
-
   let body: React.ReactNode
   if (!payload) body = <LoadingPulse />
   else if (briefs.length === 0) body = <EmptyState />
-  else if (route.page === 'timeline') body = <TimelinePage briefs={briefs} route={route} isMobile={isMobile} />
+  else if (route.page === 'timeline')
+    body = <TimelinePage briefs={briefs} route={route} isMobile={isMobile} model={selectedModel} />
   else if (route.page === 'track') body = <TrackPage mode={route.mode ?? 'year'} />
-  else body = <BriefPage briefs={briefs} model={model} route={route} tweaks={tweaks} />
+  else body = <BriefPage briefs={briefs} model={selectedModel} route={route} tweaks={tweaks} />
 
   return (
     <div
@@ -98,7 +105,13 @@ export default function App() {
       }}
     >
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
-        <Header themeMode={themeMode} setTheme={setTheme} />
+        <Header
+          themeMode={themeMode}
+          setTheme={setTheme}
+          models={availableModels}
+          selectedModel={selectedModel}
+          setModel={setSelectedModel}
+        />
         <NavTabs page={route.page} />
         {body}
       </div>

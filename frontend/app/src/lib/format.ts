@@ -1,5 +1,5 @@
 // 格式化 + 颜色/方向工具(1:1 复刻设计 Component 的 fmt*/colorFor/dirInfo/toneCol 等)。
-import type { Dir, Horizon, Metric, MetricKind, PredDir, SignalUnit, Tone } from '../types'
+import type { Brief, Dir, Horizon, Metric, MetricKind, ModelView, PredDir, SignalUnit, Tone } from '../types'
 
 const priceFmt = (v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 1 })
 
@@ -116,4 +116,36 @@ export const CHART_KIND: Record<string, MetricKind> = {
   dtwexbgs: 'index',
   dgs10: 'yield',
   vixcls: 'index',
+}
+
+// ── 多模型:模型 id → 人读标签 + 视图解析 ────────────────────────────────
+export const MODEL_LABEL: Record<string, string> = {
+  deepseek: 'DeepSeek',
+  anthropic: 'Claude',
+  openai: 'GPT',
+  minimax: 'MiniMax',
+  moonshot: 'Moonshot',
+  zhipu: 'Zhipu',
+  'openai-compat': 'LLM',
+  archive: '归档',
+  offline: '离线',
+}
+export const modelLabel = (id: string): string => MODEL_LABEL[id] ?? id
+
+const EMPTY_VIEW: ModelView = { tone: 'neutral', headline: '', facts: [], reads: [], hypotheses: [], impacts: [] }
+
+/** 解析当前要展示的模型 id:选中模型在该日存在则用它,否则回退该日主模型([0])。 */
+export const resolveModel = (b: Brief, model?: string | null): string =>
+  (model && b.views?.[model] ? model : b.models?.[0]) ?? ''
+
+/** 取某模型的视图;不存在则回退主模型,再不行给空视图(完全 data-driven,缺字段不崩)。 */
+export const viewOf = (b: Brief, model?: string | null): ModelView =>
+  b.views?.[resolveModel(b, model)] ?? EMPTY_VIEW
+
+/** payload 内所有 brief 的模型 id 并集(保序,用于全局切换器)。 */
+export function allModels(briefs: Brief[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const b of briefs) for (const m of b.models ?? []) if (!seen.has(m)) (seen.add(m), out.push(m))
+  return out
 }

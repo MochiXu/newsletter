@@ -60,45 +60,48 @@ class TestBuildReviews(unittest.TestCase):
 
 class TestBuildBrief(unittest.TestCase):
     def test_degraded_when_llm_none(self):
-        br = render.build_brief("2026-06-18", None, [], [], [])
-        self.assertEqual(br.tone, Tone.NEUTRAL)
-        self.assertEqual(br.facts, [])
+        br = render.build_brief("2026-06-18", {}, [], [], [])
+        self.assertEqual(br.models, ["offline"])  # 无 provider:单个离线空视图
+        v = br.views[br.models[0]]
+        self.assertEqual(v.tone, Tone.NEUTRAL)
+        self.assertEqual(v.facts, [])
+        self.assertEqual(br.consensus, [])
         self.assertEqual(br.weekday, "周四")
 
     def test_normalizes_text_and_keeps_figures(self):
         llm = LLMBrief(facts=[{"tag": "黄金", "text": "黄金-7.8%", "figures": [{"t": "-7.8%", "dir": "down"}]}])
-        br = render.build_brief("2026-06-18", llm, [], [], [])
-        self.assertEqual(br.facts[0].text, "黄金 -7.8%")  # normalize 加空格
-        self.assertEqual(br.facts[0].figures[0].t, "-7.8%")  # figure.t 仍是 text 的子串
-        self.assertEqual(br.facts[0].figures[0].dir.value, "down")
+        v = render.build_brief("2026-06-18", {"deepseek": llm}, [], [], []).views["deepseek"]
+        self.assertEqual(v.facts[0].text, "黄金 -7.8%")  # normalize 加空格
+        self.assertEqual(v.facts[0].figures[0].t, "-7.8%")  # figure.t 仍是 text 的子串
+        self.assertEqual(v.facts[0].figures[0].dir.value, "down")
 
     def test_figure_token_absorbs_unit(self):
         # LLM 常把 token 写成纯数字('7.8')而漏掉百分号 → 落库时确定性并入单位,使整段一起上色
         llm = LLMBrief(facts=[{"tag": "黄金", "text": "黄金20日累计下跌7.8%", "figures": [{"t": "7.8", "dir": "down"}]}])
-        br = render.build_brief("2026-06-18", llm, [], [], [])
-        self.assertEqual(br.facts[0].figures[0].t, "7.8%")  # '7.8' → '7.8%'
+        v = render.build_brief("2026-06-18", {"deepseek": llm}, [], [], []).views["deepseek"]
+        self.assertEqual(v.facts[0].figures[0].t, "7.8%")  # '7.8' → '7.8%'
 
     def test_figure_signed_token_resolves_to_unsigned(self):
         # LLM 常把 token 写成带符号('+15bp'/'-7.8%'),正文却用'升/跌'表方向不带符号 → 去符号后落实成正文子串(不可误杀)
         llm = LLMBrief(facts=[{"tag": "利率", "text": "US2Y升15bp,黄金跌7.8%",
                                "figures": [{"t": "+15bp", "dir": "up"}, {"t": "-7.8%", "dir": "down"}]}])
-        br = render.build_brief("2026-06-18", llm, [], [], [])
-        self.assertEqual([(f.t, f.dir.value) for f in br.facts[0].figures], [("15bp", "up"), ("7.8%", "down")])
+        v = render.build_brief("2026-06-18", {"deepseek": llm}, [], [], []).views["deepseek"]
+        self.assertEqual([(f.t, f.dir.value) for f in v.facts[0].figures], [("15bp", "up"), ("7.8%", "down")])
 
     def test_figure_not_in_text_dropped(self):
         # 死 figure(连去符号也不在正文)应被丢弃,避免前端静默匹配不到
         llm = LLMBrief(facts=[{"tag": "黄金", "text": "黄金20日跌幅显著", "figures": [{"t": "7.8", "dir": "down"}]}])
-        br = render.build_brief("2026-06-18", llm, [], [], [])
-        self.assertEqual(br.facts[0].figures, [])
+        v = render.build_brief("2026-06-18", {"deepseek": llm}, [], [], []).views["deepseek"]
+        self.assertEqual(v.facts[0].figures, [])
 
     def test_full_from_llm(self):
         llm = LLMBrief(headline="H", tone="risk_on", facts=["f1"], interpretation=["i1"],
                        hypotheses=[{"if_then": "x", "invalidation": "z"}],
                        impact=[{"asset": "金", "watch": "w", "direction": "down"}])
-        br = render.build_brief("2026-06-18", llm, [], [], [])
-        self.assertEqual(br.tone, Tone.RISK_ON)
-        self.assertEqual(br.hypotheses[0].if_then, "x")
-        self.assertEqual(br.impacts[0].dir, Dir.DOWN)
+        v = render.build_brief("2026-06-18", {"deepseek": llm}, [], [], []).views["deepseek"]
+        self.assertEqual(v.tone, Tone.RISK_ON)
+        self.assertEqual(v.hypotheses[0].if_then, "x")
+        self.assertEqual(v.impacts[0].dir, Dir.DOWN)
 
 
 class TestBriefsJson(unittest.TestCase):
@@ -129,8 +132,9 @@ class TestBriefsJson(unittest.TestCase):
             render.upsert_briefs_json(paths, Brief(date="2026-06-18", weekday="周四"), "M")  # 不应抛
             data = json.loads(paths.briefs_json.read_text(encoding="utf-8"))
             old = next(b for b in data["briefs"] if b["date"] == "2026-06-17")
-            self.assertEqual([f["text"] for f in old["facts"]], ["旧事实1", "旧事实2"])  # 迁移为 {tag,text}
-            self.assertTrue(all(isinstance(f, dict) and "tag" in f for f in old["facts"]))
+            arch = old["views"]["archive"]  # 旧扁平 brief 迁移进 views.archive 单视图
+            self.assertEqual([f["text"] for f in arch["facts"]], ["旧事实1", "旧事实2"])  # 迁移为 {tag,text}
+            self.assertTrue(all(isinstance(f, dict) and "tag" in f for f in arch["facts"]))
 
     def test_upsert_same_date_overwrites(self):
         with tempfile.TemporaryDirectory() as d:
@@ -139,13 +143,48 @@ class TestBriefsJson(unittest.TestCase):
             render.upsert_briefs_json(paths, Brief(date="2026-06-18", weekday="周四", headline="new"), "M")
             data = json.loads(paths.briefs_json.read_text(encoding="utf-8"))
             self.assertEqual(len(data["briefs"]), 1)
-            self.assertEqual(data["briefs"][0]["headline"], "new")
+            self.assertEqual(data["briefs"][0]["views"]["archive"]["headline"], "new")  # headline 在主视图内
+
+
+class TestMultiModel(unittest.TestCase):
+    @staticmethod
+    def _llm(asset, direction, conf):
+        return LLMBrief(hypotheses=[{"asset": asset, "direction": direction, "horizon": "h_5d",
+                                     "confidence": conf, "if_then": "x", "invalidation": "z"}])
+
+    def test_views_keyed_by_model_order_preserved(self):
+        a = LLMBrief(headline="A", facts=["甲"])
+        b = LLMBrief(headline="B", facts=["乙"])
+        br = render.build_brief("2026-06-18", {"deepseek": a, "anthropic": b}, [], [], [])
+        self.assertEqual(br.models, ["deepseek", "anthropic"])  # 顺序保留,[0]=主
+        self.assertEqual(br.views["deepseek"].headline, "A")
+        self.assertEqual(br.views["anthropic"].headline, "B")
+
+    def test_consensus_majority_and_confidence(self):
+        # 3 模型对 NASDAQCOM:down/down/up → 多数 down(2/3),均值信心取 down 那批 (0.6+0.4)/2
+        views = {"m1": self._llm("NASDAQCOM", "down", 0.6), "m2": self._llm("NASDAQCOM", "down", 0.4),
+                 "m3": self._llm("NASDAQCOM", "up", 0.9)}
+        c = next(x for x in render.build_brief("2026-06-18", views, [], [], []).consensus if x.asset == "NASDAQCOM")
+        self.assertEqual(c.direction.value, "down")
+        self.assertEqual((c.n, c.agree), (3, 2))
+        self.assertEqual(c.votes, {"up": 1, "down": 2, "flat": 0})
+        self.assertAlmostEqual(c.mean_confidence, 0.5)
+
+    def test_consensus_tie_is_flat(self):
+        views = {"m1": self._llm("NASDAQCOM", "up", 0.7), "m2": self._llm("NASDAQCOM", "down", 0.7)}
+        c = next(x for x in render.build_brief("2026-06-18", views, [], [], []).consensus if x.asset == "NASDAQCOM")
+        self.assertEqual(c.direction.value, "flat")  # 平票 = 分歧
+        self.assertEqual(c.agree, 0)
+
+    def test_single_model_has_no_consensus(self):
+        br = render.build_brief("2026-06-18", {"deepseek": self._llm("NASDAQCOM", "down", 0.6)}, [], [], [])
+        self.assertEqual(br.consensus, [])
 
 
 class TestMarkdown(unittest.TestCase):
     def test_markdown_smoke(self):
         llm = LLMBrief(headline="H", facts=["事实1"], interpretation=["判断1"])
-        br = render.build_brief("2026-06-18", llm, [], [], [])
+        br = render.build_brief("2026-06-18", {"deepseek": llm}, [], [], [])
         md = render.render_markdown(br, macro=[{"label": "失业率", "value": 4.3, "obs_date": "2026-05-01"}])
         self.assertIn("每日宏观简报 · 2026-06-18", md)
         self.assertIn("事实 1", md)  # normalize_text 在中文与数字间加空格
