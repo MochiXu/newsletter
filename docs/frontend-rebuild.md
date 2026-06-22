@@ -95,8 +95,8 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 - **日详情**(`isBriefDay`,取 `briefs[routeIdx]`):
   - 头:`MACRO BRIEF · {weekday} · 第{issue}刊 · {time}` / 大号 mono 日期(34px)/ headline(17px·700)。右侧命中率徽章 **仅 hasScore 时**(后端无 track → 不显示)。
   - **声明式两列排版**(BriefPage 一处定义左/右两个区块数组,顺序即布局;两列等宽 `flex:1 1 360px` + flex-wrap → 宽屏两列、窄屏自动并一列,无手写断点)。所有区块都是打孔小票(`<Card punch>`)。AI BRIEF 四层是 4 个**独立面板**(`FactsPanel/ReadsPanel/HypothesisPanel/ImpactPanel`,从 AiBrief.tsx 分别导出),可跨列自由摆放:
-    - **左栏**:① MARKET DATA(§5.1)② PRICE 30D 价格图(§5.2)③ **SIGNALS 技术指标**(§5.6)④ **HYPOTHESIS 假设层**(§5.4,技术指标下)⑤ NEWS(§5.3)
-    - **右栏**:① FACTS 事实层 ② INTERPRETATION 解读层 ③ IMPACT 影响层(§5.4)④ REVIEW 复盘(`hasReviews` 才显,§5.5)
+    - **左栏**:① MARKET DATA(§5.1)② PRICE 30D 价格图(§5.2)③ **SIGNALS 技术指标**(§5.6)④ **HYPOTHESIS 假设层**(§5.4,技术指标下)
+    - **右栏**:① FACTS 事实层 ② INTERPRETATION 解读层 ③ IMPACT 影响层(§5.4)④ **NEWS 新闻**(§5.3,影响层下,缺失自动隐藏)⑤ REVIEW 复盘(`hasReviews` 才显,§5.5)
   - 页脚:`...NOT INVESTMENT ADVICE · GEN {modelLabel(activeModel)}`(当前视图模型)。
 - **区间详情**(`isBriefAgg`):后端无聚合 → **空态卡**「区间聚合待 V2 评估层」。
 
@@ -127,8 +127,11 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 - hover:`onChartMove` 取 `getBoundingClientRect`,`idx=round(cx/width*(n-1))` clamp;十字线 `<line>` opacity `hover?.55:0`;游标点用绝对定位 HTML span(`left=xs/W%`,`top=ys/H%`,7px 圆)。读数行:`fmtChartVal(kind,v)` + 该点 date。`onChartLeave`→null(看末点)。触屏 `e.touches` + `touch-action:none`。
 - 底部刻度:起始 date / `30 交易日` / 末 date。
 
-### 5.3 NEWS(可点链接)
-`catMap`:fact{事实,ink,paper2,faint} / read{解读,accent,—,accent} / both{事实+解读,blue,—,blue} / noise{噪音,ink2,—,faint}。每条:分类徽章 + **标题(后端有 link → `<a target=_blank rel=noopener>` + ↗)** + 方向字符 `dirInfo(dir)`(↑up/↓down/·watch);次行来源(mono)+ assets chips。noise 标题用 ink2。
+### 5.3 NEWS(类目计数 + 折叠 + 多标签,参考 SIGNALS 思路)
+- **类目(影响资产)计数常显**:把 `news[].assets`(多值)汇总成 chip「资产 N」按条数降序(一条多资产则每个都计);点 chip 按该类目**筛选**(命中资产标签高亮 accent),开关显示「仅看 X N 条」。
+- **折叠展开**(默认收起「▸ 展开新闻 · N 条」,同 SIGNALS)。
+- 每条:`catMap` 分类徽章(fact 事实/read 解读/both 事实+解读/noise 噪音)+ **标题(后端有 link → `<a target=_blank rel=noopener>` + ↗)** + 方向 `dirInfo(dir)`;次行来源(mono)+ 多个 assets chips。noise 标题用 ink2。
+- **缺失自动隐藏**:`news` 为空 → 组件返回 null(数据缺失则不展示)。复用现有 `news.assets`,无后端改动。
 
 ### 5.4 AI BRIEF 四层(4 个独立打孔面板,渲染**当前选中模型的 view**,见 §3 模型切换)
 - **FACTS / INTERPRETATION**:正文用 `renderRichText(text, figures)` = ① figures 按 dir 给数字上色 ② 已知术语(regime 的 `key=value`/复合 token + 行话 higher-for-longer/熊平/牛陡/倒挂)加**虚下划线 + hover 中文解释**(`glossary.ts` 单一源;保留 LLM 原文措辞,不改 prompt)。
