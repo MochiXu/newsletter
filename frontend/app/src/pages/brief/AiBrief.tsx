@@ -1,10 +1,11 @@
-import type { Hypothesis, Impact } from '../../types'
+import type { Hypothesis, Impact, TaggedItem } from '../../types'
 import { ASSET_CN, dirInfo, HORIZON_CN, PRED_DIR } from '../../lib/format'
+import { highlightFigures } from '../../lib/highlight'
 import { Card, SectionHead } from '../../components/Card'
 
 function LayerHead({ label, zh, color }: { label: string; zh: string; color: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 7, margin: '15px 0 7px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7, margin: '15px 0 8px' }}>
       <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
       <span style={{ fontFamily: 'var(--mono)', fontSize: 9.5, letterSpacing: '1.2px', color: 'var(--ink2)' }}>
         {label}
@@ -14,12 +15,27 @@ function LayerHead({ label, zh, color }: { label: string; zh: string; color: str
   )
 }
 
-function Bullet({ mark, markColor, text }: { mark: string; markColor: string; text: string }) {
+// 主题标签 chip(事实/解读共用)。空标签不渲染。
+function TagChip({ tag, mr = 0 }: { tag: string; mr?: number }) {
+  if (!tag) return null
   return (
-    <div style={{ display: 'flex', gap: 8, fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink)', marginBottom: 5 }}>
-      <span style={{ color: markColor, flex: '0 0 auto', fontFamily: 'var(--mono)' }}>{mark}</span>
-      <span style={{ textWrap: 'pretty' }}>{text}</span>
-    </div>
+    <span
+      style={{
+        display: 'inline-block',
+        flex: '0 0 auto',
+        fontFamily: 'var(--mono)',
+        fontSize: 10,
+        color: 'var(--ink2)',
+        background: 'var(--paper2)',
+        border: '1px solid var(--faint)',
+        borderRadius: 3,
+        padding: '1px 6px',
+        whiteSpace: 'nowrap',
+        marginRight: mr,
+      }}
+    >
+      {tag}
+    </span>
   )
 }
 
@@ -87,15 +103,15 @@ function PredictionCard({ h }: { h: Hypothesis }) {
   )
 }
 
-/** AI BRIEF 四层:FACTS / INTERPRETATION / HYPOTHESIS(预测卡) / IMPACT。 */
+/** AI BRIEF 四层:FACTS(带标签数据条)/ INTERPRETATION(accent 竖线论述)/ HYPOTHESIS(预测卡)/ IMPACT。 */
 export default function AiBrief({
   facts,
   reads,
   hypotheses,
   impacts,
 }: {
-  facts: string[]
-  reads: string[]
+  facts: TaggedItem[]
+  reads: TaggedItem[]
   hypotheses: Hypothesis[]
   impacts: Impact[]
 }) {
@@ -103,21 +119,38 @@ export default function AiBrief({
     <Card>
       <SectionHead label="AI BRIEF" zh="四层简报" margin="0 0 4px" />
 
+      {/* 事实层:主题标签 + 高亮数字的可扫读数据条 */}
       <LayerHead label="FACTS" zh="事实层" color="var(--ink2)" />
       {facts.map((f, i) => (
-        <Bullet key={i} mark="›" markColor="var(--ink2)" text={f} />
+        <div
+          key={i}
+          style={{ display: 'flex', gap: 9, alignItems: 'baseline', padding: '6px 0', borderBottom: '1px dashed var(--hair)' }}
+        >
+          <TagChip tag={f.tag} />
+          <span style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink)', textWrap: 'pretty' }}>
+            {highlightFigures(f.text, f.figures)}
+          </span>
+        </div>
       ))}
 
+      {/* 解读层:accent 竖线 + 主题标签 + 论述(判断的"嗓音") */}
       <LayerHead label="INTERPRETATION" zh="解读层" color="var(--accent)" />
       {reads.map((r, i) => (
-        <Bullet key={i} mark="—" markColor="var(--accent)" text={r} />
+        <div key={i} style={{ borderLeft: '2px solid var(--accent)', borderRadius: 0, padding: '1px 0 1px 12px', marginBottom: 11 }}>
+          <TagChip tag={r.tag} mr={7} />
+          <span style={{ fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink)', textWrap: 'pretty' }}>
+            {highlightFigures(r.text, r.figures)}
+          </span>
+        </div>
       ))}
 
+      {/* 假设层 = 预测卡 */}
       <LayerHead label="HYPOTHESIS" zh="假设层 · 预测" color="var(--blue)" />
       {hypotheses.map((h, i) => (
         <PredictionCard key={i} h={h} />
       ))}
 
+      {/* 影响层 */}
       <LayerHead label="IMPACT" zh="影响层" color="var(--up)" />
       {impacts.map((im, i) => {
         const di = dirInfo(im.dir)

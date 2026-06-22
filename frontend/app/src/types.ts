@@ -16,6 +16,19 @@ export interface PricePoint {
   value: number
 }
 
+/** text 中需上色强调的关键数字:t=原样子串(text 的子串),dir=方向(up绿/down红/flat中性)。 */
+export interface Figure {
+  t: string
+  dir: PredDir
+}
+
+/** 事实层/解读层一条:tag=主题标签(可空),text=正文,figures=后端标注的需上色数字。 */
+export interface TaggedItem {
+  tag: string
+  text: string
+  figures: Figure[]
+}
+
 /** 指标表一行。spark=最近~20真实收盘点(带日期,因果),供小走势线 + hover。 */
 export interface Metric {
   key: string
@@ -79,8 +92,8 @@ export interface Brief {
   signals: Signal[]
   regime: Record<string, string>
   priceSeries: Record<string, PricePoint[]>
-  facts: string[]
-  reads: string[]
+  facts: TaggedItem[]
+  reads: TaggedItem[]
   hypotheses: Hypothesis[]
   impacts: Impact[]
   reviews: Review[]
