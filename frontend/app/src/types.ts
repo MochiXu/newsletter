@@ -16,14 +16,14 @@ export interface PricePoint {
   value: number
 }
 
-/** 指标表一行。spark=最近~20真实收盘(因果,小走势线)。 */
+/** 指标表一行。spark=最近~20真实收盘点(带日期,因果),供小走势线 + hover。 */
 export interface Metric {
   key: string
   label: string
   value: number
   change: number
   kind: MetricKind
-  spark: number[]
+  spark: PricePoint[]
 }
 
 /** 技术指标一条(代码计算)。value 原始数值,按 unit 格式化、按 group 分节。 */

@@ -3,9 +3,10 @@ import type { PricePoint } from '../types'
 
 export interface Spark {
   points: string
-  dotX: number
-  dotY: number
-  dotTop: number // 末点圆心垂直百分比(供 HTML span top)
+  n: number
+  xPct: (i: number) => number // 第 i 点 x 百分比(0..100),供 HTML 游标定位
+  yPct: (i: number) => number // 第 i 点 y 百分比(0..100)
+  dotTop: number // 末点圆心垂直百分比
 }
 
 /** 指标行迷你走势(viewBox 100×30)。点数 < 2 返回 null(不画)。 */
@@ -18,13 +19,10 @@ export function sparkGeom(vals: number[]): Spark | null {
   const max = Math.max(...vals)
   const range = max - min || 1
   const n = vals.length
-  const pts = vals.map((v, i) => {
-    const x = pad + ((W - 2 * pad) * i) / (n - 1)
-    const y = H - pad - ((H - 2 * pad) * (v - min)) / range
-    return `${x.toFixed(1)},${y.toFixed(1)}`
-  })
-  const [lx, ly] = pts[pts.length - 1].split(',').map(Number)
-  return { points: pts.join(' '), dotX: lx, dotY: ly, dotTop: (ly / H) * 100 }
+  const xs = vals.map((_, i) => pad + ((W - 2 * pad) * i) / (n - 1))
+  const ys = vals.map((v) => H - pad - ((H - 2 * pad) * (v - min)) / range)
+  const points = xs.map((x, i) => `${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ')
+  return { points, n, xPct: (i) => (xs[i] / W) * 100, yPct: (i) => (ys[i] / H) * 100, dotTop: (ys[n - 1] / H) * 100 }
 }
 
 export interface PriceGeom {

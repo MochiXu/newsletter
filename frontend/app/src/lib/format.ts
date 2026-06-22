@@ -26,8 +26,18 @@ export function fmtChg(m: Metric): string {
 /** 价格图 hover 读数:yield→%、其它按量级。 */
 export function fmtChartVal(kind: MetricKind, v: number): string {
   if (kind === 'yield') return v.toFixed(2) + '%'
-  if (kind === 'index' || kind === 'spread') return v.toFixed(1)
+  if (kind === 'spread') return Math.round(v * 100) + 'bp'
+  if (kind === 'index') return v.toFixed(1)
   return Math.round(v).toLocaleString('en-US')
+}
+
+/** 单日涨跌% —— 仅价格/指数类有意义;利率/利差返回 null(该列显示 —,bp 才是对的)。 */
+export function fmtPctChange(m: Metric): string | null {
+  if (m.kind !== 'price' && m.kind !== 'index') return null
+  const prev = m.value - m.change
+  if (!prev) return null
+  const p = (m.change / prev) * 100
+  return (p >= 0 ? '+' : '') + p.toFixed(2) + '%'
 }
 
 /** 技术指标 value → 显示串(与后端 render._sig_fmt 一致)。 */

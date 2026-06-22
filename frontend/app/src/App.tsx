@@ -86,6 +86,7 @@ export default function App() {
   return (
     <div
       ref={rootRef}
+      id="mb-root"
       data-theme={themeMode}
       style={{
         minHeight: '100vh',

@@ -268,7 +268,7 @@ function Overview({ brief: b, expanded, setExpanded }: { brief: Brief; expanded:
         <div style={{ marginTop: 14 }}>
           {b.metrics.map((m) => {
             const col = colorFor(m.change)
-            const sp = sparkGeom(m.spark)
+            const sp = sparkGeom(m.spark.map((p) => p.value))
             return (
               <div
                 key={m.key}
