@@ -67,7 +67,7 @@
 
 ## 3. 状态 / 路由 / 响应式
 
-state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=mb_theme)`、`chartAsset('nasdaqcom')`、`chartHover(null|0..n-1)`、`tlHover/tlSelected/tlExpanded`、`isMobile(innerWidth<760)`、`tweaks`。
+state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=mb_theme)`、`selectedModel`(全局多模型选择,默认主模型;切换器在 Header 右上,`allModels(briefs).length>1` 才显示)、`chartAsset('nasdaqcom')`、`chartHover(null|0..n-1)`、`tlHover/tlSelected/tlExpanded`、`isMobile(innerWidth<760)`、`tweaks`。
 
 **hash 路由表**(`#/` 去前缀按 `/` 分段):
 - 空 → `{page:'brief'}`(最新一刊)
@@ -128,9 +128,9 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 ### 5.3 NEWS(可点链接)
 `catMap`:fact{事实,ink,paper2,faint} / read{解读,accent,—,accent} / both{事实+解读,blue,—,blue} / noise{噪音,ink2,—,faint}。每条:分类徽章 + **标题(后端有 link → `<a target=_blank rel=noopener>` + ↗)** + 方向字符 `dirInfo(dir)`(↑up/↓down/·watch);次行来源(mono)+ assets chips。noise 标题用 ink2。
 
-### 5.4 AI BRIEF 四层
+### 5.4 AI BRIEF 四层(渲染**当前选中模型的 view**,见 §3 模型切换)
 - FACTS(图标 ink2,前缀 `›`)/ INTERPRETATION(图标 accent,前缀 `—`)。
-- **HYPOTHESIS=预测卡**(图标 blue):每条 paper2 卡:头(资产中文 + 方向箭头↑↓→ + 期限[次日/5日/20日/60日] + 信心 % + 信心条)/ ifThen / `✕ 失效`+invalidation / keyFactors chips。资产映射:NASDAQCOM→纳指,XAUUSD→黄金,DTWEXBGS→广义美元,DGS2→美债2Y。
+- **HYPOTHESIS=预测卡**(图标 blue):多模型时上方先给一行**跨模型共识**(`consensus`:资产 + 多数方向 + `agree/n 认同` + 均值信心 + 各方向票数;平票=分歧→横盘)。每条预测卡:头(资产中文 + 方向箭头↑↓→ + 期限 + 信心 % + 信心条 + **信心 tooltip**:模型自评、未校准、非真实概率)/ ifThen / `✕ 失效`+invalidation / keyFactors chips。资产映射:NASDAQCOM→纳指,XAUUSD→黄金,DTWEXBGS→广义美元,DGS2→美债2Y。
 - IMPACT(图标 up):每条 `dirInfo(dir)` + asset(mono) + watch(ink2)。
 
 ### 5.5 REVIEW 复盘(hasReviews 才显)
@@ -164,7 +164,10 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 ## 8. 数据契约(= 真实 `data/briefs.json`)与后端映射
 
 顶层 `{model, generatedAt, briefs:[Brief]}`(briefs 倒序)。Brief 字段:
-`date/weekday/issue/time/tone/headline` · `metrics[key,label,value,change,kind,spark:number[]]` · `signals[key,label,value,unit,group]` · `regime{}` · `priceSeries{key:[{date,value}]}`(5 资产×30 点)· `facts[{tag,text,figures:[{t,dir}]}]` · `reads[同]`(`figures` 标注正文里需上色的方向数字,前端 `highlightFigures` 按 dir 上色)· `hypotheses[ifThen,invalidation,asset,direction,horizon,confidence,keyFactors]` · `impacts[asset,watch,dir]` · `reviews[ifThen,status,note]` · `news[title,source,cat,assets,dir,link]`。所有展示文本后端已过 `textnorm.normalize_text`(英文标点 + 中英空格)。
+**脊柱(模型无关)**:`date/weekday/issue/time` · `metrics[key,label,value,change,kind,spark:[{date,value}]]` · `signals[key,label,value,unit,group]` · `regime{}` · `priceSeries{key:[{date,value}]}`(5 资产×30 点)· `reviews[ifThen,status,note]` · `news[title,source,cat,assets,dir,link]`。
+**多模型**:`models[]`(模型 id,有序,[0]=主)· `views{modelId: ModelView}` · `consensus[{asset,direction,votes{up,down,flat},n,agree,meanConfidence}]`(≥2 模型才有)。
+`ModelView` = `tone/headline · facts[{tag,text,figures:[{t,dir}]}] · reads[同]`(`figures` 标注正文里需上色的方向数字,`highlightFigures` 按 dir 上色)`· hypotheses[ifThen,invalidation,asset,direction,horizon,confidence,keyFactors] · impacts[asset,watch,dir]`。
+前端用 `viewOf(brief, selectedModel)` 取当前视图(选中模型缺失则回退主模型);切换器选项 = `allModels(briefs)`(>1 才显示)。所有展示文本后端已过 `textnorm.normalize_text`(英文标点 + 中英空格 + 数字单位上色)。
 
 - **设计有、后端无**:`q`(nasdaq/btc 报价)、BTC/DXY 价格序列 → 不做(纳指已在 metrics;BTC 不加)。`track`(命中率)、`PERIODS`(区间聚合)→ 空态待 V2。
 - **后端有、设计无**:`signals`/`regime`/预测富字段/`news.link` → 决策 3:新增卡片 + 升级预测卡 + 链接。

@@ -18,6 +18,17 @@
 
 ---
 
+## 2026-06-23 — 多模型简报 + 中转站接入(每模型视图 + 代码级共识 + 前端切换器)
+
+属 V1.5 延续。让多个模型各出一份解读、展示分歧;「该信谁」不靠 LLM 收敛,留给 V2 战绩。详见 [v1.5-progress.md §4](refactor/v1.5-progress.md)。
+
+- **契约重构**:`Brief` 拆为**脊柱(模型无关:metrics/signals/regime/priceSeries/news/reviews)+ `views{modelId: ModelView}`(随模型变的六层)+ `consensus`**。旧扁平 brief 由 `model_validator` 自动迁进 `views.archive`(向后兼容,`briefs.json` 不崩)。
+- **多模型生成**:`LLM_MODELS` 逗号列表;`generate_briefs` 逐模型生成、**单模型失败只跳过它**;缺 key 自动跳过。
+- **代码级共识**:对固定 roster 各资产**纯代码投票**(多数方向 + 票数 + 认同数 + 多数方向均值信心,平票=分歧)。不调 LLM、抗污染;留 `weights` 入参待 V2 按战绩加权。
+- **中转站接入**(`sub.foyego.com`,跑 Claude `claude-opus-4-8` + OpenAI `gpt-5.5`;DeepSeek 直连):`AnthropicProvider` 支持 `ANTHROPIC_BASE_URL` + `ANTHROPIC_AUTH_TOKEN`(x-api-key & Bearer 双头)+ **三路 tool 解析兜底**(中转站 Claude 复杂 schema 偶发把 JSON 当文本吐);`_compat_url` 让 base 填 host 自动补 `/v1/...`。排坑:**各模型族用不同 key**。
+- **前端**:右上角**模型切换器**(>1 模型才显示)、假设层**跨模型共识行**、**信心 tooltip**(说明 confidence 是模型自评、未校准、非真实概率)。
+- 后端离线单测 58 → **62**(多模型视图保序 / 共识多数·平票 / 单模型无共识 / 旧扁平 brief 迁移)。端到端三模型实跑通过(DeepSeek + Claude Opus 4.8 + GPT-5.5)。
+
 ## 2026-06-22 — V1.5 内容与体验增强(契约加厚 + LLM 健壮性 + 前端 3 页重建)
 
 V1 之后、V2 之前的一波增强,不改「代码算特征 → LLM 只解释」骨架。详见 [v1.5-progress.md](refactor/v1.5-progress.md)。
