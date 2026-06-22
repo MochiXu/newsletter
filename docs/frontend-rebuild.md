@@ -1,160 +1,182 @@
-# 前端重做指南 · 与后端契约对齐
+# 前端重建指南 · 忠实复刻 `frontend/desgin` 的 3 页 SPA
 
-> 现有 `frontend/app` 将**整体删除**,按设计稿 [`frontend/desgin/`](../frontend/desgin/) 重做。
-> 本文件是重做的**单一依据**:权威数据契约 + 设计稿↔后端字段映射 + 缺口状态 + 明确不要做什么。
-> 重做必须对齐**真实 `data/briefs.json`**,**不要照旧 `frontend/app/src/types.ts`**(它停在旧假设:
-> `render_json`、7 行指标、DXY、`link` 可选、假设只有 ifThen/invalidation——全过时)。
+> **权威依据 = 设计实现** `frontend/desgin/resource/市场走势简报.dc.html`(顶部 `<x-dc>` = 结构/CSS;底部 `<script data-dc-script>` 的 `class Component` = 全部状态/渲染/交互),数据契约见同目录 `briefs.js`/`track.js`/`timeline.js`。
+> `support.js` 是通用 DC 模板引擎,**不移植**(React 已替代)。
+> 本文件把设计的真实逻辑抽成可直接照建的规格,并标出与后端真实数据的对齐方式与三个落地决策。
 
 ---
 
-## 1. 数据契约(权威,= `data/briefs.json`)
+## 0. 三个落地决策(2026-06-22,用户拍板)
 
-后端 `py/newsletter/render.py` 产出、`py/newsletter/models.py` 定义。顶层:
+1. **三页全建**(简报/时间线/命中率);后端不产的数据(命中率打分、月/季/年区间聚合)用**空态/「评估层未就绪(V2)」**呈现,**绝不造假数字**。
+2. **后端已加 30 点真实价格序列**(`Brief.priceSeries`,资产 = 纳指/黄金/广义美元/US10Y/VIX;**无 BTC/DXY**,按宏观聚焦)→ 用来画设计的「PRICE 30D 可交互价格图」。
+3. **后端独有的 signals/regime/预测富字段**(设计稿没有位置)→ **用设计同款暖纸卡片视觉新增承载**:简报页加 SIGNALS 卡(regime 徽章 + 29 条技术指标分组折叠);HYPOTHESIS 卡升级为预测卡(资产/方向/期限/信心/keyFactors)。
 
-```jsonc
-{
-  "model": "DeepSeek",            // 生成所用 LLM
-  "generatedAt": "2026-06-20",    // 最新一期日期
-  "briefs": [ Brief, ... ]        // 按日期倒序,最新在前
-}
-```
+---
 
-### Brief(单个交易日)
+## 1. 技术栈与工程骨架
 
-| 字段 | 类型 | 说明 |
+- **React 18 + Vite + TS**,纯静态。`base:'./'`(可挂任意子路径)。
+- 字体自托管(`@fontsource/ibm-plex-mono` + `@fontsource/noto-sans-sc`),不走 CDN。
+- 构建期 `scripts/copy-data.mjs` 把仓库根 `data/briefs.json` 拷进 `public/data/`,前端 fetch。
+- dev 端口 5179;node 经 nvm。
+
+---
+
+## 2. 视觉契约(CSS 变量 + 关键技巧,全部进 theme.css)
+
+两套调色板,`[data-theme=light|dark]` 切换,`auto` 时用 `@media (prefers-color-scheme)`。
+
+| 变量 | light | dark |
 |---|---|---|
-| `date` | string | `YYYY-MM-DD` |
-| `weekday` | string | 中文,如「周五」 |
-| `issue` | number | 刊号(年代序,最早=1) |
-| `time` | string | 常量「07:00 CST」 |
-| `tone` | `risk-on\|risk-off\|neutral` | **驱动时间线圆点染色** |
-| `headline` | string | 一句话总览 |
-| `metrics` | `Metric[]` | 指标表(当前 **10 行**,长度自适应) |
-| `signals` | `Signal[]` | **技术指标(新)**,代码计算,~29 条,带 `group` |
-| `regime` | `{[k]: string}` | **代码派生 regime 标签(新)** |
-| `facts` | `string[]` | 事实层 |
-| `reads` | `string[]` | 解读层(后端 `interpretation`) |
-| `hypotheses` | `Hypothesis[]` | **假设层 = 对固定方向的预测(已升级)** |
-| `impacts` | `Impact[]` | 影响层观察点 |
-| `reviews` | `Review[]` | 假设复盘(可空 → 该节隐藏) |
-| `news` | `News[]` | 新闻(已过滤噪音/无链接;`link` 必有) |
+| `--bg` | `#e7ddc9` | `#16130f` |
+| `--paper` | `#fdfaf2` | `#221c15` |
+| `--paper2` | `#f3ebd9` | `#2b241b` |
+| `--ink` | `#2b2018` | `#ece2cf` |
+| `--ink2` | `#8a785b` | `#9a8a6f` |
+| `--faint` | `#d6c9af` | `#3c3326` |
+| `--hair` | `#ece2cd` | `#2c2618` |
+| `--accent` | `#c0612f` | `#e0824a` |
+| `--up` | `#2f7d50` | `#5bc486` |
+| `--down` | `#c0432a` | `#e8694e` |
+| `--warn` | `#c79a2c` | `#d8b24a` |
+| `--blue` | `#3a6ea5` | `#7aa6dd` |
+| `--shadow` | `0 20px 50px -26px rgba(70,48,18,.55)` | `0 26px 60px -30px rgba(0,0,0,.78)` |
 
-### Metric — `{ key, label, value, change, kind }`
-- `kind ∈ yield | spread | index | price`;`value`/`change` 单位由 kind 决定(yield/spread→%,index→千分位,price→价格)。
-- **当前 10 行**(顺序固定):标普500 / 纳指 / VIX / US2Y / US10Y / 2s10s / 实际10Y / 通胀预期 / 广义美元 / 黄金。
-- ⚠️ **只有 `value` + 当日 `change`,没有走势序列**(见 §4 缺口②:sparkline)。
-- ⚠️ 没有 `DXY`,是**广义美元 `DTWEXBGS`**。
+字体:`--mono:"IBM Plex Mono",ui-monospace,...`;`--sans:"Noto Sans SC","IBM Plex Sans",system-ui,...`。**分工是设计灵魂:mono 管一切数字/日期/标签/刻度,sans 管中文正文/标题。**
 
-### Signal — `{ key, label, value, unit, group }`（新)
-代码计算的技术指标,前端按 `group` 分节、按 `unit` 格式化。`value` 一律是**原始数值**,前端负责显示:
+关键 class:
+- **`.mb-card`/纸纹**:`background:var(--paper)` + `background-image:var(--panel-tex)` + `background-size:5px 5px` + `box-shadow:var(--shadow)`。`--panel-tex` 由 JS 按 paperTexture 开关注入(开 = `radial-gradient(color-mix(in srgb,var(--faint),transparent 72%) .5px,transparent .6px)`,关 = `none`)。
+- **`.mb-punch`**(小票撕齿边):双层 radial mask + `mask-composite:exclude`:
+  ```css
+  -webkit-mask-image: radial-gradient(circle 5px at 7px 0,#000 99%,#0000 100%),
+    radial-gradient(circle 5px at 7px 9px,#000 99%,#0000 100%), linear-gradient(#000,#000);
+  -webkit-mask-size: 14px 9px,14px 9px,100% 100%;
+  -webkit-mask-repeat: repeat-x,repeat-x,no-repeat;
+  -webkit-mask-position: top,bottom,0 0;
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  ```
+- **`.mb-scroll`**:细滚动条(thin / `--faint` thumb / hover `--ink2`)。
+- keyframes:`receiptIn{from{opacity:0;translateY(12px)}to{opacity:1;translateY(0)}}`、`mbpulse{0%,100%{opacity:.5}50%{opacity:.85}}`。`@media (prefers-reduced-motion:reduce){*{animation/transition .01ms}}`。
+- 根容器 `transition: background .35s, color .35s`。
+- 圆角:卡片/小票无圆角;段控件容器 9 / 内按钮 7;徽章 pill 20;新闻标签/格子 2–4。
 
-| `unit` | 含义 | 格式化示例(value → 显示) |
-|---|---|---|
-| `pct` | 带符号百分比 | `0.0837 → +8.4%` |
-| `pct0` | 无符号百分比 | `0.164 → 16.4%` |
-| `bp` | 带符号基点 | `-7 → -7bp` |
-| `z` | z 分数 | `0.10 → z=0.10` |
-| `corr` | 相关系数(−1~1) | `-0.62 → -0.62` |
-| `yield` | 利率电平 | `4.49 → 4.49%` |
-
-`group ∈ trend(趋势) | momentum(动量) | vol(波动与风险) | rates(利率与通胀) | dollar(美元) | cross_asset(跨资产相关) | range(52周分位)`。
-
-真实样例(节选):
-```jsonc
-"signals": [
-  { "key": "SP500_px_vs_ma200", "label": "标普500 距MA200", "value": 0.0837, "unit": "pct", "group": "trend" },
-  { "key": "DGS10_chg_20",      "label": "10Y 近20日",      "value": -7,     "unit": "bp",  "group": "momentum" },
-  { "key": "VIXCLS_z_252",      "label": "VIX z分数",        "value": 0.10,   "unit": "z",   "group": "vol" },
-  { "key": "DGS2_level",        "label": "2Y 收益率",         "value": 4.20,   "unit": "yield","group": "rates" },
-  { "key": "corr_XAUUSD_DFII10_60", "label": "黄金~实际利率", "value": -0.46,  "unit": "corr","group": "cross_asset" }
-]
-```
-> 维护点:这份列表的「单一事实源」在后端 `features.FEATURE_VIEW`,增删指标改那里即可,前端 data-driven 自适应。
-
-### regime — `{[label]: string}`（新)
-代码判定的市场状态,适合做小标签/徽章。键与示例值:
-```jsonc
-"regime": {
-  "equity_trend": "above_ma200",          // 股票趋势:above_ma200 / below_ma200
-  "vol_regime": "mid/elevated",           // 波动:low|mid|high (+/elevated|/easing)
-  "curve": "normal/flattening",           // 曲线:inverted|flat|normal (+/steepening|/flattening)
-  "real_rate": "rising",                  // 实际利率:rising|falling|flat
-  "inflation_expectations": "falling",    // 通胀预期:rising|falling|flat
-  "dollar": "weak/diverging"              // 美元:strong|weak (+/diverging)
-}
-```
-
-### Hypothesis — `{ ifThen, invalidation, asset, direction, horizon, confidence, keyFactors }`（已升级为「预测卡」）
-- `asset ∈ NASDAQCOM | XAUUSD | DTWEXBGS | DGS2`(固定 roster:纳指/黄金/广义美元/2Y;**每天恰好 4 条,一方向一条**)。
-- `direction ∈ up | down | flat`;`horizon ∈ next_1d | h_5d | h_20d | h_60d`(次日/5日/20日/60日)。
-- `confidence`:0~1;`keyFactors`:`string[]`,驱动该预测的特征。
-- `ifThen` / `invalidation`:人读的「若 X 则 Y」+ 可度量失效条件。
-- 建议渲染成**预测卡**:`资产 + 方向箭头 + 期限 + 信心`(头)/ ifThen(主)/ ✕ 失效条件 / key_factors 小标签。
-
-### Impact — `{ asset, watch, dir }`；`dir ∈ up | down | watch`(箭头 ↑/↓/·)。
-### Review — `{ ifThen, status, note }`；`status ∈ held(✓兑现) | invalidated(✕失效) | open(○待观察)`。
-### News — `{ title, source, cat, assets, dir, link }`
-- `cat ∈ fact | read | both | noise | null`(后端已**过滤掉 noise 与无 link 项**,故实际基本只有 fact/read/both;`null`=无 LLM 时未分类)。
-- `link`:**真实数据稳定有**(后端保证),做成**可点按钮 → 新标签页打开源新闻**;并显示 `source` 与 `assets` 小标签。
+**Tweaks**(浮层面板,设计文档 §9):`accent`(色)/`showSparklines`(布尔)/`paperTexture`(布尔),持久化到 localStorage。
 
 ---
 
-## 2. 设计稿(`frontend/desgin/`)↔ 后端字段映射
+## 3. 状态 / 路由 / 响应式
 
-| 设计稿小节(前端设计文档.md) | 后端字段 | 备注 |
-|---|---|---|
-| §5 时间线(tone 染色) | `briefs[].tone` + `date` | ✅ 直接可用 |
-| §6.1 抬头 | `date` / `weekday` / `issue` / `time` | ✅ |
-| §6.2 Headline | `headline` | ✅ |
-| §6.3 指标表 MARKET DATA | `metrics[]` | ⚠️ 改 **10 行 data-driven**;去掉 DXY/固定6行;sparkline 见缺口② |
-| §6.4 四层简报 | `facts` / `reads` / `hypotheses` / `impacts` | 假设层升级为**预测卡**(新字段) |
-| §6.5 假设复盘 REVIEW | `reviews[]` | ✅ 逐条 held/invalidated/open |
-| §6.6 新闻 NEWS | `news[]` | 加**链接按钮**;噪音 badge 基本用不上(已滤) |
-| §6.7 页脚 | `model` / `date` | `★ <date> · GEN <model> ★` |
-| **(设计稿无此节)技术指标面板** | `signals[]` + `regime` | **新增板块**:按 group 分节展示技术指标 + regime 徽章 |
+state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=mb_theme)`、`chartAsset('nasdaqcom')`、`chartHover(null|0..n-1)`、`tlHover/tlSelected/tlExpanded`、`isMobile(innerWidth<760)`、`tweaks`。
 
----
+**hash 路由表**(`#/` 去前缀按 `/` 分段):
+- 空 → `{page:'brief'}`(最新一刊)
+- `brief/<id>/<from>`:id 形态推粒度(`\d{4}-\d{2}-\d{2}`=day,`-Q\d`=quarter,`-H\d`=half,`\d{4}-\d{2}`=month,`\d{4}`=year);`from∈timeline|track` 决定返回条目标
+- `timeline/<gran>`:gran∈day/month/quarter/half/year(默认 day)
+- `track/<mode>/<period>`:mode∈month/quarter/year/all(默认 year);也接受 `2026-Q2`/`2026-06`/`2026` 自动推断
+- `nav(hash)` = 改 `location.hash`;`hashchange` → 重解析 + 清 chartHover/tlHover/tlSelected。
 
-## 3. 相对旧设计 / 旧前端的净变化
-
-**加**
-- **技术指标面板**(`signals` 按 group 分节 + `regime` 徽章)—— 设计稿原本没有,是本次核心新增。
-- **预测卡**:假设层带 `asset/direction/horizon/confidence/keyFactors`。
-- **新闻链接按钮**(新标签页打开)。
-
-**删 / 降级**
-- `DXY` → 广义美元 `DTWEXBGS`;固定 6 行 → 动态 10 行。
-- 噪音 badge:后端已过滤 noise,前端无需重点处理(保留兜底样式即可)。
-- **命中率 / track-record(`track.js`)**:见 §4 缺口③,**先不做**。
+**响应式**:唯一 JS 断点 `innerWidth<760` → isMobile;其余靠 flex-wrap + flex-basis/min-width。
 
 ---
 
-## 4. 三个缺口的状态
+## 4. 页面结构
 
-- **① 技术指标面板 — ✅ 数据已就绪**:`signals` + `regime` 已落进 `briefs.json`,可以直接按 §1 规格渲染。
-- **② Sparkline 走势线 — ⏳ 待定**:后端**只给 `value`+当日 `change`,没有走势序列**;旧前端的走势线是合成装饰。要画真实 sparkline 需后端给每个 Metric 加 `spark: number[]`(最近 ~20 收盘)——尚未决定。**在后端给序列前,指标表先不画 sparkline**(设计稿 Tweaks 本就有开关)。
-- **③ 命中率 / track-record — ⛔ 延后(= V2 评估层)**:设计稿 `track.js` 假设后端产出「每日 score + grade + 月/季/年命中率」,但后端**不产**——它是 V2-S3 评估层(L4)的产物,尚未实现。**红线:在真打分跑出来前,前端绝不显示任何「命中率」数字**(否则就是编的)。这块整体推迟到 V2 eval 落地后再接。
-  - 注:`reviews[]`(逐条 ✓/✕/○ 复盘)≠ 命中率统计;前者已有、可展示,后者是聚合统计、未有。
+根 `div[data-theme]`(min-height 100vh,padding 30px 22px 72px)→ `max-width:1080px` 居中。
+- **页眉**:左标题块(`DAILY MACRO BRIEF` mono accent / `市场走势简报` 27px·700 / 副标题);右主题段控件(自动/浅色/深色)。
+- **一级导航 tab**(下边框):`简报·Briefing` / `时间线·Timeline` / `命中率·Track Record`,选中 `border-bottom:2px solid accent` + 700。
+- 三页 `isBrief`/`isTimeline`/`isTrack` 互斥。
+
+### 4.1 简报页(`brief`)
+- 钻入态(route.date 存在)顶部**返回条**:`‹ 时间线`/`‹ 命中率` + 虚线 + 右 `第 N 刊 · DETAIL`。
+- 未加载 → 520px `mbpulse` 骨架。
+- **日详情**(`isBriefDay`,取 `briefs[routeIdx]`):
+  - 头:`MACRO BRIEF · {weekday} · 第{issue}刊 · {time}` / 大号 mono 日期(34px)/ headline(17px·700)。右侧命中率徽章 **仅 hasScore 时**(后端无 track → 不显示)。
+  - 双栏 flex(左 `flex:4 1 350px`,右 `flex:5 1 400px`,窄屏堆叠):
+    - **左栏**:① MARKET DATA(指标表,见 §5.1)② PRICE 30D 价格图(§5.2,可交互)③ **SIGNALS 技术指标**(新增卡:regime 徽章常显 + 29 条按 group 折叠,§5.6)④ NEWS(§5.3,可点链接)
+    - **右栏**:① AI BRIEF 四层(§5.4,假设层=预测卡)② REVIEW 复盘(`hasReviews` 才显,§5.5)
+  - 页脚:`本简报仅供研究 · 非投资建议 · NOT INVESTMENT ADVICE · GEN {model}`。
+- **区间详情**(`isBriefAgg`):后端无聚合 → **空态卡**「区间聚合待 V2 评估层」。
+
+### 4.2 时间线页(`timeline`)
+- 头:`TIMELINE·时间线` + granNote;右**粒度段控件** 日/月/季/半年/年。
+- 主行(桌面 flex gap30,窄屏竖排):
+  - 左 `tlList`(`.mb-scroll`,桌面 `flex:0 0 266px` + 竖轴线 + 上下渐隐 mask;窄屏横向胶囊滚动):每行圆点(toneCol)+ 主标签(日 `MM.DD`/区间 label)+ 次标签 + 桌面 headline(2 行截断)。桌面 hover 预览(tlHover)/click 锁定(tlSelected);窄屏仅 click。激活行 `paper2` 底 + 圆点放大双 ring。
+  - 右小票概览(`width:min(430px,100%)` `.mb-punch`):票头(居中 mono 日期 + 命中徽章[无则省])→ headline → MARKET DATA(sparkline 高 24)→ THE CALL(假设 ifThen)→ **可展开 NEWS**(▾ 旋转)→ 票脚「完整四层/复盘 见详情 ↗」。右上「详情 →」按钮 → `#/brief/<date>/timeline`。
+- **day 粒度用真实 briefs**;**month/quarter/half/year → 空态**「区间聚合待 V2」(后端无 PERIODS)。
+
+### 4.3 命中率页(`track`)
+- 头:`TRACK RECORD·命中率` + 维度段控件 月度/季度/年度/ALL。
+- **后端无 track 打分 → 整页空态**:暖纸卡居中,`评估层未就绪(V2)` + 一句说明(逐条复盘 ✓/✕/○ 已在简报页 REVIEW;聚合命中率统计待 V2 评估层 backfill+scoring 落地)。维度 tab 仍可点但都显示同一空态。
+- (设计原图:年热力图 / 月日历+折线 / 季度 / ALL 柱状 + 浮动 tooltip——**待 V2 评估层产出 `track.json` 后按 §7 算法接入**,本期不画假数据。)
 
 ---
 
-## 5. 技术约束 / 注意事项
+## 5. 各区块渲染规格
 
-- **完全 data-driven**:渲染只依赖 `briefs.json` 字段;**忽略未知字段**(后端会持续加字段,如未来的 `spark` / eval 标签)。
-- **空态**:`reviews` 空 → 复盘节隐藏;历史回填的天 `news` 可能为空(默认不带新闻,防偷看未来)→ 新闻节空态;`signals`/`regime` 理论上恒有,但也要容空。
-- **明暗主题**:跟随系统 + 手动切换,色彩走 CSS 变量(见设计稿 §7.2 配色表)。
-- **字体自托管**(@fontsource,不走 Google CDN,符合纯静态/离线)。
-- **纯静态部署**:产物可挂 GitHub Pages / 任意静态托管;数据通过 fetch `briefs.json`。
-- 数据来源:构建期把 `data/briefs.json` 拷进前端 public(旧前端有 `scripts/copy-data.mjs` 可参考)。
+### 5.1 MARKET DATA(指标表)
+`metrics` data-driven(后端 10 行)。每行 grid `52px 1fr 66px 50px`,虚线下边框:标签(mono `--ink2`)/ sparkline / 值 `fmtVal` / 日变化 `fmtChg`(色 `colorFor(change)`)。sparkline 受 showSparklines 控制。
+- `fmtVal`:yield→`v.toFixed(2)%`;spread→`round(v*100)bp`;index→`v.toFixed(1)`;price→`toLocaleString(maxFrac 1)`。
+- `fmtChg`:带 `+`;yield/spread→`round(c*100)bp`;index→`c.toFixed(1)`;price→`|c|<10?toFixed(1):round`。
+
+### 5.2 PRICE 30D 价格图(可交互)
+资产 tab = `priceSeries` 的 key(纳指/黄金/广义美元/US10Y/VIX,中文 label)。`viewBox 320×110` pad9:
+- `xs[i]=W*i/(n-1)`;`ys=H-pad-(H-2pad)*(v-mn)/rg`。折线 `chartLine`,面积 `'0,H '+line+' W,H'` opacity.07。色 `chg>=0?up:down`,line strokeWidth1.6,`preserveAspectRatio=none` + `vectorEffect:non-scaling-stroke`。
+- hover:`onChartMove` 取 `getBoundingClientRect`,`idx=round(cx/width*(n-1))` clamp;十字线 `<line>` opacity `hover?.55:0`;游标点用绝对定位 HTML span(`left=xs/W%`,`top=ys/H%`,7px 圆)。读数行:`fmtChartVal(kind,v)` + 该点 date。`onChartLeave`→null(看末点)。触屏 `e.touches` + `touch-action:none`。
+- 底部刻度:起始 date / `30 交易日` / 末 date。
+
+### 5.3 NEWS(可点链接)
+`catMap`:fact{事实,ink,paper2,faint} / read{解读,accent,—,accent} / both{事实+解读,blue,—,blue} / noise{噪音,ink2,—,faint}。每条:分类徽章 + **标题(后端有 link → `<a target=_blank rel=noopener>` + ↗)** + 方向字符 `dirInfo(dir)`(↑up/↓down/·watch);次行来源(mono)+ assets chips。noise 标题用 ink2。
+
+### 5.4 AI BRIEF 四层
+- FACTS(图标 ink2,前缀 `›`)/ INTERPRETATION(图标 accent,前缀 `—`)。
+- **HYPOTHESIS=预测卡**(图标 blue):每条 paper2 卡:头(资产中文 + 方向箭头↑↓→ + 期限[次日/5日/20日/60日] + 信心 % + 信心条)/ ifThen / `✕ 失效`+invalidation / keyFactors chips。资产映射:NASDAQCOM→纳指,XAUUSD→黄金,DTWEXBGS→广义美元,DGS2→美债2Y。
+- IMPACT(图标 up):每条 `dirInfo(dir)` + asset(mono) + watch(ink2)。
+
+### 5.5 REVIEW 复盘(hasReviews 才显)
+状态:held{✓,up,已兑现} / invalidated{✕,down,已失效} / open{○,accent,待观察}。18px 圆描边徽标 + ifThen + 状态标签 + note。
+
+### 5.6 SIGNALS 技术指标(新增卡,设计同款视觉)
+- **regime 徽章**常显:6 个 chip(键中文 + 值翻译;token map:above_ma200→MA200上方 等,`/` 拆开 `·` 连)。
+- **29 条 signals 按 group 折叠**(默认收起):开关行「展开技术指标 · N 项」;展开后按 7 组(trend趋势/momentum动量/vol波动与风险/rates利率与通胀/dollar美元/cross_asset跨资产相关/range52周分位)列:label … 值 `fmtSignal`。带符号单位(pct/bp/z/corr)按正负染色,电平(pct0/yield)中性。
 
 ---
 
-## 6. 建议构建顺序
+## 6. 颜色/方向工具(贯穿全站)
+- `colorFor(c)`:c>0 up / c<0 down / 0 ink2。
+- `dirInfo(d)`:up{↑,up} / down{↓,down} / 其他{·,ink2}。
+- `toneCol(t)`:risk-on up / risk-off down / 其他 ink2(时间线圆点)。
+- `fmtSignal(unit,v)`:pct→`±(v*100).1%`;pct0→`(v*100).1%`;bp→`±round`;z→`z=v.2`;yield→`v.2%`;corr→`v.2`。
+- `signalSigned(unit)`:pct/bp/z/corr 为真(染色)。
 
-1. **契约层**:照 §1 写新 `types.ts`(含 `Signal`/`regime`/预测字段/`news.link`),作为前端单一事实源。
-2. **骨架 + 主题**:页眉 / 三段式布局 / 明暗主题 / 时间线(tone 染色)。
-3. **小票主体**:抬头 → headline → 指标表(10 行,先不画 sparkline)→ 四层(预测卡)→ 复盘 → 新闻(带链接按钮)→ 页脚。
-4. **技术指标面板**:`signals` 按 group 分节 + `regime` 徽章(本次新增,数据已就绪)。
-5. **Tweaks / 响应式 / 空态**;命中率板块**留空位**,等 V2 eval。
+---
 
-> 后端契约若再变(如加 `spark` 序列、eval 标签),回到本文件 §1 更新,再让前端跟进。
+## 7. 几何算法(SVG,纯坐标映射,末点用 HTML span 避免椭圆)
+- `sparkGeom(vals)`:viewBox100×30 pad4;`x=pad+(W-2pad)*i/(N-1)`,`y=H-pad-(H-2pad)*(v-min)/range`;返回 points + dotX/dotY。
+- 价格图:见 §5.2。
+- `miniLine(series,{W,H,padX6,padY14})`:y 域 `lo=max(0,min-8)`,`hi=min(100,max+8)`;60/75 分级虚线(`t∈[lo,hi]` 才画);用于 track 月线{380,150}/季月线{220,70}。
+- `buildCalendar`(周一首,有 brief 加 `1.6px solid ink` 描边)、`buildMonthBlocks`(年热力图,周日首列网格,gradeCol 着色)、ALL 柱状(每日一柱 height=score%)。
+- `gradeCol`:green up / yellow warn / red down / 其他 hair;`accColOf`:≥75 up / ≥60 warn / else down。
+- **以上 track 几何在 V2 评估层产出 `track.json` 后才接入;本期 track 页为空态。**
+
+---
+
+## 8. 数据契约(= 真实 `data/briefs.json`)与后端映射
+
+顶层 `{model, generatedAt, briefs:[Brief]}`(briefs 倒序)。Brief 字段:
+`date/weekday/issue/time/tone/headline` · `metrics[key,label,value,change,kind,spark:number[]]` · `signals[key,label,value,unit,group]` · `regime{}` · `priceSeries{key:[{date,value}]}`(5 资产×30 点)· `facts[]` · `reads[]` · `hypotheses[ifThen,invalidation,asset,direction,horizon,confidence,keyFactors]` · `impacts[asset,watch,dir]` · `reviews[ifThen,status,note]` · `news[title,source,cat,assets,dir,link]`。
+
+- **设计有、后端无**:`q`(nasdaq/btc 报价)、BTC/DXY 价格序列 → 不做(纳指已在 metrics;BTC 不加)。`track`(命中率)、`PERIODS`(区间聚合)→ 空态待 V2。
+- **后端有、设计无**:`signals`/`regime`/预测富字段/`news.link` → 决策 3:新增卡片 + 升级预测卡 + 链接。
+- 完全 data-driven,忽略未知字段;空态:reviews 空→隐藏复盘;signals/regime 容空;news 空→隐藏。
+
+---
+
+## 9. 构建顺序
+1. 骨架 + theme.css(变量/punch/纹理/keyframes)+ 字体 + copy-data。
+2. 基础:types.ts(契约)/ lib/format.ts(fmt+颜色)/ lib/geometry.ts / hooks(useHashRoute/useTheme/useIsMobile)/ Card+SectionHead+Header+NavTabs。
+3. 简报页(MARKET DATA / PRICE 图 / SIGNALS 卡 / NEWS / AI BRIEF 预测卡 / REVIEW)。
+4. 时间线页(day 真实 + 区间空态)。
+5. 命中率页(空态)。
+6. Tweaks 浮层 / 响应式 / 空态;preview 实测明暗+窄屏。
+> 命中率/区间聚合的真实接入,等 V2 评估层产出 `track.json`/`periods.json` 后回到 §4.3/§7。

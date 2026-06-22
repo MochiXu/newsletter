@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { ThemeMode } from '../types'
 
-// 主题 segmented 控件单个 tab 的样式(从设计稿 renderVals.tab 移植)。
 const tab = (active: boolean): CSSProperties => ({
   padding: '5px 13px',
   fontSize: 11,
@@ -16,13 +15,8 @@ const tab = (active: boolean): CSSProperties => ({
   transition: 'all .18s',
 })
 
-interface Props {
-  themeMode: ThemeMode
-  setTheme: (m: ThemeMode) => void
-}
-
-/** 页眉:站标 + 主标题 + 副标题(左)+ 主题切换三档(右)。 */
-export default function Header({ themeMode, setTheme }: Props) {
+/** 页眉:站标 + 主标题 + 副标题(左)+ 主题三档(右)。 */
+export default function Header({ themeMode, setTheme }: { themeMode: ThemeMode; setTheme: (m: ThemeMode) => void }) {
   return (
     <div
       style={{

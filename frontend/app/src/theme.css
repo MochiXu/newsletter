@@ -1,7 +1,6 @@
-/* 主题与基础样式:从设计稿 frontend/desgin/resource/市场走势简报.dc.html 的 <helmet> 1:1 搬运。
-   所有色彩集中在 CSS 变量;明暗主题通过 data-theme 属性 + prefers-color-scheme 媒体查询联动。
-   注意:data-theme="auto" 不匹配任何 [data-theme=...] 规则,于是落到 :root + @media,
-   从而「跟随系统」——这是有意的机制,React 侧把 themeMode 原样写进 data-theme 即可。 */
+/* 主题与基础样式:1:1 复刻 frontend/desgin/resource/市场走势简报.dc.html 的 <style>。
+   色彩集中在 CSS 变量;明暗经 data-theme 属性 + prefers-color-scheme 联动。
+   data-theme="auto" 不匹配任何 [data-theme=...] 规则 → 落到 :root + @media(跟随系统)。 */
 
 :root {
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -16,8 +15,10 @@
   --accent: #c0612f;
   --up: #2f7d50;
   --down: #c0432a;
+  --warn: #c79a2c;
   --blue: #3a6ea5;
   --shadow: 0 20px 50px -26px rgba(70, 48, 18, 0.55);
+  --panel-tex: radial-gradient(color-mix(in srgb, var(--faint), transparent 72%) 0.5px, transparent 0.6px);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -32,6 +33,7 @@
     --accent: #e0824a;
     --up: #5bc486;
     --down: #e8694e;
+    --warn: #d8b24a;
     --blue: #7aa6dd;
     --shadow: 0 26px 60px -30px rgba(0, 0, 0, 0.78);
   }
@@ -48,6 +50,7 @@
   --accent: #c0612f;
   --up: #2f7d50;
   --down: #c0432a;
+  --warn: #c79a2c;
   --blue: #3a6ea5;
   --shadow: 0 20px 50px -26px rgba(70, 48, 18, 0.55);
 }
@@ -63,6 +66,7 @@
   --accent: #e0824a;
   --up: #5bc486;
   --down: #e8694e;
+  --warn: #d8b24a;
   --blue: #7aa6dd;
   --shadow: 0 26px 60px -30px rgba(0, 0, 0, 0.78);
 }
@@ -83,6 +87,56 @@ body {
 button {
   font-family: inherit;
   outline: none;
+}
+a {
+  color: inherit;
+}
+
+/* 暖纸卡片:纸面 + 颗粒纹理 + 大柔阴影。--panel-tex 由 JS 按 paperTexture 开关切换(none/纹理)。 */
+.mb-card {
+  position: relative;
+  background-color: var(--paper);
+  background-image: var(--panel-tex);
+  background-size: 5px 5px;
+  box-shadow: var(--shadow);
+}
+
+/* 小票撕齿边:上下边缘半圆打孔。 */
+.mb-punch {
+  -webkit-mask-image: radial-gradient(circle 5px at 7px 0, #000 99%, #0000 100%),
+    radial-gradient(circle 5px at 7px 9px, #000 99%, #0000 100%), linear-gradient(#000, #000);
+  -webkit-mask-size: 14px 9px, 14px 9px, 100% 100%;
+  -webkit-mask-repeat: repeat-x, repeat-x, no-repeat;
+  -webkit-mask-position: top, bottom, 0 0;
+  -webkit-mask-composite: xor;
+  mask-image: radial-gradient(circle 5px at 7px 0, #000 99%, #0000 100%),
+    radial-gradient(circle 5px at 7px 9px, #000 99%, #0000 100%), linear-gradient(#000, #000);
+  mask-size: 14px 9px, 14px 9px, 100% 100%;
+  mask-repeat: repeat-x, repeat-x, no-repeat;
+  mask-position: top, bottom, 0 0;
+  mask-composite: exclude;
+}
+
+.mb-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--faint) transparent;
+}
+.mb-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.mb-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.mb-scroll::-webkit-scrollbar-thumb {
+  background: var(--faint);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.mb-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--ink2);
+  background-clip: content-box;
 }
 
 @keyframes receiptIn {
@@ -105,26 +159,9 @@ button {
   }
 }
 
-/* 区域内独立滚动条:细、暖色、跟随主题(桌面下时间线列 / 小票列各自滚动)。
-   thumb 用 background-clip:content-box + 透明边框做出「留白细条」效果,空闲时低调、悬停加深。 */
-.mb-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: var(--faint) transparent;
-}
-.mb-scroll::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
-}
-.mb-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.mb-scroll::-webkit-scrollbar-thumb {
-  background: var(--faint);
-  border-radius: 9px;
-  border: 3px solid transparent;
-  background-clip: content-box;
-}
-.mb-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--ink2);
-  background-clip: content-box;
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

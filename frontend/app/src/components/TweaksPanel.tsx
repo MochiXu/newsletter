@@ -1,7 +1,6 @@
 import { useState, type CSSProperties } from 'react'
 import type { Tweaks } from '../types'
 
-// 主题色候选(含设计稿默认 #fa5700 与各主题色);null = 跟随主题默认 --accent。
 const ACCENTS: { name: string; value: string | null }[] = [
   { name: '默认', value: null },
   { name: '橙赭', value: '#c0612f' },
@@ -10,11 +9,6 @@ const ACCENTS: { name: string; value: string | null }[] = [
   { name: '钢蓝', value: '#3a6ea5' },
   { name: '墨绿', value: '#2f7d50' },
 ]
-
-interface Props {
-  tweaks: Tweaks
-  setTweaks: (t: Tweaks) => void
-}
 
 const rowStyle: CSSProperties = {
   display: 'flex',
@@ -47,8 +41,8 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   )
 }
 
-/** 用户可调项浮层(对应设计稿「宿主右侧面板」):主题色 / 走势线 / 纸纹理。固定右下角。 */
-export default function TweaksPanel({ tweaks, setTweaks }: Props) {
+/** 用户可调项浮层(对应设计 §9):主题色 / 走势线 / 纸纹理。固定右下角。 */
+export default function TweaksPanel({ tweaks, setTweaks }: { tweaks: Tweaks; setTweaks: (t: Tweaks) => void }) {
   const [open, setOpen] = useState(false)
   const set = (patch: Partial<Tweaks>) => setTweaks({ ...tweaks, ...patch })
 
@@ -71,13 +65,12 @@ export default function TweaksPanel({ tweaks, setTweaks }: Props) {
             </span>
             <button
               onClick={() => setOpen(false)}
-              style={{ border: 'none', background: 'transparent', color: 'var(--ink2)', cursor: 'pointer', fontSize: 14, lineHeight: 1 }}
+              style={{ border: 'none', background: 'transparent', color: 'var(--ink2)', cursor: 'pointer', fontSize: 14 }}
               aria-label="关闭"
             >
               ✕
             </button>
           </div>
-
           <div style={{ marginTop: 12 }}>
             <span style={labelStyle}>主题色</span>
             <div style={{ display: 'flex', gap: 7, marginTop: 8, flexWrap: 'wrap' }}>
@@ -102,7 +95,6 @@ export default function TweaksPanel({ tweaks, setTweaks }: Props) {
               })}
             </div>
           </div>
-
           <div style={rowStyle}>
             <span style={labelStyle}>走势线</span>
             <Toggle on={tweaks.showSparklines} onToggle={() => set({ showSparklines: !tweaks.showSparklines })} />

@@ -1,5 +1,5 @@
-import type { Review as ReviewItem } from '../../types'
-import SectionHead from '../SectionHead'
+import type { Review } from '../../types'
+import { Card, SectionHead } from '../../components/Card'
 
 const MARK = {
   held: { ch: '✓', col: 'var(--up)', lab: '已兑现' },
@@ -7,16 +7,12 @@ const MARK = {
   open: { ch: '○', col: 'var(--accent)', lab: '待观察' },
 } as const
 
-interface Props {
-  reviews: ReviewItem[]
-}
-
-/** 假设复盘:圆形徽章(✓/✕/○)+ 原命题 + 状态标签 + 备注。无复盘则整段隐藏。 */
-export default function Review({ reviews }: Props) {
+/** REVIEW 复盘:圆形状态徽标(✓/✕/○)+ 原命题 + 状态 + 备注。空则不渲染(调用方控制)。 */
+export default function ReviewCard({ reviews }: { reviews: Review[] }) {
   if (reviews.length === 0) return null
   return (
-    <>
-      <SectionHead label="REVIEW" zh="假设复盘" margin="22px 0 12px" />
+    <Card>
+      <SectionHead label="REVIEW" zh="假设复盘" />
       {reviews.map((r, i) => {
         const m = MARK[r.status]
         return (
@@ -45,12 +41,12 @@ export default function Review({ reviews }: Props) {
                 <span style={{ fontFamily: 'var(--mono)', fontSize: 9.5, color: m.col, letterSpacing: '.5px' }}>
                   {m.lab}
                 </span>
-                <span style={{ fontSize: 10.5, color: 'var(--ink2)', lineHeight: 1.4 }}>{r.note}</span>
+                {r.note && <span style={{ fontSize: 10.5, color: 'var(--ink2)', lineHeight: 1.4 }}>{r.note}</span>}
               </div>
             </div>
           </div>
         )
       })}
-    </>
+    </Card>
   )
 }

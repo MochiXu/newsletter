@@ -1,84 +1,138 @@
-// 展示平面数据契约(单一事实来源)。
-// 与后端 py/newsletter/render.py 的 render_json() 输出严格对应;详见 docs/frontend-plane.md §3.1。
-// 注意:tone / impacts[].dir / news[].dir 均为必填——它们驱动时间线染色与方向箭头,
-// 不是「可选缺口」(后端已在 emit_brief schema 产出)。
+// 展示平面数据契约(单一事实来源)。严格对应后端 py/newsletter/models.py 的 Brief。
+// 设计/重建指南见 docs/frontend-rebuild.md。原则:完全 data-driven,忽略未知字段。
 
 export type Tone = 'risk-on' | 'risk-off' | 'neutral'
 export type Dir = 'up' | 'down' | 'watch'
 export type MetricKind = 'yield' | 'spread' | 'index' | 'price'
 export type NewsCat = 'fact' | 'read' | 'both' | 'noise'
 export type ReviewStatus = 'held' | 'invalidated' | 'open'
+export type PredDir = 'up' | 'down' | 'flat'
+export type Horizon = 'next_1d' | 'h_5d' | 'h_20d' | 'h_60d'
+export type SignalUnit = 'pct' | 'pct0' | 'bp' | 'z' | 'corr' | 'yield'
+export type SignalGroup = 'trend' | 'momentum' | 'vol' | 'rates' | 'dollar' | 'cross_asset' | 'range'
 
-/** 指标表一行。value/change 的单位由 kind 决定(见 lib/format.ts)。 */
+export interface PricePoint {
+  date: string
+  value: number
+}
+
+/** 指标表一行。spark=最近~20真实收盘(因果,小走势线)。 */
 export interface Metric {
   key: string
   label: string
   value: number
   change: number
   kind: MetricKind
+  spark: number[]
 }
 
-/** 假设层:可证伪命题 + 失效条件。 */
+/** 技术指标一条(代码计算)。value 原始数值,按 unit 格式化、按 group 分节。 */
+export interface Signal {
+  key: string
+  label: string
+  value: number
+  unit: SignalUnit
+  group: SignalGroup
+}
+
+/** 假设层 = 对固定方向的可证伪预测(纳指/黄金/广义美元/2Y)。 */
 export interface Hypothesis {
   ifThen: string
   invalidation: string
+  asset: string
+  direction: PredDir
+  horizon: Horizon
+  confidence: number
+  keyFactors: string[]
 }
 
-/** 影响层:资产观察点 + 方向(非买卖建议)。 */
 export interface Impact {
   asset: string
   watch: string
   dir: Dir
 }
 
-/** 假设复盘一条。 */
 export interface Review {
   ifThen: string
   status: ReviewStatus
   note: string
 }
 
-/** 新闻分类一条。cat 为 null 表示未分类(无 LLM provider 时)。link 真实数据有、demo 无。 */
 export interface News {
   title: string
   source: string
   cat: NewsCat | null
   assets: string[]
   dir: Dir
-  link?: string
+  link: string
 }
 
-/** 单个交易日的完整简报(= render_json 的输出)。 */
+/** 单个交易日的完整简报(= 后端 Brief 契约)。 */
 export interface Brief {
-  date: string // YYYY-MM-DD,来自 run_date
-  weekday: string // 中文,如「周三」
-  issue: number // 刊号:按年代序(最早=1)
-  time: string // 常量「07:00 CST」
+  date: string
+  weekday: string
+  issue: number
+  time: string
   tone: Tone
   headline: string
-  metrics: Metric[] // 通常 7 行(含广义美元);长度自适应
+  metrics: Metric[]
+  signals: Signal[]
+  regime: Record<string, string>
+  priceSeries: Record<string, PricePoint[]>
   facts: string[]
-  reads: string[] // 解读层(后端 interpretation)
+  reads: string[]
   hypotheses: Hypothesis[]
   impacts: Impact[]
-  reviews: Review[] // 可能为空 → 复盘节隐藏
+  reviews: Review[]
   news: News[]
 }
 
-/** 聚合文件 data/briefs.json 的顶层结构(briefs 按日期倒序,最新在前)。 */
 export interface BriefsPayload {
   model: string
   generatedAt: string
   briefs: Brief[]
 }
 
+// ── 命中率 / 区间聚合(V2 评估层产出;当前后端不产 → 前端按 null 走空态)──────────
+export type Grade = 'green' | 'yellow' | 'red'
+export interface TrackData {
+  days: Record<string, { score: number; grade: Grade }>
+  months: Record<string, { sum: number; n: number; high: number; acc: number }>
+  quarters: Record<string, { sum: number; n: number; high: number; acc: number }>
+  years: Record<string, { sum: number; n: number; high: number; acc: number }>
+}
+export interface PeriodStat {
+  k: string
+  v: string
+  d: 'up' | 'down' | 'flat'
+}
+export interface Period {
+  id: string
+  label: string
+  sub: string
+  tone: Tone
+  acc: number
+  headline: string
+  stats: PeriodStat[]
+}
+export type Periods = Record<'month' | 'quarter' | 'half' | 'year', Period[]>
+
 // ── 前端 UI 状态(非数据契约)─────────────────────────────────────────────
-
 export type ThemeMode = 'auto' | 'light' | 'dark'
+export type Granularity = 'day' | 'month' | 'quarter' | 'half' | 'year'
+export type TrackMode = 'month' | 'quarter' | 'year' | 'all'
 
-/** 用户可调项(Tweaks 面板)。 */
 export interface Tweaks {
-  accent: string | null // null = 用主题默认 --accent
+  accent: string | null
   showSparklines: boolean
   paperTexture: boolean
+}
+
+export interface Route {
+  page: 'brief' | 'timeline' | 'track'
+  date?: string
+  gran?: Granularity
+  from?: string
+  mode?: TrackMode
+  period?: string | null
 }
