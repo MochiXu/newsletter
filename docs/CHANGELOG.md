@@ -18,6 +18,19 @@
 
 ---
 
+## 2026-06-22 — V1.5 内容与体验增强(契约加厚 + LLM 健壮性 + 前端 3 页重建)
+
+V1 之后、V2 之前的一波增强,不改「代码算特征 → LLM 只解释」骨架。详见 [v1.5-progress.md](refactor/v1.5-progress.md)。
+
+- **`briefs.json` 契约加厚**:新增 `signals`(29 条技术指标,带 unit/group,单一源 `features.FEATURE_VIEW`)+ `regime`(代码派生标签);假设层改为**对固定 roster 纳指/黄金/广义美元/2Y 的预测卡**(asset/direction/horizon/confidence/key_factors/可度量失效);`metrics[].spark`(~20 真实收盘,小走势线)+ `priceSeries`(5 资产×30 点,30D 可交互价格图);`facts`/`reads` 从 `str[]` 升级为 `[{tag,text,figures}]`(主题标签 + 数字按方向上色)。
+- **通用文本规范化**:`textnorm.normalize_text`(全角标点→ASCII、中英盘古空格、双引号→单引号)落库前统一应用;`llm/style.TEXT_STYLE` 公共 prompt 片段(简报+新闻共用)。
+- **LLM 健壮性**:结构化输出改用 **JSON mode**(`response_format`)替代强制 function-calling——后者在复杂 schema 下会让 DeepSeek 提前闭合根对象、丢字段;figures 用扁平字符串 `figs='token|dir;...'` 避免深层嵌套;新闻 fetch/classify 解耦(分类失败不丢新闻)。
+- **新闻升级**:优质宏观源(Fed/ECB/MarketWatch/CNBC)+ 过滤噪音/无链接 + 带真实 link。
+- **前端按设计稿重建为 3 页 SPA**(简报/时间线/命中率):双栏卡片 + 30D 可交互价格图 + 技术指标面板 + 预测卡 + 事实/解读层数字按方向上色;命中率/区间聚合留空态待 V2(不显示假数字)。详见 [frontend-rebuild.md](frontend-rebuild.md)。**教训**:照设计重建必须读设计的实现源文件(`市场走势简报.dc.html`),不能只读文字稿。
+- 后端离线单测 41 → **54**(textnorm 全覆盖 / figures 解析 / 向后兼容旧 str[] facts / 因果性红线)。每个阶段收尾跑多智能体对抗式审查(本轮捕获并修复了 `Brief.facts/reads` 缺向后兼容校验器的回归)。
+
+---
+
 ## 2026-06-18 — 数据质量重构 V1(后端推平为纯 Python)
 
 以**数据质量**为核心的整体重构(`feat(refactor)`):把后端推平为纯 Python,核心是

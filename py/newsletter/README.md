@@ -39,21 +39,22 @@
 | 模块 | 职责 |
 |---|---|
 | `config.py` | 单一配置源:从仓库根推导所有数据路径(`PATHS`)、集中特征窗口常量(`WINDOWS`)、从 `.env` 类型化加载密钥/开关(`Settings`,pydantic) |
-| `models.py` | 边界数据契约(pydantic):① LLM 原始输出的**容错解析**(归一化字符串列表、枚举容错,根治 `{'fact':...}`→`[object Object]`);② 严格对齐前端 `types.ts` 的 `Brief/Metric/News/...`(驼峰别名导出) |
+| `models.py` | 边界数据契约(pydantic):① LLM 原始输出的**容错解析**(归一化字符串列表、枚举容错,根治 `{'fact':...}`→`[object Object]`);② 严格对齐前端 `types.ts` 的 `Brief/Metric/Signal/News/...`(驼峰别名导出)。事实/解读层为 `TaggedItem{tag,text,figures:[Figure{t,dir}]}`(`figs` 扁平串解析、tag 受控词表 `FACT_TAGS`、向后兼容旧 str[]) |
 | `sources/` | 数据源适配器:`base`(`Source` 协议 + 带退避的 `urllib` 拉取 + api_key 不入日志)、`fred` / `twelvedata` / `tiingo` / `yahoo`,各自产出统一 tidy 帧 `[date, value]` |
 | `catalog.py` | 观察集机读版:每个逻辑指标声明 `(主源, 兜底链, kind)`;抓取时按链路依次尝试,记录实际命中的源(可追溯);`DISPLAY_METRICS` 定义前端指标表 |
 | `store.py` | parquet 原始层读写:`write_snapshot`(归档上一份再写 latest)、`write_features`(单日特征快照,gitignore) |
-| `features.py` | 技术特征(纯 pandas):趋势(MA/距 MA)、动量(收益率/利率变化 bp)、波动(年化已实现波动/回撤)、利率·通胀(含 `breakeven_10y`)、美元(广义 vs 窄口径代理背离)、跨资产 60 日滚动相关、52 周分位、极值 |
+| `features.py` | 技术特征(纯 pandas):趋势(MA/距 MA)、动量(收益率/利率变化 bp)、波动(年化已实现波动/回撤)、利率·通胀、美元(广义 vs 窄口径代理背离)、跨资产 60 日滚动相关、52 周分位、极值;`FEATURE_VIEW`(signals 单一源)、`metric_spark`(小走势序列)、`price_series`(30D 价格序列)|
 | `regime.py` | 基于特征**纯代码派生** regime 标签(股票趋势 / 波动率档 / 收益率曲线 / 实际利率 / 美元强弱),不让 LLM 猜 |
-| `llm/` | `providers`(多模型可插拔)、`schema`(四层 + tone/direction 的 JSON Schema)、`prompt`(`build_feature_block`:把算好的特征渲染成带白话标签的文本块)、`service`(`generate_brief`) |
-| `render.py` | LLM 输出 → pydantic 校验/归一化 → `build_metrics` / `build_brief` / `render_markdown` / `render_text` / `upsert_briefs_json`(维护聚合 `briefs.json`) |
+| `llm/` | `providers`(多模型可插拔;OpenAI 兼容家走 **JSON mode** `response_format` + schema 写进 system,替代强制 function-calling——后者在复杂 schema 下结构失稳)、`schema`(四层 + tone/direction + facts/reads 的 tag/figs 的 JSON Schema)、`prompt`(`build_feature_block`)、`style`(`TEXT_STYLE` 公共文本风格片段)、`service`(`generate_brief`) |
+| `textnorm.py` | 确定性中英文排版规范化(`normalize_text`:全角标点→ASCII、中英盘古空格、双引号→单引号;不拆 `MA200/2s10s/9bp`)。render 落库前对所有展示文本统一应用 |
+| `render.py` | LLM 输出 → pydantic 校验/归一化 + `normalize_text` → `build_metrics`(含 spark)/ `build_signals` / `build_price_series` / `build_brief` / `render_markdown` / `render_text` / `upsert_briefs_json`(维护聚合 `briefs.json`) |
 | `news.py` | RSS/Atom 抓取(stdlib)+ LLM 分类(事实/解读/影响资产);**按模型回填的 `index` 对齐**,免疫 LLM 改写/翻译标题 |
 | `hypotheses.py` | 假设追踪复盘(`hypotheses.csv`):登记新假设、对**往日** open 假设复盘 held/invalidated/open(不拿当天数据自我验证),按天幂等 |
 | `pipeline.py` | 编排:`fetch_and_store` → `build_report`(算特征→LLM→假设→新闻→组装 Brief)→ `write_outputs`;`target_date` 贯穿,各 LLM 环节独立 try/except 降级 |
 | `__main__.py` | CLI:`--date` / `--no-news` / `--history-years` / `-v` |
 | `deliver/feishu.py` | 飞书机器人推送(HMAC 签名可选;失败不阻断,已存 md) |
 | `framework/linkage_map.md` | 核心 IP:人工维护的宏观传导图,运行时读入喂给 LLM |
-| `tests/` | 41 个离线单测(录制响应 + 手算核对 + **特征因果性红线**) |
+| `tests/` | 54 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析 + 向后兼容旧 str[] facts) |
 
 ## 数据源分工(已接入)
 

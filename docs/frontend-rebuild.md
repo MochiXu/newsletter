@@ -164,7 +164,7 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 ## 8. 数据契约(= 真实 `data/briefs.json`)与后端映射
 
 顶层 `{model, generatedAt, briefs:[Brief]}`(briefs 倒序)。Brief 字段:
-`date/weekday/issue/time/tone/headline` · `metrics[key,label,value,change,kind,spark:number[]]` · `signals[key,label,value,unit,group]` · `regime{}` · `priceSeries{key:[{date,value}]}`(5 资产×30 点)· `facts[]` · `reads[]` · `hypotheses[ifThen,invalidation,asset,direction,horizon,confidence,keyFactors]` · `impacts[asset,watch,dir]` · `reviews[ifThen,status,note]` · `news[title,source,cat,assets,dir,link]`。
+`date/weekday/issue/time/tone/headline` · `metrics[key,label,value,change,kind,spark:number[]]` · `signals[key,label,value,unit,group]` · `regime{}` · `priceSeries{key:[{date,value}]}`(5 资产×30 点)· `facts[{tag,text,figures:[{t,dir}]}]` · `reads[同]`(`figures` 标注正文里需上色的方向数字,前端 `highlightFigures` 按 dir 上色)· `hypotheses[ifThen,invalidation,asset,direction,horizon,confidence,keyFactors]` · `impacts[asset,watch,dir]` · `reviews[ifThen,status,note]` · `news[title,source,cat,assets,dir,link]`。所有展示文本后端已过 `textnorm.normalize_text`(英文标点 + 中英空格)。
 
 - **设计有、后端无**:`q`(nasdaq/btc 报价)、BTC/DXY 价格序列 → 不做(纳指已在 metrics;BTC 不加)。`track`(命中率)、`PERIODS`(区间聚合)→ 空态待 V2。
 - **后端有、设计无**:`signals`/`regime`/预测富字段/`news.link` → 决策 3:新增卡片 + 升级预测卡 + 链接。
