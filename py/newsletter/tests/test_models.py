@@ -2,19 +2,30 @@
 
 import unittest
 
-from newsletter.models import Brief, BriefsPayload, Dir, LLMBrief, Tone
+from newsletter.models import Brief, BriefsPayload, Dir, LLMBrief, TaggedItem, Tone
 
 
 class TestLLMNormalization(unittest.TestCase):
-    def test_facts_dict_leak_normalized(self):
-        # 根治旧 bug:模型把 ["x"] 返成 [{"fact":"x"}]
-        b = LLMBrief(facts=[{"fact": "10Y 4.48%"}, "VIX 16", {"x": "金价高位"}, {"text": "t"}])
-        self.assertEqual(b.facts, ["10Y 4.48%", "VIX 16", "金价高位", "t"])
-        self.assertTrue(all(isinstance(x, str) for x in b.facts))
+    def test_facts_tagged_normalized(self):
+        # facts 升级为 [{tag,text}];容忍带标签 dict / 纯字符串 / 旧式 {fact} / 单值 dict(tag 置空);
+        # 越界 tag(不在 FACT_TAGS)归空,与 schema 枚举对齐
+        b = LLMBrief(facts=[{"tag": "利率", "text": "10Y 4.48%"}, "VIX 16", {"fact": "金价高位"},
+                            {"x": "t"}, {"tag": "实际利率", "text": "越界标签"}])
+        self.assertEqual(
+            [(x.tag, x.text) for x in b.facts],
+            [("利率", "10Y 4.48%"), ("", "VIX 16"), ("", "金价高位"), ("", "t"), ("", "越界标签")],
+        )
+        self.assertTrue(all(isinstance(x, TaggedItem) for x in b.facts))
+
+    def test_figures_carried_and_dir_coerced(self):
+        b = LLMBrief(facts=[{"tag": "利率", "text": "升 +9bp 至 2.23%",
+                             "figures": [{"t": "+9bp", "dir": "UP"}, {"t": "2.23%", "dir": "flat"}]}])
+        figs = b.facts[0].figures
+        self.assertEqual([(x.t, x.dir.value) for x in figs], [("+9bp", "up"), ("2.23%", "flat")])
 
     def test_interpretation_blank_dropped(self):
-        b = LLMBrief(interpretation=["有内容", "", "  "])
-        self.assertEqual(b.interpretation, ["有内容"])
+        b = LLMBrief(interpretation=["有内容", "", "  ", {"tag": "黄金", "text": ""}])
+        self.assertEqual([(x.tag, x.text) for x in b.interpretation], [("", "有内容")])
 
     def test_tone_coercion(self):
         self.assertEqual(LLMBrief(tone="risk_on").tone, Tone.RISK_ON)

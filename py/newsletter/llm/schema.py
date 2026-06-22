@@ -8,6 +8,8 @@
 from __future__ import annotations
 
 from .. import catalog
+from ..models import FACT_TAGS
+from .style import TEXT_STYLE
 
 BRIEF_TOOL = "emit_brief"
 
@@ -16,6 +18,23 @@ _PRED = [(s.series_id, s.metric_label or s.label) for s in catalog.PREDICTION_TA
 _PRED_IDS = [sid for sid, _ in _PRED]
 _PRED_N = len(_PRED_IDS)
 _PRED_DESC = "、".join(f"{lab}={sid}" for sid, lab in _PRED)
+
+# 主题标签受控词表单一源在 models.FACT_TAGS(coercion 落库时也按它兜底,避免越界 tag)。
+_TAG_ENUM = list(FACT_TAGS)
+
+# 事实层/解读层正文里"需要上色强调的关键数字"——**扁平字符串**(避免 DeepSeek 处理不了的深层嵌套数组)。
+# 格式 'token|dir;token|dir',dir∈up/down/flat;后端 _coerce_tagged_list 解析成 figures 列表给前端。
+_FIGS_PROP: dict = {
+    "type": "string",
+    "description": (
+        "需上色强调的关键数字,格式 'token|dir;token|dir'(分号分隔)。"
+        "**token 必须是数字本身**(带正负号/单位,如 '+15bp'、'-7.8%'、'80.48'、'496.27'),"
+        "**不要用资产名**(不要写 '标普500'、'VIX'、'纳指');token 须是 text 中的原样子串。"
+        "dir∈up(上行/增大,绿)/down(下行/减小,红)/flat(中性)。"
+        "**只列有方向含义的变化**(涨跌/扩大收窄),电平/相关系数/窗口天数不列,不必每个数字都列;无则留空串。"
+        "例:text='标普涨80.48点,VIX升2.03' → figs='80.48|up;2.03|up'。"
+    ),
+}
 
 # emit_brief 的 JSON Schema —— Anthropic 作 tool input_schema,OpenAI 兼容作 function parameters。
 BRIEF_SCHEMA: dict = {
@@ -29,13 +48,32 @@ BRIEF_SCHEMA: dict = {
         },
         "facts": {
             "type": "array",
-            "items": {"type": "string"},
-            "description": "事实层:纯客观,复述给定的数据/特征,不加判断。每条一句话,不要包成对象",
+            "description": (
+                "事实层:**精选**关键客观观察 + 当日事件(不要逐条复述每个收盘价——它们已在数据表)。"
+                "每条 {tag, text}:tag 从枚举选最贴切的一个主题;text 为一句客观陈述,可含具体数字,不加判断"
+            ),
+            "items": {
+                "type": "object",
+                "properties": {
+                    "tag": {"type": "string", "enum": _TAG_ENUM, "description": "主题标签(枚举择一)"},
+                    "text": {"type": "string", "description": "一句客观陈述,可含数字;不加判断"},
+                    "figs": _FIGS_PROP,
+                },
+                "required": ["tag", "text"],
+            },
         },
         "interpretation": {
             "type": "array",
-            "items": {"type": "string"},
-            "description": "解读层:当前处于什么 regime、特征含义。必须是判断而非事实",
+            "description": "解读层:因果/机制论述(判断,非事实)。每条 {tag, text},tag = 该判断主要针对的主题",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "tag": {"type": "string", "enum": _TAG_ENUM, "description": "该判断主要针对的主题(枚举择一)"},
+                    "text": {"type": "string", "description": "一段论述:当前 regime / 特征含义 / 因果机制"},
+                    "figs": _FIGS_PROP,
+                },
+                "required": ["tag", "text"],
+            },
         },
         "hypotheses": {
             "type": "array",
@@ -100,11 +138,16 @@ SYSTEM = (
     "你是一名严谨的宏观研究助手,服务于个人投资者的学习与决策框架。"
     "你会收到:今日各资产的**已由代码计算好的技术特征**(收益率/变化量/均线/波动率/相关性/"
     "z-score/regime 标签等)、月频宏观最新读数、以及一份『宏观传导图』。"
-    "硬性纪律:(1) 基于给定特征推理,**不要自行心算或臆造数字**;(2) 严格区分事实与判断;"
+    "硬性纪律:(1) 基于给定特征推理,**不要自行心算或臆造数字**;"
+    "(2) 严格区分事实与判断;事实层只放**精选**的关键客观观察+事件(别复述每个收盘价,数据表已有),"
+    "每条带主题标签 tag;解读层是因果/机制判断,每条也带 tag(从受控词表择一);"
+    "事实层/解读层可为正文里**有方向含义的关键变化数字**填 figs(扁平字符串 'token|dir;...',"
+    "token 是数字本身如 '+15bp'/'-7.8%'、不是资产名,dir=up/down/flat),只标变化、不标电平/相关系数;"
     f"(3) **假设层 = 对固定 roster({_PRED_DESC})各给且只给一条由特征驱动的预测**:"
     "写明方向(up/down/flat)、期限 horizon、置信度 confidence(0~1)、驱动特征 key_factors、"
     "以及**可度量的失效条件**(绑定该序列+具体阈值+期限,能被未来数据客观判定);"
     "**不要凑数、不要超出或漏掉这几个方向**,低把握就给低 confidence;"
     "(4) 只给『观察点』,绝不给买/卖建议,不承诺收益;(5) 中文输出,简洁、有信息量;"
     "(6) 给出当日 tone,并为每条影响层资产标注 direction。通过 emit_brief 输出四层简报。"
+    " " + TEXT_STYLE
 )

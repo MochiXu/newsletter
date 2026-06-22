@@ -124,7 +124,9 @@ def build_user(feature_block: str, linkage_map: str) -> str:
         + "\n\n## 宏观传导图(你的推理依据)\n"
         + linkage_map
         + "\n\n请基于以上**已算好的特征**,通过 emit_brief 输出四层简报:"
-        "事实层复述关键特征;解读层标注为判断(当前 regime、特征含义);"
+        "事实层 = **精选**关键客观观察 + 当日事件(别逐条复述每个收盘价——已在数据表;挑值得注意的:"
+        "异动、极值、背离、跨资产关系等),每条 {tag,text} 带主题标签;"
+        "解读层 = 因果/机制判断(当前 regime、特征含义),每条 {tag,text} 标注所针对主题;"
         "假设层 = 对固定的纳指/黄金/广义美元/2Y 四个方向**各给且只给一条由特征驱动的预测**"
         "(写明 direction/horizon/confidence/key_factors 与可度量失效条件,低把握给低 confidence,禁止凑数);"
         "影响层给观察点并标注 direction;另给当日 tone。"

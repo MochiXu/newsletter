@@ -65,6 +65,13 @@ class TestBuildBrief(unittest.TestCase):
         self.assertEqual(br.facts, [])
         self.assertEqual(br.weekday, "周四")
 
+    def test_normalizes_text_and_keeps_figures(self):
+        llm = LLMBrief(facts=[{"tag": "黄金", "text": "黄金-7.8%", "figures": [{"t": "-7.8%", "dir": "down"}]}])
+        br = render.build_brief("2026-06-18", llm, [], [], [])
+        self.assertEqual(br.facts[0].text, "黄金 -7.8%")  # normalize 加空格
+        self.assertEqual(br.facts[0].figures[0].t, "-7.8%")  # figure.t 仍是 text 的子串
+        self.assertEqual(br.facts[0].figures[0].dir.value, "down")
+
     def test_full_from_llm(self):
         llm = LLMBrief(headline="H", tone="risk_on", facts=["f1"], interpretation=["i1"],
                        hypotheses=[{"if_then": "x", "invalidation": "z"}],
@@ -89,6 +96,23 @@ class TestBriefsJson(unittest.TestCase):
             self.assertEqual(issues["2026-06-18"], 2)
             self.assertTrue((paths.briefs / "2026-06-18.json").exists())
 
+    def test_upsert_tolerates_legacy_str_facts(self):
+        # 回归红线:升级前的 briefs.json facts/reads 为 str[];upsert 会 model_validate 历史日报,
+        # Brief 须能向后兼容旧格式(否则下次 pipeline 崩、无法落盘)。
+        with tempfile.TemporaryDirectory() as d:
+            paths = Paths(Path(d))
+            paths.briefs.mkdir(parents=True, exist_ok=True)
+            legacy = {
+                "model": "M", "generatedAt": "2026-06-17",
+                "briefs": [{"date": "2026-06-17", "weekday": "周三", "facts": ["旧事实1", "旧事实2"], "reads": ["旧解读"]}],
+            }
+            paths.briefs_json.write_text(json.dumps(legacy, ensure_ascii=False), encoding="utf-8")
+            render.upsert_briefs_json(paths, Brief(date="2026-06-18", weekday="周四"), "M")  # 不应抛
+            data = json.loads(paths.briefs_json.read_text(encoding="utf-8"))
+            old = next(b for b in data["briefs"] if b["date"] == "2026-06-17")
+            self.assertEqual([f["text"] for f in old["facts"]], ["旧事实1", "旧事实2"])  # 迁移为 {tag,text}
+            self.assertTrue(all(isinstance(f, dict) and "tag" in f for f in old["facts"]))
+
     def test_upsert_same_date_overwrites(self):
         with tempfile.TemporaryDirectory() as d:
             paths = Paths(Path(d))
@@ -105,7 +129,7 @@ class TestMarkdown(unittest.TestCase):
         br = render.build_brief("2026-06-18", llm, [], [], [])
         md = render.render_markdown(br, macro=[{"label": "失业率", "value": 4.3, "obs_date": "2026-05-01"}])
         self.assertIn("每日宏观简报 · 2026-06-18", md)
-        self.assertIn("事实1", md)
+        self.assertIn("事实 1", md)  # normalize_text 在中文与数字间加空格
         self.assertIn("失业率", md)
         self.assertIn("不构成投资建议", md)
 

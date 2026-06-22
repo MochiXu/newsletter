@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from xml.etree import ElementTree as ET
 
 from .llm.providers import select_provider
+from .llm.style import TEXT_STYLE
 
 # 默认 RSS 源(免鉴权,偏宏观/市场)。可由调用方覆盖;失效的源会被静默跳过。
 # 顺序 = 优先级(权威央行在前,受 total 截断时优先保留);均已实测能拉到带链接的条目。
@@ -176,8 +177,7 @@ NEWS_SCHEMA = {
 NEWS_SYSTEM = (
     "你是宏观新闻分类助手。把每条新闻分为『事实/解读/事实+解读/噪音』,"
     "用中文一句话概括,列出主要受影响资产,简述方向性影响,并给出方向 direction(up/down/watch)。"
-    "严格区分客观事实与主观解读;绝不给买/卖建议,不承诺收益。"
-    "summary/note 内如需引用,一律用中文引号「」,**不要用英文双引号**(避免破坏 JSON)。"
+    "严格区分客观事实与主观解读;绝不给买/卖建议,不承诺收益。 " + TEXT_STYLE
 )
 
 

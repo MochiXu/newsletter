@@ -100,6 +100,69 @@ def _coerce_str_list(v: Any) -> list[str]:
     return out
 
 
+# 事实层/解读层主题标签受控词表(单一事实源)。schema 喂给 LLM 作 enum;coercion 落库时兜底。
+FACT_TAGS: tuple[str, ...] = ("股市", "利率", "曲线", "美元", "黄金", "波动", "相关", "宏观", "事件")
+
+
+def _parse_figs(v: Any) -> list[dict[str, str]]:
+    """把 LLM 的扁平 figs 字符串 'token|dir;token|dir' 解析成 [{t,dir}];已是 list 则透传。
+
+    扁平字符串避免了 DeepSeek 处理不了的"数组套对象再套数组"深层嵌套;前端契约仍是 figures:[{t,dir}]。
+    """
+    if isinstance(v, list):
+        return v
+    if not isinstance(v, str):
+        return []
+    out: list[dict[str, str]] = []
+    for part in v.split(";"):
+        part = part.strip()
+        if not part:
+            continue
+        t, _, d = part.partition("|")
+        t = t.strip()
+        if t:
+            out.append({"t": t, "dir": d.strip().lower()})  # dir 由 Figure 校验器兜底
+    return out
+
+
+def _coerce_tagged_list(v: Any) -> list[dict[str, str]]:
+    """把 facts/interpretation 统一成 [{tag, text}]。
+
+    容忍:纯字符串(tag 置空,**向后兼容旧 str[] 契约/降级**)、{tag,text}、
+    {fact/interpretation/value/content}、单值 dict、以及已是 TaggedItem 实例(再校验路径)。
+    tag 不在 FACT_TAGS 内 → 归空(与 schema 枚举对齐);丢弃 text 为空的项。
+    """
+    if v is None:
+        return []
+    if isinstance(v, (str, dict)) or isinstance(v, BaseModel):
+        v = [v]
+    out: list[dict[str, Any]] = []
+    for item in v:
+        if isinstance(item, BaseModel):
+            item = item.model_dump()  # TaggedItem 实例 → {tag,text,figures}(build_brief 再校验路径)
+        tag, text, figures = "", "", []
+        if isinstance(item, str):
+            text = item
+        elif isinstance(item, dict):
+            tag = str(item.get("tag") or item.get("theme") or "").strip()
+            # figs 为扁平字符串(LLM 友好);figures 为已结构化列表(再校验/直接构造)
+            figures = _parse_figs(item["figs"] if item.get("figs") is not None else item.get("figures"))
+            for key in ("text", "fact", "interpretation", "value", "content"):
+                if item.get(key):
+                    text = str(item[key])
+                    break
+            else:
+                skip = ("tag", "theme", "figures")
+                vals = [str(val) for k, val in item.items() if k not in skip and val]
+                text = vals[0] if len(vals) == 1 else " ".join(vals)
+        else:
+            text = str(item)
+        text = text.strip()
+        if text:
+            out.append({"tag": tag if tag in FACT_TAGS else "", "text": text, "figures": figures})
+    return out
+
+
 def _coerce_tone(v: Any) -> Any:
     if isinstance(v, str):
         return v.strip().lower().replace("_", "-")
@@ -139,6 +202,28 @@ def _coerce_conf(v: Any) -> float:
 
 
 # ── LLM 原始输出(容错)──────────────────────────────────────────────────
+
+
+class Figure(BaseModel):
+    """text 中需上色强调的一个关键数字。t=该数字在 text 中的原样子串,dir=方向(up绿/down红/flat中性)。"""
+
+    model_config = ConfigDict(extra="ignore")
+    t: str = ""
+    dir: PredDir = PredDir.FLAT
+
+    @field_validator("dir", mode="before")
+    @classmethod
+    def _d(cls, v: Any) -> Any:
+        return _coerce_pred_dir(v)
+
+
+class TaggedItem(BaseModel):
+    """带主题标签的条目(事实层/解读层一条)。tag=主题(可空),text=正文,figures=需上色的关键数字。"""
+
+    model_config = ConfigDict(extra="ignore")
+    tag: str = ""
+    text: str = ""
+    figures: list[Figure] = Field(default_factory=list)
 
 
 class LLMHypothesis(BaseModel):
@@ -193,15 +278,15 @@ class LLMBrief(BaseModel):
 
     headline: str = ""
     tone: Tone = Tone.NEUTRAL
-    facts: list[str] = Field(default_factory=list)
-    interpretation: list[str] = Field(default_factory=list)
+    facts: list[TaggedItem] = Field(default_factory=list)
+    interpretation: list[TaggedItem] = Field(default_factory=list)
     hypotheses: list[LLMHypothesis] = Field(default_factory=list)
     impact: list[LLMImpact] = Field(default_factory=list)
 
     @field_validator("facts", "interpretation", mode="before")
     @classmethod
-    def _str_list(cls, v: Any) -> list[str]:
-        return _coerce_str_list(v)
+    def _tagged_list(cls, v: Any) -> list[dict[str, str]]:
+        return _coerce_tagged_list(v)
 
     @field_validator("tone", mode="before")
     @classmethod
@@ -288,12 +373,19 @@ class Brief(_CamelModel):
     price_series: dict[str, list[PricePoint]] = Field(
         default_factory=dict, alias="priceSeries"
     )  # 30日价格大图序列,key=metric.key(chart 资产)
-    facts: list[str] = Field(default_factory=list)
-    reads: list[str] = Field(default_factory=list)  # 解读层(后端 interpretation)
+    facts: list[TaggedItem] = Field(default_factory=list)  # 事实层(带主题标签)
+    reads: list[TaggedItem] = Field(default_factory=list)  # 解读层(后端 interpretation,带主题标签)
     hypotheses: list[Hypothesis] = Field(default_factory=list)
     impacts: list[Impact] = Field(default_factory=list)
     reviews: list[Review] = Field(default_factory=list)
     news: list[News] = Field(default_factory=list)
+
+    @field_validator("facts", "reads", mode="before")
+    @classmethod
+    def _tagged(cls, v: Any) -> list[dict[str, str]]:
+        # 向后兼容:旧 briefs.json 的 facts/reads 为 str[];upsert 会逐条 model_validate 历史日报,
+        # 没有这个校验器会在旧数据上抛 ValidationError。也归一化 tag、接受 TaggedItem 实例。
+        return _coerce_tagged_list(v)
 
     def to_json_obj(self) -> dict[str, Any]:
         """emit 为前端 JSON(驼峰键、枚举取值)。"""

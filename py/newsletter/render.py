@@ -14,6 +14,7 @@ import pandas as pd
 
 from . import catalog, features
 from .config import Paths
+from .textnorm import normalize_text
 from .models import (
     Brief,
     BriefsPayload,
@@ -109,15 +110,33 @@ def build_news(merged: list[dict[str, Any]]) -> list[News]:
     return out
 
 
+def _norm_tagged(items: list) -> list[dict[str, Any]]:
+    """规范化事实/解读条目的文本(text + figures.t),tag/dir 透传。"""
+    out: list[dict[str, Any]] = []
+    for it in items:
+        out.append(
+            {
+                "tag": it.tag,
+                "text": normalize_text(it.text),
+                "figures": [{"t": normalize_text(f.t), "dir": f.dir.value} for f in it.figures],
+            }
+        )
+    return out
+
+
 def build_reviews(hyp_rows: list[dict[str, Any]], target_date: str) -> list[Review]:
-    """今日定结(held/invalidated)在前,其余 open 在后。"""
+    """今日定结(held/invalidated)在前,其余 open 在后。文本经规范化。"""
     out: list[Review] = []
+
+    def mk(r: dict[str, Any], status: ReviewStatus) -> Review:
+        return Review(if_then=normalize_text(r.get("if_then", "")), status=status, note=normalize_text(r.get("note", "")))
+
     for r in hyp_rows:
         if r.get("resolved_date") == target_date and r.get("status") in ("held", "invalidated"):
-            out.append(Review(if_then=r.get("if_then", ""), status=ReviewStatus(r["status"]), note=r.get("note", "")))
+            out.append(mk(r, ReviewStatus(r["status"])))
     for r in hyp_rows:
         if (r.get("status") or "open") == "open":
-            out.append(Review(if_then=r.get("if_then", ""), status=ReviewStatus.OPEN, note=r.get("note", "")))
+            out.append(mk(r, ReviewStatus.OPEN))
     return out
 
 
@@ -140,26 +159,26 @@ def build_brief(
         weekday=weekday_cn(target_date),
         issue=issue,
         tone=b.tone,
-        headline=b.headline,
+        headline=normalize_text(b.headline),
         metrics=metrics,
         signals=signals or [],
         regime=regime or {},
         price_series=price_series or {},
-        facts=b.facts,
-        reads=b.interpretation,
+        facts=_norm_tagged(b.facts),
+        reads=_norm_tagged(b.interpretation),
         hypotheses=[
             Hypothesis(
-                if_then=h.if_then,
-                invalidation=h.invalidation,
+                if_then=normalize_text(h.if_then),
+                invalidation=normalize_text(h.invalidation),
                 asset=h.asset,
                 direction=h.direction,
                 horizon=h.horizon,
                 confidence=h.confidence,
-                key_factors=h.key_factors,
+                key_factors=[normalize_text(k) for k in h.key_factors],
             )
             for h in b.hypotheses
         ],
-        impacts=[Impact(asset=i.asset, watch=i.watch, dir=i.direction) for i in b.impact],
+        impacts=[Impact(asset=i.asset, watch=normalize_text(i.watch), dir=i.direction) for i in b.impact],
         reviews=reviews,
         news=news,
     )
@@ -196,9 +215,9 @@ def render_markdown(brief: Brief, macro: list[dict[str, Any]] | None = None) -> 
         p += ["## regime(代码判定)", "- " + "; ".join(f"{k}={v}" for k, v in brief.regime.items()), ""]
 
     if brief.facts:
-        p += ["## 事实层"] + [f"- {x}" for x in brief.facts] + [""]
+        p += ["## 事实层"] + [f"- {_tag_md(x.tag)}{x.text}" for x in brief.facts] + [""]
     if brief.reads:
-        p += ["## 解读层(判断,非事实)"] + [f"- {x}" for x in brief.reads] + [""]
+        p += ["## 解读层(判断,非事实)"] + [f"- {_tag_md(x.tag)}{x.text}" for x in brief.reads] + [""]
     if brief.hypotheses:
         p += ["## 假设层(对固定方向的预测,可证伪)"]
         _pdir = {"up": "↑", "down": "↓", "flat": "→"}
@@ -253,7 +272,7 @@ def render_text(brief: Brief) -> str:
         lines.append(f"{m.label}: {_fmt(m.value)}(Δ{_fmt(m.change)})")
     if brief.reads:
         lines.append("— 解读 —")
-        lines += [f"· {x}" for x in brief.reads]
+        lines += [f"· {('[' + x.tag + '] ') if x.tag else ''}{x.text}" for x in brief.reads]
     if brief.hypotheses:
         lines.append("— 可证伪假设 —")
         lines += [f"· 若 {h.if_then};失效:{h.invalidation}" for h in brief.hypotheses]
@@ -325,6 +344,11 @@ def _sig_fmt(unit: str, v: float) -> str:
     if unit == "yield":
         return f"{v:.2f}%"
     return f"{v:.2f}"  # corr
+
+
+def _tag_md(tag: str) -> str:
+    """事实/解读条目的主题标签 → markdown 前缀(空标签则无前缀)。"""
+    return f"**[{tag}]** " if tag else ""
 
 
 def _fmt(v: float) -> str:
