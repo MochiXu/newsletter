@@ -137,14 +137,15 @@ def snapshot_at(feat: pd.DataFrame, target_date: str) -> dict[str, float]:
     return {k: float(v) for k, v in row.items() if pd.notna(v)}
 
 
-def metric_spark(long_df: pd.DataFrame, sid: str, target_date: str, n: int = 20) -> list[float]:
-    """某序列截至 target_date 的最近 n 个**真实观测电平**(因果),供前端指标表画 sparkline。
+def metric_spark(long_df: pd.DataFrame, sid: str, target_date: str, n: int = 20) -> list[dict[str, object]]:
+    """某序列截至 target_date 的最近 n 个**真实观测点**(带日期,因果),供前端指标表画 sparkline。
 
+    返回 [{date, value}, ...](升序,末点=当日真实值),供 hover 显示具体日期+值。
     只看 <= target_date 的真实观测点(非 ffill),与 metric_level_change 同口径;不足 n 个则全给。
     """
     sub = long_df[(long_df["series_id"] == sid) & (long_df[DATE] <= target_date)].sort_values(DATE)
-    vals = sub[VALUE].tolist()
-    return [round(float(v), 4) for v in vals[-n:]]
+    tail = sub.tail(n)
+    return [{"date": str(d), "value": round(float(v), 4)} for d, v in zip(tail[DATE], tail[VALUE])]
 
 
 def price_series(long_df: pd.DataFrame, sid: str, target_date: str, n: int = 30) -> list[dict[str, object]]:

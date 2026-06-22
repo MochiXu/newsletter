@@ -25,7 +25,8 @@ class TestBuildMetrics(unittest.TestCase):
         self.assertAlmostEqual(m.value, 4.47)
         self.assertAlmostEqual(m.change, 0.07)
         self.assertEqual(m.kind.value, "yield")
-        self.assertEqual(m.spark, [4.40, 4.47])  # 真实观测尾部序列(因果),供前端 sparkline
+        # spark = 带日期的真实观测尾部序列(因果),供前端 sparkline + hover
+        self.assertEqual([(p.date, p.value) for p in m.spark], [("2026-06-12", 4.40), ("2026-06-15", 4.47)])
 
 
 class TestBuildNews(unittest.TestCase):

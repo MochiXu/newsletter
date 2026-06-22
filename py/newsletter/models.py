@@ -218,13 +218,20 @@ class _CamelModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class PricePoint(_CamelModel):
+    """价格/走势序列一个点(供前端指标 sparkline 与 30 日价格大图)。"""
+
+    date: str
+    value: float
+
+
 class Metric(_CamelModel):
     key: str
     label: str
     value: float
     change: float
     kind: MetricKind
-    spark: list[float] = Field(default_factory=list)  # 最近~20真实收盘(因果),前端画 sparkline
+    spark: list[PricePoint] = Field(default_factory=list)  # 最近~20真实收盘点(带日期,因果),前端画 sparkline+hover
 
 
 class Signal(_CamelModel):
@@ -235,13 +242,6 @@ class Signal(_CamelModel):
     value: float
     unit: str  # pct=带符号% | pct0=无符号% | bp | z | corr | yield=电平%
     group: str  # trend | momentum | vol | rates | dollar | cross_asset | range
-
-
-class PricePoint(_CamelModel):
-    """价格序列一个点(供前端 30 日价格大图)。"""
-
-    date: str
-    value: float
 
 
 class Hypothesis(_CamelModel):

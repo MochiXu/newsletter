@@ -72,7 +72,8 @@ class TestFeatureCorrectness(unittest.TestCase):
                  pd.Timestamp("2026-06-15"), pd.Timestamp("2026-06-20")]
         long = _long("DGS10", dates, [4.40, 4.42, 4.45, 4.50])
         spark = features.metric_spark(long, "DGS10", "2026-06-18", n=2)
-        self.assertEqual(spark, [4.42, 4.45])  # 截到 06-18,最近2点,06-20 被排除
+        # 截到 06-18,最近2点(带日期),06-20 被排除
+        self.assertEqual(spark, [{"date": "2026-06-12", "value": 4.42}, {"date": "2026-06-15", "value": 4.45}])
 
     def test_price_series_dated_causal(self):
         dates = [pd.Timestamp("2026-06-12"), pd.Timestamp("2026-06-15"), pd.Timestamp("2026-06-20")]
