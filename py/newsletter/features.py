@@ -147,6 +147,16 @@ def metric_spark(long_df: pd.DataFrame, sid: str, target_date: str, n: int = 20)
     return [round(float(v), 4) for v in vals[-n:]]
 
 
+def price_series(long_df: pd.DataFrame, sid: str, target_date: str, n: int = 30) -> list[dict[str, object]]:
+    """某序列截至 target_date 的最近 n 个**真实观测点**(带日期,因果),供前端 30 日价格大图。
+
+    返回 [{date, value}, ...](升序,末点=当日真实值);不足 n 个则全给。与 metric_spark 同口径但带 date。
+    """
+    sub = long_df[(long_df["series_id"] == sid) & (long_df[DATE] <= target_date)].sort_values(DATE)
+    tail = sub.tail(n)
+    return [{"date": str(d), "value": round(float(v), 4)} for d, v in zip(tail[DATE], tail[VALUE])]
+
+
 def metric_level_change(long_df: pd.DataFrame, sid: str, target_date: str) -> tuple[float, float] | None:
     """某序列在 target_date 的电平与日变化量,供前端指标表。
 

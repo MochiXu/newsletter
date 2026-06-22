@@ -24,6 +24,7 @@ from .models import (
     Metric,
     News,
     NewsCat,
+    PricePoint,
     Review,
     ReviewStatus,
     Signal,
@@ -63,6 +64,16 @@ def build_metrics(long_df: pd.DataFrame, target_date: str) -> list[Metric]:
                 spark=features.metric_spark(long_df, spec.series_id, target_date),
             )
         )
+    return out
+
+
+def build_price_series(long_df: pd.DataFrame, target_date: str) -> dict[str, list[PricePoint]]:
+    """按 chart roster 构造 30 日价格序列(key=series_id 小写,与 metrics.key 对齐;缺失跳过)。"""
+    out: dict[str, list[PricePoint]] = {}
+    for sid in catalog.CHART_SERIES_IDS:
+        pts = features.price_series(long_df, sid, target_date)
+        if pts:
+            out[sid.lower()] = [PricePoint(date=str(p["date"]), value=float(p["value"])) for p in pts]
     return out
 
 
@@ -120,6 +131,7 @@ def build_brief(
     *,
     signals: list[Signal] | None = None,
     regime: dict[str, str] | None = None,
+    price_series: dict[str, list[PricePoint]] | None = None,
 ) -> Brief:
     """组装单日 Brief(契约)。llm 为 None(无 provider)时四层留空、tone 中性。"""
     b = llm or LLMBrief()
@@ -132,6 +144,7 @@ def build_brief(
         metrics=metrics,
         signals=signals or [],
         regime=regime or {},
+        price_series=price_series or {},
         facts=b.facts,
         reads=b.interpretation,
         hypotheses=[

@@ -74,6 +74,13 @@ class TestFeatureCorrectness(unittest.TestCase):
         spark = features.metric_spark(long, "DGS10", "2026-06-18", n=2)
         self.assertEqual(spark, [4.42, 4.45])  # 截到 06-18,最近2点,06-20 被排除
 
+    def test_price_series_dated_causal(self):
+        dates = [pd.Timestamp("2026-06-12"), pd.Timestamp("2026-06-15"), pd.Timestamp("2026-06-20")]
+        long = _long("DGS10", dates, [4.40, 4.45, 4.50])
+        ps = features.price_series(long, "DGS10", "2026-06-18", n=5)
+        self.assertEqual(ps, [{"date": "2026-06-12", "value": 4.40}, {"date": "2026-06-15", "value": 4.45}])
+        self.assertTrue(all(p["date"] <= "2026-06-18" for p in ps))  # 因果:不含 06-20
+
 
 class TestCausality(unittest.TestCase):
     """红线:target_date 的特征绝不依赖其后任何数据。"""

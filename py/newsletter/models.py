@@ -237,6 +237,13 @@ class Signal(_CamelModel):
     group: str  # trend | momentum | vol | rates | dollar | cross_asset | range
 
 
+class PricePoint(_CamelModel):
+    """价格序列一个点(供前端 30 日价格大图)。"""
+
+    date: str
+    value: float
+
+
 class Hypothesis(_CamelModel):
     if_then: str = Field(alias="ifThen")
     invalidation: str
@@ -278,6 +285,9 @@ class Brief(_CamelModel):
     metrics: list[Metric] = Field(default_factory=list)
     signals: list[Signal] = Field(default_factory=list)  # 技术指标(代码计算)
     regime: dict[str, str] = Field(default_factory=dict)  # 代码派生的 regime 标签
+    price_series: dict[str, list[PricePoint]] = Field(
+        default_factory=dict, alias="priceSeries"
+    )  # 30日价格大图序列,key=metric.key(chart 资产)
     facts: list[str] = Field(default_factory=list)
     reads: list[str] = Field(default_factory=list)  # 解读层(后端 interpretation)
     hypotheses: list[Hypothesis] = Field(default_factory=list)

@@ -96,6 +96,10 @@ DISPLAY_METRICS: tuple[SeriesSpec, ...] = tuple(s for s in CATALOG if s.metric_k
 PREDICTION_TARGET_IDS: tuple[str, ...] = ("NASDAQCOM", "XAUUSD", "DTWEXBGS", "DGS2")
 PREDICTION_TARGETS: tuple[SeriesSpec, ...] = tuple(SPEC_BY_ID[sid] for sid in PREDICTION_TARGET_IDS)
 
+# 前端 PRICE 30日价格大图的可选资产(设计稿 chartTabs;BTC 无、按宏观聚焦不加)。
+# 顺序 = tab 顺序;key 用 series_id 小写,与 metrics.key 对齐。
+CHART_SERIES_IDS: tuple[str, ...] = ("NASDAQCOM", "XAUUSD", "DTWEXBGS", "DGS10", "VIXCLS")
+
 
 def build_sources(settings) -> dict[str, Source]:
     """按配置构造各源实例(缺 key 的源仍构造,fetch 时抛 FetchError 自动降级)。"""

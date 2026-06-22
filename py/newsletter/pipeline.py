@@ -151,9 +151,10 @@ def build_report(
             log.info("抓取 %s 条新闻(%s)", len(items), "已分类" if classified else "未分类")
 
     signals = render.build_signals(snap)
+    price_series = render.build_price_series(long_df, target_date)
     brief = render.build_brief(
         target_date, llm_brief, metrics, reviews, render.build_news(merged),
-        signals=signals, regime=reg,
+        signals=signals, regime=reg, price_series=price_series,
     )
     if persist_features:
         try:
