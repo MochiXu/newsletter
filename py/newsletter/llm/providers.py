@@ -34,9 +34,10 @@ def _extract_json(text: str) -> dict:
         if s.endswith("```"):
             s = s[: s.rfind("```")]
         s = s.strip()
-    start, end = s.find("{"), s.rfind("}")
-    if start != -1 and end != -1 and end > start:
-        s = s[start : end + 1]
+    start = s.find("{")
+    if start != -1:
+        obj, _ = json.JSONDecoder().raw_decode(s[start:])  # 只取第一个对象,容忍尾部多余
+        return obj
     return json.loads(s)
 
 
@@ -62,7 +63,7 @@ class AnthropicProvider:
             },
             {
                 "model": self.model,
-                "max_tokens": 4096,
+                "max_tokens": 8192,
                 "system": system,
                 "tools": [{"name": tool_name, "description": description, "input_schema": schema}],
                 "tool_choice": {"type": "tool", "name": tool_name},
@@ -87,26 +88,28 @@ class OpenAICompatProvider:
     def call_structured(
         self, system: str, user: str, tool_name: str, description: str, schema: dict
     ) -> dict:
+        # 用 JSON mode(response_format)而非强制 function-calling:后者在复杂 schema 下
+        # 结构性失稳(DeepSeek 会在大数组后提前闭合根对象、把后续字段当兄弟对象续写);
+        # JSON mode + 把 schema 写进 system(需含 "JSON" 字样)更稳。返回正文里的 JSON。
         headers = {"content-type": "application/json", "authorization": f"Bearer {self.api_key}"}
+        sys = (
+            system
+            + "\n\n【输出】只返回一个 JSON 对象,不要 markdown 围栏、不要多余文字;"
+            + "严格符合下面的 JSON Schema(键名 / 枚举 / 必填项):\n"
+            + json.dumps(schema, ensure_ascii=False)
+        )
         payload = {
             "model": self.model,
-            "max_tokens": 4096,
+            "max_tokens": 8192,
             "temperature": 0.3,
+            "response_format": {"type": "json_object"},
             "messages": [
-                {"role": "system", "content": system},
+                {"role": "system", "content": sys},
                 {"role": "user", "content": user},
             ],
-            "tools": [
-                {
-                    "type": "function",
-                    "function": {"name": tool_name, "description": description, "parameters": schema},
-                }
-            ],
-            "tool_choice": {"type": "function", "function": {"name": tool_name}},
         }
-        # LLM 偶发非法 JSON(如字符串内未转义引号)→ 重试一次(非零温度,二次大概率合法)。
         last_err: Exception | None = None
-        for _ in range(2):
+        for _ in range(3):  # 偶发非法 JSON(未转义引号等)→ 重试,非零温度二次大概率合法
             body = _http_post_json(self.url, headers, payload)
             base = body.get("base_resp")  # MiniMax 等把错误塞在 HTTP 200 的 base_resp
             if isinstance(base, dict) and base.get("status_code") not in (0, None):
@@ -114,11 +117,9 @@ class OpenAICompatProvider:
             choices = body.get("choices")
             if not choices:
                 raise RuntimeError(f"{self.name} 响应无 choices: {str(body)[:200]}")
-            msg = choices[0].get("message", {})
-            calls = msg.get("tool_calls")
-            raw = calls[0]["function"]["arguments"] if calls else (msg.get("content") or "")
+            content = choices[0].get("message", {}).get("content") or ""
             try:
-                return json.loads(raw) if calls else _extract_json(raw)
+                return _extract_json(content)
             except (json.JSONDecodeError, ValueError) as e:
                 last_err = e
         raise RuntimeError(f"{self.name} 结构化输出 JSON 解析失败(已重试): {last_err}")
