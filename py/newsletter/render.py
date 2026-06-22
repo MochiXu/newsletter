@@ -110,17 +110,47 @@ def build_news(merged: list[dict[str, Any]]) -> list[News]:
     return out
 
 
+# figure token 后可并入的单位(长优先,使 '7.8' 在 '7.8%' 时整段一起上色;'15' 在 '15bps' 时取 bps)
+_FIG_UNITS = ("bps", "bp", "%", "‰")
+
+
+def _expand_fig_token(text: str, tok: str) -> str:
+    """token 后在 text 中若紧跟单位(%/bp/bps/‰),把单位并入,使整段一起上色;否则原样。"""
+    if any(tok.endswith(u) for u in _FIG_UNITS):
+        return tok  # 已带单位
+    start = 0
+    while (idx := text.find(tok, start)) >= 0:
+        after = text[idx + len(tok):]
+        for u in _FIG_UNITS:
+            if after.startswith(u):
+                return tok + u
+        start = idx + 1
+    return tok
+
+
+def _resolve_fig_token(text: str, tok: str) -> str | None:
+    """把 LLM 的 figure token 落实成 text 里可匹配的子串:
+    优先原样;原样不在正文时退化为去掉前导 +/-(LLM 常给 token 带符号,正文却用「升/跌」表方向)再找;
+    命中即并入紧邻单位。连去符号也找不到 = 死 figure → None(上层丢弃,免得前端静默匹配不到)。"""
+    cands = [tok, tok[1:]] if tok[:1] in "+-" else [tok]
+    for cand in cands:
+        if cand and cand in text:
+            return _expand_fig_token(text, cand)
+    return None
+
+
 def _norm_tagged(items: list) -> list[dict[str, Any]]:
-    """规范化事实/解读条目的文本(text + figures.t),tag/dir 透传。"""
+    """规范化事实/解读条目:text 排版规范化;figure.t 规范化 + 落实成 text 子串(补单位/去冗余符号)+ 丢死 figure。"""
     out: list[dict[str, Any]] = []
     for it in items:
-        out.append(
-            {
-                "tag": it.tag,
-                "text": normalize_text(it.text),
-                "figures": [{"t": normalize_text(f.t), "dir": f.dir.value} for f in it.figures],
-            }
-        )
+        text = normalize_text(it.text)
+        figures: list[dict[str, Any]] = []
+        for f in it.figures:
+            base = normalize_text(f.t)
+            resolved = _resolve_fig_token(text, base) if base else None
+            if resolved:
+                figures.append({"t": resolved, "dir": f.dir.value})
+        out.append({"tag": it.tag, "text": text, "figures": figures})
     return out
 
 

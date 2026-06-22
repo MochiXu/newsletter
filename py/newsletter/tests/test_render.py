@@ -72,6 +72,25 @@ class TestBuildBrief(unittest.TestCase):
         self.assertEqual(br.facts[0].figures[0].t, "-7.8%")  # figure.t 仍是 text 的子串
         self.assertEqual(br.facts[0].figures[0].dir.value, "down")
 
+    def test_figure_token_absorbs_unit(self):
+        # LLM 常把 token 写成纯数字('7.8')而漏掉百分号 → 落库时确定性并入单位,使整段一起上色
+        llm = LLMBrief(facts=[{"tag": "黄金", "text": "黄金20日累计下跌7.8%", "figures": [{"t": "7.8", "dir": "down"}]}])
+        br = render.build_brief("2026-06-18", llm, [], [], [])
+        self.assertEqual(br.facts[0].figures[0].t, "7.8%")  # '7.8' → '7.8%'
+
+    def test_figure_signed_token_resolves_to_unsigned(self):
+        # LLM 常把 token 写成带符号('+15bp'/'-7.8%'),正文却用'升/跌'表方向不带符号 → 去符号后落实成正文子串(不可误杀)
+        llm = LLMBrief(facts=[{"tag": "利率", "text": "US2Y升15bp,黄金跌7.8%",
+                               "figures": [{"t": "+15bp", "dir": "up"}, {"t": "-7.8%", "dir": "down"}]}])
+        br = render.build_brief("2026-06-18", llm, [], [], [])
+        self.assertEqual([(f.t, f.dir.value) for f in br.facts[0].figures], [("15bp", "up"), ("7.8%", "down")])
+
+    def test_figure_not_in_text_dropped(self):
+        # 死 figure(连去符号也不在正文)应被丢弃,避免前端静默匹配不到
+        llm = LLMBrief(facts=[{"tag": "黄金", "text": "黄金20日跌幅显著", "figures": [{"t": "7.8", "dir": "down"}]}])
+        br = render.build_brief("2026-06-18", llm, [], [], [])
+        self.assertEqual(br.facts[0].figures, [])
+
     def test_full_from_llm(self):
         llm = LLMBrief(headline="H", tone="risk_on", facts=["f1"], interpretation=["i1"],
                        hypotheses=[{"if_then": "x", "invalidation": "z"}],

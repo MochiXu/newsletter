@@ -29,6 +29,13 @@ class TestNormalizeText(unittest.TestCase):
         # 小数点 / 千分位不被当句读、不加空格
         self.assertEqual(normalize_text("收于7,500.58"), "收于 7,500.58")
         self.assertEqual(normalize_text("z=-0.29"), "z=-0.29")
+        self.assertEqual(normalize_text("成交1,234,567笔"), "成交 1,234,567 笔")  # 多段千分位均保留
+
+    def test_clause_comma_between_numbers_gets_space(self):
+        # 回归:子句逗号(逗号后不是恰好 3 位数字组)曾被误判为千分位而吞掉空格
+        self.assertEqual(normalize_text("跌至119.51,20日微涨"), "跌至 119.51, 20 日微涨")
+        self.assertEqual(normalize_text("收4156.5,20日累计跌"), "收 4156.5, 20 日累计跌")
+        self.assertEqual(normalize_text("升至2.23%,美元走强"), "升至 2.23%, 美元走强")
 
     def test_sentence_period_between_numbers(self):
         # 句号在数字之间(全角→.)要补空格,避免 16.4%.60 粘连
