@@ -133,19 +133,19 @@ export default function BriefPage({ briefs, model, route, tweaks }: Props) {
 
         {/* 区块两列声明式排列(数组顺序即布局,集中一处定义);flex-wrap 响应式:窄屏自动并成一列 */}
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-          {/* 左列:市场数据 / 价格 / 技术指标 / 假设层(技术指标下) / 新闻 */}
+          {/* 左列:市场数据 / 价格 / 技术指标 / 假设层(技术指标下) */}
           <div style={dataCol}>
             <MarketData metrics={b.metrics} showSparklines={tweaks.showSparklines} />
             <PriceChart priceSeries={b.priceSeries} />
             <SignalsCard signals={b.signals} regime={b.regime} />
             <HypothesisPanel hypotheses={view.hypotheses} consensus={b.consensus} />
-            <NewsCard news={b.news} />
           </div>
-          {/* 右列:事实 / 解读 / 影响 / 复盘 */}
+          {/* 右列:事实 / 解读 / 影响 / 新闻(影响层下,缺失自动隐藏) / 复盘 */}
           <div style={dataCol}>
             <FactsPanel facts={view.facts} />
             <ReadsPanel reads={view.reads} />
             <ImpactPanel impacts={view.impacts} />
+            <NewsCard news={b.news} />
             {b.reviews.length > 0 && <ReviewCard reviews={b.reviews} />}
           </div>
         </div>
