@@ -48,7 +48,7 @@ export default function PriceChart({ priceSeries }: { priceSeries: Record<string
   }
 
   return (
-    <Card>
+    <Card punch>
       <SectionHead label="PRICE" zh="走势 · 30D" />
       <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
         {keys.map((k) => (

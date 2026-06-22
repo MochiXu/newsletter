@@ -344,9 +344,10 @@ class Hypothesis(_CamelModel):
 
 
 class Impact(_CamelModel):
-    asset: str
+    asset: str  # 资产中文短名(render 已规范化)
     watch: str
     dir: Dir
+    code: str = ""  # 英文代码(从 LLM 文本解析出,供前端 hover;无则空)
 
 
 class Review(_CamelModel):

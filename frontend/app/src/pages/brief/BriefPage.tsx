@@ -7,7 +7,7 @@ import MarketData from './MarketData'
 import PriceChart from './PriceChart'
 import SignalsCard from './SignalsCard'
 import NewsCard from './NewsCard'
-import AiBrief from './AiBrief'
+import { FactsPanel, HypothesisPanel, ImpactPanel, ReadsPanel } from './AiBrief'
 import ReviewCard from './ReviewCard'
 
 interface Props {
@@ -58,13 +58,14 @@ function AggEmpty() {
   )
 }
 
-const colStyle = (basis: string): CSSProperties => ({
-  flex: `${basis} 1 ${basis === '4' ? '350px' : '400px'}`,
-  minWidth: basis === '4' ? 280 : 300,
+// 数据区两等宽列
+const dataCol: CSSProperties = {
+  flex: '1 1 360px',
+  minWidth: 300,
   display: 'flex',
   flexDirection: 'column',
   gap: 18,
-})
+}
 
 export default function BriefPage({ briefs, model, route, tweaks }: Props) {
   const receiptRef = useRef<HTMLDivElement>(null)
@@ -130,23 +131,22 @@ export default function BriefPage({ briefs, model, route, tweaks }: Props) {
           </div>
         </div>
 
-        {/* 双栏卡片 */}
+        {/* 区块两列声明式排列(数组顺序即布局,集中一处定义);flex-wrap 响应式:窄屏自动并成一列 */}
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-          <div style={colStyle('4')}>
+          {/* 左列:市场数据 / 价格 / 技术指标 / 假设层(技术指标下) / 新闻 */}
+          <div style={dataCol}>
             <MarketData metrics={b.metrics} showSparklines={tweaks.showSparklines} />
             <PriceChart priceSeries={b.priceSeries} />
             <SignalsCard signals={b.signals} regime={b.regime} />
+            <HypothesisPanel hypotheses={view.hypotheses} consensus={b.consensus} />
             <NewsCard news={b.news} />
           </div>
-          <div style={colStyle('5')}>
-            <AiBrief
-              facts={view.facts}
-              reads={view.reads}
-              hypotheses={view.hypotheses}
-              impacts={view.impacts}
-              consensus={b.consensus}
-            />
-            <ReviewCard reviews={b.reviews} />
+          {/* 右列:事实 / 解读 / 影响 / 复盘 */}
+          <div style={dataCol}>
+            <FactsPanel facts={view.facts} />
+            <ReadsPanel reads={view.reads} />
+            <ImpactPanel impacts={view.impacts} />
+            {b.reviews.length > 0 && <ReviewCard reviews={b.reviews} />}
           </div>
         </div>
 

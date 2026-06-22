@@ -13,7 +13,7 @@ const catMap: Record<NewsCat, { lab: string; col: string; bg: string; bd: string
 export default function NewsCard({ news }: { news: News[] }) {
   if (news.length === 0) return null
   return (
-    <Card>
+    <Card punch>
       <SectionHead label="NEWS" zh="新闻分类" margin="0 0 6px" />
       {news.map((n, i) => {
         const cat = n.cat ? catMap[n.cat] : null

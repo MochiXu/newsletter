@@ -60,9 +60,10 @@ export interface Hypothesis {
 }
 
 export interface Impact {
-  asset: string
+  asset: string // 中文短名
   watch: string
   dir: Dir
+  code?: string // 英文代码(供 hover;后端解析,可能无)
 }
 
 export interface Review {

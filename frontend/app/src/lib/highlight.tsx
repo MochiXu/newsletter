@@ -1,5 +1,7 @@
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import type { Figure } from '../types'
+import { Tooltip } from '../components/Tooltip'
+import { GLOSSARY_RE, glossaryExplain } from './glossary'
 
 // 由后端 figures 驱动给文本里的关键数字上色(不再用前端正则猜)。
 // figures[].t 是 text 的原样子串(后端已与 text 一起规范化);dir:up→绿、down→红、flat→中性等宽。
@@ -35,5 +37,41 @@ export function highlightFigures(text: string, figures?: Figure[]): ReactNode[] 
     }
   }
   if (buf) out.push(buf)
+  return out
+}
+
+/** 在一段纯文本里把已知术语(regime token / 行话)包成带 hover 的虚下划线。无解释的不包。 */
+function highlightGlossary(text: string): ReactNode[] {
+  const out: ReactNode[] = []
+  let last = 0
+  GLOSSARY_RE.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = GLOSSARY_RE.exec(text)) !== null) {
+    const exp = glossaryExplain(m[0])
+    if (!exp) continue // 无解释 → 留作普通文字
+    if (m.index > last) out.push(text.slice(last, m.index))
+    out.push(
+      <Tooltip content={exp} width={232} style={{ display: 'inline' }}>
+        <span style={{ borderBottom: '1px dotted var(--ink2)', cursor: 'help' }}>{m[0]}</span>
+      </Tooltip>,
+    )
+    last = m.index + m[0].length
+  }
+  if (last < text.length) out.push(text.slice(last))
+  return out.length ? out : [text]
+}
+
+/** 事实/解读正文渲染:先按 figures 给数字方向上色,再把 regime/行话术语包成 hover(两者不重叠)。 */
+export function renderRichText(text: string, figures?: Figure[]): ReactNode[] {
+  const out: ReactNode[] = []
+  highlightFigures(text, figures).forEach((n, i) => {
+    if (typeof n === 'string') {
+      highlightGlossary(n).forEach((seg, j) =>
+        out.push(typeof seg === 'string' ? seg : <Fragment key={`g${i}-${j}`}>{seg}</Fragment>),
+      )
+    } else {
+      out.push(n) // figures 上色 span(已带 key)原样保留
+    }
+  })
   return out
 }

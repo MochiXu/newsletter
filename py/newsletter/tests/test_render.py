@@ -94,6 +94,17 @@ class TestBuildBrief(unittest.TestCase):
         v = render.build_brief("2026-06-18", {"deepseek": llm}, [], [], []).views["deepseek"]
         self.assertEqual(v.facts[0].figures, [])
 
+    def test_impact_asset_normalized(self):
+        # 影响层 asset:LLM 混杂中英/带括号 → 规范成中文名 + 提取英文代码供 hover
+        llm = LLMBrief(impact=[
+            {"asset": "纳指 (NASDAQCOM)", "watch": "w", "direction": "up"},
+            {"asset": "DGS2", "watch": "w", "direction": "down"},
+            {"asset": "2s10s", "watch": "w", "direction": "watch"},
+        ])
+        v = render.build_brief("2026-06-18", {"deepseek": llm}, [], [], []).views["deepseek"]
+        self.assertEqual([(im.asset, im.code) for im in v.impacts],
+                         [("纳指", "NASDAQCOM"), ("美债2Y", "DGS2"), ("2s10s", "")])
+
     def test_full_from_llm(self):
         llm = LLMBrief(headline="H", tone="risk_on", facts=["f1"], interpretation=["i1"],
                        hypotheses=[{"if_then": "x", "invalidation": "z"}],

@@ -1,18 +1,13 @@
-import { useState } from 'react'
 import type { ConsensusItem, Hypothesis, Impact, TaggedItem } from '../../types'
 import { ASSET_CN, dirInfo, HORIZON_CN, PRED_DIR } from '../../lib/format'
-import { highlightFigures } from '../../lib/highlight'
+import { renderRichText } from '../../lib/highlight'
 import { Card, SectionHead } from '../../components/Card'
+import { Tooltip } from '../../components/Tooltip'
 
-// 小问号标注 + hover 说明。tooltip 用 absolute 锚定到本地 relative 容器(不受祖先 transform 影响,不会漂移)。
+// 小问号标注 + hover 说明(走统一 Tooltip,portal 渲染,不被打孔卡片裁剪)。
 function InfoHint({ text }: { text: string }) {
-  const [show, setShow] = useState(false)
   return (
-    <span
-      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
-    >
+    <Tooltip content={text}>
       <span
         aria-label={text}
         style={{
@@ -23,32 +18,7 @@ function InfoHint({ text }: { text: string }) {
       >
         ?
       </span>
-      {show && (
-        <span
-          role="tooltip"
-          style={{
-            position: 'absolute', bottom: 'calc(100% + 6px)', right: 0, width: 196, zIndex: 30,
-            background: 'var(--ink)', color: 'var(--paper)', fontFamily: 'var(--sans)', fontWeight: 400,
-            fontSize: 10.5, lineHeight: 1.5, letterSpacing: 0, textAlign: 'left', whiteSpace: 'normal',
-            padding: '7px 9px', borderRadius: 5, boxShadow: '0 6px 18px rgba(0,0,0,.2)', pointerEvents: 'none',
-          }}
-        >
-          {text}
-        </span>
-      )}
-    </span>
-  )
-}
-
-function LayerHead({ label, zh, color }: { label: string; zh: string; color: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 7, margin: '15px 0 8px' }}>
-      <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 9.5, letterSpacing: '1.2px', color: 'var(--ink2)' }}>
-        {label}
-      </span>
-      <span style={{ fontSize: 11, color: 'var(--ink)', fontWeight: 600 }}>{zh}</span>
-    </div>
+    </Tooltip>
   )
 }
 
@@ -73,6 +43,22 @@ function TagChip({ tag, mr = 0 }: { tag: string; mr?: number }) {
     >
       {tag}
     </span>
+  )
+}
+
+const Muted = () => <div style={{ fontSize: 11.5, color: 'var(--ink2)', padding: '4px 0' }}>暂无</div>
+
+// 影响层资产:显示中文短名,英文代码(若后端解析出)放 hover。
+function ImpactAsset({ asset, code }: { asset: string; code?: string }) {
+  const el = (
+    <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink)' }}>{ASSET_CN[asset] ?? asset}</span>
+  )
+  return code ? (
+    <Tooltip content={`代码 ${code}`} width={140} style={{ flex: '0 0 auto', cursor: 'help' }}>
+      {el}
+    </Tooltip>
+  ) : (
+    <span style={{ flex: '0 0 auto', display: 'inline-flex' }}>{el}</span>
   )
 }
 
@@ -192,77 +178,90 @@ function PredictionCard({ h }: { h: Hypothesis }) {
   )
 }
 
-/** AI BRIEF 四层:FACTS(带标签数据条)/ INTERPRETATION(accent 竖线论述)/ HYPOTHESIS(预测卡)/ IMPACT。 */
-export default function AiBrief({
-  facts,
-  reads,
-  hypotheses,
-  impacts,
-  consensus = [],
-}: {
-  facts: TaggedItem[]
-  reads: TaggedItem[]
-  hypotheses: Hypothesis[]
-  impacts: Impact[]
-  consensus?: ConsensusItem[]
-}) {
+// AI BRIEF 四层 = 4 个独立打孔小票面板,分别导出,供 BriefPage 自由排进左右两列。
+
+/** 事实层:主题标签 + 高亮数字的可扫读数据条。 */
+export function FactsPanel({ facts }: { facts: TaggedItem[] }) {
   return (
-    <Card>
-      <SectionHead label="AI BRIEF" zh="四层简报" margin="0 0 4px" />
-
-      {/* 事实层:主题标签 + 高亮数字的可扫读数据条 */}
-      <LayerHead label="FACTS" zh="事实层" color="var(--ink2)" />
-      {facts.map((f, i) => (
-        <div
-          key={i}
-          style={{ display: 'flex', gap: 9, alignItems: 'baseline', padding: '6px 0', borderBottom: '1px dashed var(--hair)' }}
-        >
-          <TagChip tag={f.tag} />
-          <span style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink)', textWrap: 'pretty' }}>
-            {highlightFigures(f.text, f.figures)}
-          </span>
-        </div>
-      ))}
-
-      {/* 解读层:accent 竖线 + 主题标签 + 论述(判断的"嗓音") */}
-      <LayerHead label="INTERPRETATION" zh="解读层" color="var(--accent)" />
-      {reads.map((r, i) => (
-        <div key={i} style={{ borderLeft: '2px solid var(--accent)', borderRadius: 0, padding: '1px 0 1px 12px', marginBottom: 11 }}>
-          <TagChip tag={r.tag} mr={7} />
-          <span style={{ fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink)', textWrap: 'pretty' }}>
-            {highlightFigures(r.text, r.figures)}
-          </span>
-        </div>
-      ))}
-
-      {/* 假设层 = 预测卡(多模型时上方先给跨模型共识) */}
-      <LayerHead label="HYPOTHESIS" zh="假设层 · 预测" color="var(--blue)" />
-      {consensus.length > 0 && <ConsensusRow items={consensus} />}
-      {hypotheses.map((h, i) => (
-        <PredictionCard key={i} h={h} />
-      ))}
-
-      {/* 影响层 */}
-      <LayerHead label="IMPACT" zh="影响层" color="var(--up)" />
-      {impacts.map((im, i) => {
-        const di = dirInfo(im.dir)
-        return (
+    <Card punch>
+      <SectionHead label="FACTS" zh="事实层" margin="0 0 8px" />
+      {facts.length ? (
+        facts.map((f, i) => (
           <div
             key={i}
-            style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 12, lineHeight: 1.5, marginBottom: 5 }}
+            style={{ display: 'flex', gap: 9, alignItems: 'baseline', padding: '6px 0', borderBottom: '1px dashed var(--hair)' }}
           >
-            <span
-              style={{ fontFamily: 'var(--mono)', fontSize: 12, color: di.col, flex: '0 0 auto', width: 12, textAlign: 'center' }}
-            >
-              {di.ch}
+            <TagChip tag={f.tag} />
+            <span style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink)', textWrap: 'pretty' }}>
+              {renderRichText(f.text, f.figures)}
             </span>
-            <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink)', flex: '0 0 auto' }}>
-              {im.asset}
-            </span>
-            <span style={{ color: 'var(--ink2)', textWrap: 'pretty' }}>{im.watch}</span>
           </div>
-        )
-      })}
+        ))
+      ) : (
+        <Muted />
+      )}
+    </Card>
+  )
+}
+
+/** 解读层:accent 竖线 + 主题标签 + 论述(判断的"嗓音")。 */
+export function ReadsPanel({ reads }: { reads: TaggedItem[] }) {
+  return (
+    <Card punch>
+      <SectionHead label="INTERPRETATION" zh="解读层" margin="0 0 8px" />
+      {reads.length ? (
+        reads.map((r, i) => (
+          <div key={i} style={{ borderLeft: '2px solid var(--accent)', padding: '1px 0 1px 12px', marginBottom: 11 }}>
+            <TagChip tag={r.tag} mr={7} />
+            <span style={{ fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink)', textWrap: 'pretty' }}>
+              {renderRichText(r.text, r.figures)}
+            </span>
+          </div>
+        ))
+      ) : (
+        <Muted />
+      )}
+    </Card>
+  )
+}
+
+/** 假设层 = 预测卡(多模型时上方先给跨模型共识)。 */
+export function HypothesisPanel({ hypotheses, consensus = [] }: { hypotheses: Hypothesis[]; consensus?: ConsensusItem[] }) {
+  return (
+    <Card punch>
+      <SectionHead label="HYPOTHESIS" zh="假设层 · 预测" margin="0 0 8px" />
+      {consensus.length > 0 && <ConsensusRow items={consensus} />}
+      {hypotheses.length ? hypotheses.map((h, i) => <PredictionCard key={i} h={h} />) : <Muted />}
+    </Card>
+  )
+}
+
+/** 影响层:中文资产名 + 英文代码 hover。 */
+export function ImpactPanel({ impacts }: { impacts: Impact[] }) {
+  return (
+    <Card punch>
+      <SectionHead label="IMPACT" zh="影响层" margin="0 0 8px" />
+      {impacts.length ? (
+        impacts.map((im, i) => {
+          const di = dirInfo(im.dir)
+          return (
+            <div
+              key={i}
+              style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 12, lineHeight: 1.5, marginBottom: 5 }}
+            >
+              <span
+                style={{ fontFamily: 'var(--mono)', fontSize: 12, color: di.col, flex: '0 0 auto', width: 12, textAlign: 'center' }}
+              >
+                {di.ch}
+              </span>
+              <ImpactAsset asset={im.asset} code={im.code} />
+              <span style={{ color: 'var(--ink2)', textWrap: 'pretty' }}>{im.watch}</span>
+            </div>
+          )
+        })
+      ) : (
+        <Muted />
+      )}
     </Card>
   )
 }

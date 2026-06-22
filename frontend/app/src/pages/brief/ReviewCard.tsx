@@ -11,7 +11,7 @@ const MARK = {
 export default function ReviewCard({ reviews }: { reviews: Review[] }) {
   if (reviews.length === 0) return null
   return (
-    <Card>
+    <Card punch>
       <SectionHead label="REVIEW" zh="假设复盘" />
       {reviews.map((r, i) => {
         const m = MARK[r.status]

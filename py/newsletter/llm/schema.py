@@ -119,7 +119,10 @@ BRIEF_SCHEMA: dict = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "asset": {"type": "string"},
+                    "asset": {
+                        "type": "string",
+                        "description": "资产中文短名(如 纳指/黄金/广义美元/美债2Y/US10Y/VIX/2s10s),不要带英文代码或括号",
+                    },
                     "watch": {"type": "string", "description": "观察点,不是买卖建议"},
                     "direction": {
                         "type": "string",

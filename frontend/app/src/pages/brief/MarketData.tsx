@@ -39,7 +39,7 @@ export default function MarketData({ metrics, showSparklines }: { metrics: Metri
   }
 
   return (
-    <Card>
+    <Card punch>
       <SectionHead label="MARKET DATA" zh="当日指标" />
 
       {/* 列头 */}

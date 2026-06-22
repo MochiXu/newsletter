@@ -1,36 +1,10 @@
 import { useState, type CSSProperties } from 'react'
 import type { Signal, SignalGroup } from '../../types'
 import { colorFor, fmtSignal, signalSigned } from '../../lib/format'
+import { REGIME_LABEL, regimeTooltip, translateRegime } from '../../lib/glossary'
 import { Card, SectionHead } from '../../components/Card'
+import { Tooltip } from '../../components/Tooltip'
 
-const REGIME_LABEL: Record<string, string> = {
-  equity_trend: '股票趋势',
-  vol_regime: '波动',
-  curve: '曲线',
-  real_rate: '实际利率',
-  inflation_expectations: '通胀预期',
-  dollar: '美元',
-}
-const TOKEN_CN: Record<string, string> = {
-  above_ma200: 'MA200上方',
-  below_ma200: 'MA200下方',
-  low: '低波',
-  mid: '中波',
-  high: '高波',
-  elevated: '抬升',
-  easing: '回落',
-  normal: '正常',
-  flat: '走平',
-  inverted: '倒挂',
-  steepening: '陡峭化',
-  flattening: '平坦化',
-  rising: '上行',
-  falling: '下行',
-  strong: '强',
-  weak: '弱',
-  diverging: '分化',
-  converging: '收敛',
-}
 const GROUP_CN: Record<SignalGroup, string> = {
   trend: '趋势',
   momentum: '动量',
@@ -40,11 +14,6 @@ const GROUP_CN: Record<SignalGroup, string> = {
   cross_asset: '跨资产相关',
   range: '52周分位',
 }
-const translateRegime = (v: string) =>
-  v
-    .split('/')
-    .map((t) => TOKEN_CN[t] ?? t)
-    .join('·')
 
 const chip: CSSProperties = {
   display: 'inline-flex',
@@ -54,6 +23,7 @@ const chip: CSSProperties = {
   borderRadius: 4,
   background: 'var(--paper2)',
   border: '1px solid var(--faint)',
+  cursor: 'help',
 }
 
 /** SIGNALS 技术指标卡:regime 徽章常显 + 29 条 signals 按 group 折叠(默认收起)。 */
@@ -73,17 +43,17 @@ export default function SignalsCard({ signals, regime }: { signals: Signal[]; re
   }
 
   return (
-    <Card>
+    <Card punch>
       <SectionHead label="SIGNALS" zh="技术指标" margin="0 0 10px" />
       {regimeKeys.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: signals.length ? 10 : 0 }}>
           {regimeKeys.map((k) => (
-            <span key={k} style={chip}>
+            <Tooltip key={k} content={regimeTooltip(k, regime[k])} width={220} style={chip}>
               <span style={{ fontSize: 10, color: 'var(--ink2)' }}>{REGIME_LABEL[k] ?? k}</span>
               <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--ink)' }}>
                 {translateRegime(regime[k])}
               </span>
-            </span>
+            </Tooltip>
           ))}
         </div>
       )}

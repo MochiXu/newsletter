@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import re
 from typing import Any
 
 import pandas as pd
@@ -142,6 +143,28 @@ def _resolve_fig_token(text: str, tok: str) -> str | None:
     return None
 
 
+# 常见资产英文代码 → 中文短名(影响层资产规范化用;LLM 输出常混杂中英/带括号代码)
+_ASSET_CN: dict[str, str] = {
+    "NASDAQCOM": "纳指", "XAUUSD": "黄金", "DTWEXBGS": "广义美元", "DGS2": "美债2Y",
+    "DGS10": "US10Y", "DFII10": "实际利率", "T10YIE": "通胀预期", "VIXCLS": "VIX",
+}
+_ASSET_PAREN = re.compile(r"^(.+?)\s*[(（]\s*([A-Za-z0-9]+)\s*[)）]\s*$")
+
+
+def _split_asset(raw: str) -> tuple[str, str]:
+    """把 LLM 自由生成的影响层 asset 规范成 (中文名, 英文代码):
+    '纳指 (NASDAQCOM)' → ('纳指','NASDAQCOM');裸代码 'NASDAQCOM' → ('纳指','NASDAQCOM');
+    '2s10s'/'VIX'/'纳指' 等无代码 → 原样名 + 空代码。"""
+    s = (raw or "").strip()
+    m = _ASSET_PAREN.match(s)
+    if m:
+        name, code = m.group(1).strip(), m.group(2).strip()
+        return (_ASSET_CN.get(code, name), code)
+    if s in _ASSET_CN:
+        return (_ASSET_CN[s], s)
+    return (s, "")
+
+
 def _norm_tagged(items: list) -> list[dict[str, Any]]:
     """规范化事实/解读条目:text 排版规范化;figure.t 规范化 + 落实成 text 子串(补单位/去冗余符号)+ 丢死 figure。"""
     out: list[dict[str, Any]] = []
@@ -193,7 +216,11 @@ def build_view(llm: LLMBrief | None) -> ModelView:
             )
             for h in b.hypotheses
         ],
-        impacts=[Impact(asset=i.asset, watch=normalize_text(i.watch), dir=i.direction) for i in b.impact],
+        impacts=[
+            Impact(asset=name, watch=normalize_text(i.watch), dir=i.direction, code=code)
+            for i in b.impact
+            for name, code in (_split_asset(i.asset),)
+        ],
     )
 
 
