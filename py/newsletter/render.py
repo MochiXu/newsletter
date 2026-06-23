@@ -232,12 +232,14 @@ def _parse_key_factors(raw: list[str]) -> list[KeyFactor]:
 def build_view(llm: LLMBrief | None) -> ModelView:
     """单个模型的"解释层"产出 → ModelView(六层,文本经规范化)。llm 为 None 则空视图、tone 中性。"""
     b = llm or LLMBrief()
-    return ModelView(
-        tone=b.tone,
-        headline=normalize_text(b.headline),
-        facts=_norm_tagged(b.facts),
-        reads=_norm_tagged(b.interpretation),
-        hypotheses=[
+    # roster 纪律:每资产仅留一条(防 LLM 超发同资产多 horizon,如中转站 Claude 偶发返 6 条)
+    seen_assets: set[str] = set()
+    hyps: list[Hypothesis] = []
+    for h in b.hypotheses:
+        if h.asset in seen_assets:
+            continue
+        seen_assets.add(h.asset)
+        hyps.append(
             Hypothesis(
                 if_then=normalize_text(h.if_then),
                 invalidation=normalize_text(h.invalidation),
@@ -247,8 +249,13 @@ def build_view(llm: LLMBrief | None) -> ModelView:
                 confidence=h.confidence,
                 key_factors=_parse_key_factors(h.key_factors),
             )
-            for h in b.hypotheses
-        ],
+        )
+    return ModelView(
+        tone=b.tone,
+        headline=normalize_text(b.headline),
+        facts=_norm_tagged(b.facts),
+        reads=_norm_tagged(b.interpretation),
+        hypotheses=hyps,
         impacts=[
             Impact(asset=name, watch=normalize_text(i.watch), dir=i.direction, code=code)
             for i in b.impact
