@@ -42,10 +42,12 @@ def build_feature_block(
     regime: dict[str, str],
     macro: list[dict[str, Any]],
     factors: dict[str, Any] | None = None,
+    news_features: dict[str, Any] | None = None,
 ) -> str:
     """组装特征块。所有数字均来自代码计算;缺失项以 — 占位或略过。
 
-    factors = factors.compute_factors(snap) 的结果(AssetFactors by series_id);非空则附「因子打分」段当锚。
+    factors = factors.compute_factors(snap)(AssetFactors by series_id);非空则附「因子打分」段当锚。
+    news_features = news.compute_news_features(...);非空则附「新闻信号」段(**仅 A/B 的 B 臂传入**)。
     """
     g = snap.get
     out: list[str] = [f"## 今日数据与技术特征(截至 {target_date},均由代码计算,请勿自行心算)"]
@@ -131,6 +133,19 @@ def build_feature_block(
     if macro:
         out.append("\n### 月频宏观(最新读数,仅背景)")
         out.append("- " + ";".join(f"{m['label']} {m['value']}({m['obs_date']})" for m in macro))
+
+    # 9) 新闻信号(仅 B 臂;代码聚合,非裸情绪散文)
+    if news_features and news_features.get("total"):
+        out.append("\n### 新闻信号(代码聚合,供参考;新闻方向预测力弱,勿据此过度自信)")
+        ev = [k for k, v in (news_features.get("events") or {}).items() if v]
+        if ev:
+            out.append("- 今日事件提及:" + "、".join(ev))
+        for sid, nf in (news_features.get("byAsset") or {}).items():
+            head = nf.get("headlines") or []
+            out.append(
+                f"- {_FACTOR_CN.get(sid, sid)}:{nf['count']} 条,净情绪 {nf['netSentiment']:+.2f}"
+                + (f";头条「{head[0][:50]}」" if head else "")
+            )
 
     return "\n".join(out)
 
