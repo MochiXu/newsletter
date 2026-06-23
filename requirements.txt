@@ -3,3 +3,5 @@ pandas>=2.2,<4
 numpy>=1.26
 pyarrow>=14
 pydantic>=2.5,<3
+# 新闻正文抽取(v1.6 S5):去 boilerplate 抓主文。缺失时 extract.py 优雅降级到 stdlib 启发式 → API 描述。
+trafilatura>=2.0
