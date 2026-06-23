@@ -209,6 +209,10 @@ S1 当初按单模型设计。v1.5 落地了多模型(每模型一份 `ModelView
 
 ## V2-S3 · 评估层(`eval/`)——V2 核心
 
+> **注(2026-06-23):本节"vs-baseline 技能差 + 信心校准 + Brier"的方法论已被 [v1.6](v1.6-progress.md) 提前以
+> 前向、轻量、纯代码的形式落地**(`evaluate.py` + `data/scorecard.json`,只跑前向真实 `predictions.csv`,绕开回填记忆污染)。
+> V2-S3 在其上补**回填语料覆盖、block bootstrap 显著性、条件假设打分、track.json 全字段 + 前端整页接管**。v1.6 的 `scorecard.json` 是 S3 的前身/对照。
+
 **目标**:用未来真实走势给历史判断打分,并回答**「打不打得过朴素基准」**。
 
 ### 模块
