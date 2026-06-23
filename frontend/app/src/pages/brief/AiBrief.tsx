@@ -1,4 +1,4 @@
-import type { ConsensusItem, Hypothesis, Impact, TaggedItem } from '../../types'
+import type { ConsensusItem, Hypothesis, Impact, KeyFactor, TaggedItem } from '../../types'
 import { ASSET_CN, dirInfo, HORIZON_CN, PRED_DIR } from '../../lib/format'
 import { renderRichText } from '../../lib/highlight'
 import { Card, SectionHead } from '../../components/Card'
@@ -59,6 +59,34 @@ function ImpactAsset({ asset, code }: { asset: string; code?: string }) {
     </Tooltip>
   ) : (
     <span style={{ flex: '0 0 auto', display: 'inline-flex' }}>{el}</span>
+  )
+}
+
+// 关键因子 chip:常显极短标签(label),完整读数(detail)放 hover。detail 与 label 相同则不挂 hover。
+function KeyFactorChip({ kf }: { kf: KeyFactor }) {
+  const hasMore = !!kf.detail && kf.detail !== kf.label
+  const chip = (
+    <span
+      style={{
+        fontSize: 9.5,
+        color: 'var(--ink2)',
+        background: 'var(--paper)',
+        border: '1px solid var(--hair)',
+        borderRadius: 3,
+        padding: '2px 6px',
+        cursor: hasMore ? 'help' : 'default',
+        borderBottomStyle: hasMore ? 'dotted' : 'solid',
+      }}
+    >
+      {kf.label}
+    </span>
+  )
+  return hasMore ? (
+    <Tooltip content={kf.detail} width={220} style={{ flex: '0 0 auto' }}>
+      {chip}
+    </Tooltip>
+  ) : (
+    <span style={{ flex: '0 0 auto', display: 'inline-flex' }}>{chip}</span>
   )
 }
 
@@ -158,19 +186,7 @@ function PredictionCard({ h }: { h: Hypothesis }) {
       {h.keyFactors.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 7 }}>
           {h.keyFactors.map((f, i) => (
-            <span
-              key={i}
-              style={{
-                fontSize: 9.5,
-                color: 'var(--ink2)',
-                background: 'var(--paper)',
-                border: '1px solid var(--hair)',
-                borderRadius: 3,
-                padding: '2px 6px',
-              }}
-            >
-              {f}
-            </span>
+            <KeyFactorChip key={i} kf={f} />
           ))}
         </div>
       )}

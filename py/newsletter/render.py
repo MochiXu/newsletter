@@ -23,6 +23,7 @@ from .models import (
     Dir,
     Hypothesis,
     Impact,
+    KeyFactor,
     LLMBrief,
     Metric,
     ModelView,
@@ -196,6 +197,22 @@ def build_reviews(hyp_rows: list[dict[str, Any]], target_date: str) -> list[Revi
     return out
 
 
+def _parse_key_factors(raw: list[str]) -> list[KeyFactor]:
+    """LLM 的扁平 '短标签|完整读数' → KeyFactor(label/detail 各自规范化)。
+
+    无竖线则视整条为短标签、detail 同步置为它(前端 hover 不重复展示);label 为空的丢弃。
+    扁平串避免了 'hypotheses 数组→对象→key_factors 数组→对象' 的双层嵌套(同 figs 的处置)。
+    """
+    out: list[KeyFactor] = []
+    for item in raw:
+        head, sep, tail = (item or "").replace("｜", "|").partition("|")  # 容错全角竖线
+        label = normalize_text(head.strip())
+        detail = normalize_text(tail.strip()) if sep else ""
+        if label:
+            out.append(KeyFactor(label=label, detail=detail or label))
+    return out
+
+
 def build_view(llm: LLMBrief | None) -> ModelView:
     """单个模型的"解释层"产出 → ModelView(六层,文本经规范化)。llm 为 None 则空视图、tone 中性。"""
     b = llm or LLMBrief()
@@ -212,7 +229,7 @@ def build_view(llm: LLMBrief | None) -> ModelView:
                 direction=h.direction,
                 horizon=h.horizon,
                 confidence=h.confidence,
-                key_factors=[normalize_text(k) for k in h.key_factors],
+                key_factors=_parse_key_factors(h.key_factors),
             )
             for h in b.hypotheses
         ],

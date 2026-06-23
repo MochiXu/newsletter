@@ -333,6 +333,16 @@ class Signal(_CamelModel):
     group: str  # trend | momentum | vol | rates | dollar | cross_asset | range
 
 
+class KeyFactor(_CamelModel):
+    """预测卡的一条关键因子:label=极短标签(chip 上常显),detail=完整读数(hover 展开)。
+
+    LLM 以扁平串 '短标签|完整读数' 产出(见 schema.key_factors),render._parse_key_factors 解析到此。
+    """
+
+    label: str = ""
+    detail: str = ""
+
+
 class Hypothesis(_CamelModel):
     if_then: str = Field(alias="ifThen")
     invalidation: str
@@ -340,7 +350,7 @@ class Hypothesis(_CamelModel):
     direction: PredDir = PredDir.FLAT
     horizon: Horizon = Horizon.H_20D
     confidence: float = 0.0
-    key_factors: list[str] = Field(default_factory=list, alias="keyFactors")
+    key_factors: list[KeyFactor] = Field(default_factory=list, alias="keyFactors")
 
 
 class Impact(_CamelModel):

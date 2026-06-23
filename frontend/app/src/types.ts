@@ -48,6 +48,12 @@ export interface Signal {
   group: SignalGroup
 }
 
+/** 预测卡关键因子:label=极短标签(chip 常显),detail=完整读数(hover 展开)。 */
+export interface KeyFactor {
+  label: string
+  detail: string
+}
+
 /** 假设层 = 对固定方向的可证伪预测(纳指/黄金/广义美元/2Y)。 */
 export interface Hypothesis {
   ifThen: string
@@ -56,7 +62,7 @@ export interface Hypothesis {
   direction: PredDir
   horizon: Horizon
   confidence: number
-  keyFactors: string[]
+  keyFactors: KeyFactor[]
 }
 
 export interface Impact {

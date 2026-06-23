@@ -105,6 +105,17 @@ class TestBuildBrief(unittest.TestCase):
         self.assertEqual([(im.asset, im.code) for im in v.impacts],
                          [("纳指", "NASDAQCOM"), ("美债2Y", "DGS2"), ("2s10s", "")])
 
+    def test_key_factors_label_detail_split(self):
+        # 关键因子 '短标签|完整读数' → {label, detail};无竖线则 detail=label;两端各自规范化(中文/数字间补空格)
+        llm = LLMBrief(hypotheses=[{"asset": "NASDAQCOM", "direction": "up", "if_then": "x", "invalidation": "z",
+                                    "key_factors": ["MA200上方|纳指较MA200上方12.3%", "实际利率上行", "VIX中波|"]}])
+        kf = render.build_brief("2026-06-18", {"deepseek": llm}, [], [], []).views["deepseek"].hypotheses[0].key_factors
+        self.assertEqual([(k.label, k.detail) for k in kf], [
+            ("MA200 上方", "纳指较 MA200 上方 12.3%"),  # 竖线拆分 + 规范化
+            ("实际利率上行", "实际利率上行"),              # 无竖线 → detail 同 label
+            ("VIX 中波", "VIX 中波"),                     # 竖线后为空 → detail 回退 label
+        ])
+
     def test_full_from_llm(self):
         llm = LLMBrief(headline="H", tone="risk_on", facts=["f1"], interpretation=["i1"],
                        hypotheses=[{"if_then": "x", "invalidation": "z"}],
