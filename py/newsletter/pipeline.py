@@ -14,7 +14,7 @@ from typing import Any
 
 import pandas as pd
 
-from . import catalog, features, news as news_mod, predictions as pred, regime, render
+from . import catalog, factors as factors_mod, features, news as news_mod, predictions as pred, regime, render
 from .config import PATHS, Settings, get_settings
 from .deliver.feishu import push_text
 from .llm import generate_briefs
@@ -100,11 +100,12 @@ def build_report(
     feat = features.compute_features(wide)
     snap = features.snapshot_at(feat, target_date)
     reg = regime.derive(snap)
+    af_by_sid = factors_mod.compute_factors(snap)  # 量化因子层(因子打分 + 代码基线 + 波动率预测)
     macro = features.macro_latest(long_df, target_date)
 
     metrics = render.build_metrics(long_df, target_date)
     metrics_prompt = [{"label": m.label, "value": m.value, "change": m.change, "kind": m.kind.value} for m in metrics]
-    block = build_feature_block(target_date, metrics_prompt, snap, reg, macro)
+    block = build_feature_block(target_date, metrics_prompt, snap, reg, macro, factors=af_by_sid)
 
     # 1) 四层简报(多模型:每个配置的模型各出一份;失败的模型自动跳过)
     linkage = PATHS.linkage_map.read_text(encoding="utf-8") if PATHS.linkage_map.exists() else ""
@@ -146,9 +147,10 @@ def build_report(
 
     signals = render.build_signals(snap)
     price_series = render.build_price_series(long_df, target_date)
+    factors_view = render.build_factors(af_by_sid)
     brief = render.build_brief(
         target_date, views_llm, metrics, [], render.build_news(merged),  # reviews 已停用(改预测账本)
-        signals=signals, regime=reg, price_series=price_series,
+        signals=signals, regime=reg, price_series=price_series, factors=factors_view,
     )
     if persist_features:
         try:

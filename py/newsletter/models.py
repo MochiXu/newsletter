@@ -333,6 +333,20 @@ class Signal(_CamelModel):
     group: str  # trend | momentum | vol | rates | dollar | cross_asset | range
 
 
+class FactorView(_CamelModel):
+    """单资产的量化因子视图(代码算,v1.6 因子层)。脊柱级,与 signals/priceSeries 平级。
+
+    scores=归一化因子打分(trend/momentum/value,约 [-1,1]);composite=方向合成分;
+    baselineDir/Conf=代码基线方向与信心(AI 的"陪练标尺",评估层当基线之一);volForecastAnn=EWMA 年化波动预测。
+    """
+
+    scores: dict[str, float] = Field(default_factory=dict)
+    composite: float = 0.0
+    baseline_dir: PredDir = Field(PredDir.FLAT, alias="baselineDir")
+    baseline_conf: float = Field(0.0, alias="baselineConf")
+    vol_forecast_ann: float = Field(0.0, alias="volForecastAnn")
+
+
 class KeyFactor(_CamelModel):
     """预测卡的一条关键因子:label=极短标签(chip 上常显),detail=完整读数(hover 展开)。
 
@@ -444,6 +458,7 @@ class Brief(_CamelModel):
     price_series: dict[str, list[PricePoint]] = Field(
         default_factory=dict, alias="priceSeries"
     )  # 30日价格大图序列,key=metric.key(chart 资产)
+    factors: dict[str, FactorView] = Field(default_factory=dict)  # 量化因子层(key=series_id 小写;v1.6)
     reviews: list[Review] = Field(default_factory=list)
     news: list[News] = Field(default_factory=list)
     # ── 多模型解释层 ──

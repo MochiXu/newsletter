@@ -22,6 +22,7 @@ from .models import (
     BriefsPayload,
     ConsensusItem,
     Dir,
+    FactorView,
     Hypothesis,
     Impact,
     KeyFactor,
@@ -90,6 +91,20 @@ def build_signals(snap: dict[str, float]) -> list[Signal]:
     for key, label, unit, group in features.FEATURE_VIEW:
         if key in snap:
             out.append(Signal(key=key, label=label, value=round(float(snap[key]), 6), unit=unit, group=group))
+    return out
+
+
+def build_factors(af_by_sid: dict) -> dict[str, FactorView]:
+    """factors.compute_factors 的 AssetFactors → 前端 FactorView(key=series_id 小写,与 priceSeries/metrics 对齐)。"""
+    out: dict[str, FactorView] = {}
+    for sid, af in af_by_sid.items():
+        out[sid.lower()] = FactorView(
+            scores=af.scores,
+            composite=af.composite,
+            baseline_dir=af.baseline_dir,
+            baseline_conf=af.baseline_conf,
+            vol_forecast_ann=af.vol_forecast_ann,
+        )
     return out
 
 
@@ -290,6 +305,7 @@ def build_brief(
     signals: list[Signal] | None = None,
     regime: dict[str, str] | None = None,
     price_series: dict[str, list[PricePoint]] | None = None,
+    factors: dict[str, FactorView] | None = None,
 ) -> Brief:
     """组装单日 Brief(契约):脊柱(代码算)+ 每模型一份 view + 代码级共识。
 
@@ -306,6 +322,7 @@ def build_brief(
         signals=signals or [],
         regime=regime or {},
         price_series=price_series or {},
+        factors=factors or {},
         reviews=reviews,
         news=news,
         models=list(views.keys()),

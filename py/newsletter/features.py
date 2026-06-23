@@ -48,6 +48,16 @@ def _vol_ann(s: pd.Series, w: int) -> pd.Series:
     return s.pct_change(fill_method=None).rolling(w, min_periods=_mp(w)).std() * _SQRT252
 
 
+def _vol_ewma(s: pd.Series, lam: float = 0.94) -> pd.Series:
+    """RiskMetrics 指数加权年化波动预测:σ²_t = λσ²_{t-1} + (1-λ)r²_t(因果,只看过去)。
+
+    比固定窗口波动更贴近"下一步波动"(波动有聚集性,这是为数不多真能预测的量)。lam=0.94 为日频常用值。
+    """
+    r = s.pct_change(fill_method=None)
+    var = (r * r).ewm(alpha=1.0 - lam, adjust=False).mean()
+    return var.pow(0.5) * _SQRT252
+
+
 def _drawdown(s: pd.Series, w: int) -> pd.Series:
     return s / s.rolling(w, min_periods=_mp(w)).max() - 1.0
 
@@ -103,6 +113,7 @@ def compute_features(wide: pd.DataFrame) -> pd.DataFrame:
             cols[f"{sid}_above_ma200"] = (s > _ma(s, 200)).astype("float")
             for w in WINDOWS.vol:
                 cols[f"{sid}_vol_{w}"] = _vol_ann(s, w)
+            cols[f"{sid}_vol_ewma"] = _vol_ewma(s)  # EWMA 年化波动预测(因子层 vol forecast 用)
             for w in WINDOWS.drawdown:
                 cols[f"{sid}_maxdd_{w}"] = _drawdown(s, w)
             cols[f"{sid}_rangepct_{WINDOWS.range_pct}"] = _range_pct(s, WINDOWS.range_pct)

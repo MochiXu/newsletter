@@ -31,14 +31,22 @@ def _level(value: float, kind: str) -> str:
     return f"{value:,.2f}"
 
 
+_FACTOR_CN = {"NASDAQCOM": "纳指", "XAUUSD": "黄金", "DTWEXBGS": "广义美元", "DGS2": "2Y"}
+_FACTOR_DIR = {"up": "↑", "down": "↓", "flat": "→"}
+
+
 def build_feature_block(
     target_date: str,
     metrics: list[dict[str, Any]],
     snap: dict[str, float],
     regime: dict[str, str],
     macro: list[dict[str, Any]],
+    factors: dict[str, Any] | None = None,
 ) -> str:
-    """组装特征块。所有数字均来自代码计算;缺失项以 — 占位或略过。"""
+    """组装特征块。所有数字均来自代码计算;缺失项以 — 占位或略过。
+
+    factors = factors.compute_factors(snap) 的结果(AssetFactors by series_id);非空则附「因子打分」段当锚。
+    """
     g = snap.get
     out: list[str] = [f"## 今日数据与技术特征(截至 {target_date},均由代码计算,请勿自行心算)"]
 
@@ -98,6 +106,21 @@ def build_feature_block(
         f"- 标普~10Y {_f(g('corr_SP500_DGS10_60'))};标普~VIX {_f(g('corr_SP500_VIXCLS_60'))};"
         f"黄金~实际利率 {_f(g('corr_XAUUSD_DFII10_60'))};黄金~广义美元 {_f(g('corr_XAUUSD_DTWEXBGS_60'))}"
     )
+
+    # 6.5) 因子打分(代码合成,供参考,勿自行心算)
+    if factors:
+        out.append("\n### 因子打分(代码合成,供参考;composite 为方向合成,正=偏多)")
+        for sid, af in factors.items():
+            sc = af.scores
+            parts = [
+                f"综合 {af.composite:+.2f}{_FACTOR_DIR.get(af.baseline_dir, '')}(代码信心 {af.baseline_conf:.0%})",
+                f"趋势 {sc.get('trend', 0.0):+.2f}",
+                f"动量 {sc.get('momentum', 0.0):+.2f}",
+                f"价值 {sc.get('value', 0.0):+.2f}",
+            ]
+            if af.vol_forecast_ann:
+                parts.append(f"波动预测 {af.vol_forecast_ann * 100:.0f}%")
+            out.append(f"- {_FACTOR_CN.get(sid, sid)}:" + ";".join(parts))
 
     # 7) regime(代码判定)
     if regime:
