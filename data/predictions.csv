@@ -1,0 +1,5 @@
+created_date,model,asset,direction,horizon,confidence,status,resolved_date,realized_dir,realized_text,hit,note
+2026-06-23,deepseek,NASDAQCOM,down,h_5d,0.6000,pending,,,,,
+2026-06-23,deepseek,XAUUSD,up,h_5d,0.5000,pending,,,,,
+2026-06-23,deepseek,DTWEXBGS,up,h_5d,0.6500,pending,,,,,
+2026-06-23,deepseek,DGS2,up,h_5d,0.5500,pending,,,,,
