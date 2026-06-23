@@ -89,12 +89,13 @@
   (假设追踪)——产物走 git,可 diff、有历史。
 - **依赖**:`pandas`/`numpy`(特征)、`pyarrow`(parquet)、`pydantic`(边界校验);LLM provider 层仍是纯 `urllib`。
 - **模型**:**provider 可插拔**(Anthropic / OpenAI / MiniMax / DeepSeek / Moonshot / Zhipu / 通用 openai-compat),
-  换 env 不改码;当前活跃 = DeepSeek。
+  换 env 不改码(`LLM_MODELS` 逗号列表选模型)。当前活跃 = **DeepSeek + Claude(claude-opus-4-8)+ OpenAI(gpt-5.5)三模型并行**(经中转站),收敛靠**代码级共识**、不靠 LLM。
+- **多模型契约**:`Brief` = 脊柱(模型无关:metrics/signals/regime/priceSeries/news/reviews)+ `views{modelId: ModelView}`(随模型变的六层)+ `consensus`(对固定 roster 跨模型纯代码投票;<2 模型为空)。
 - **调度**:**GitHub Actions cron**(北京 07:00)单步 `PYTHONPATH=py python -m newsletter` → `git add data/`
   提交回仓库 →(配了飞书则)推送。密钥缺失自动降级,不让 CI 失败。
 - **配置**:`.env`(四家 key + 可选 LLM/飞书),已 gitignore。
 
-> **里程碑现状**:M0 数据采集 / M1 四层简报 / M2 新闻+假设追踪 均已落地并实跑(DeepSeek);
+> **里程碑现状**:M0 数据采集 / M1 四层简报 / M2 新闻+假设追踪 均已落地并实跑(V1.5 起为 DeepSeek + Claude + GPT 三模型并行 + 代码级共识);
 > V1「数据质量重构」(纯 Python 分层 + 多源 + parquet + 代码算特征)已完成并验证。
 > 进度总表见 [docs/refactor/readme.md](docs/refactor/readme.md) §4;V2(回填 + 预测价值评估)设计见
 > [v2-progress](docs/refactor/v2-progress.md);完整时间线见 [docs/CHANGELOG.md](docs/CHANGELOG.md)。

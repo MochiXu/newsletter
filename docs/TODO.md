@@ -46,7 +46,7 @@
 - [x] 新闻分类对齐改为 `index`(模型回填序号),解决 LLM 翻译标题导致的零匹配/全退化为未分类
 - [ ] prompt 迭代与**评测**:建小评测集,比较不同 model/provider 的简报质量
 - [ ] `linkage_map.md` 持续维护:这是核心 IP,需作者每天复盘后修订(飞轮:学到→编码→AI 应用→复盘)
-- [ ] 新闻源扩充 + 质量过滤:`DEFAULT_FEEDS` 现为 Fed/CNBC/MarketWatch;加央行/财经源,去广告/低质
+- [ ] 新闻源扩充 + 质量过滤:`DEFAULT_FEEDS` 现为 Fed/ECB/MarketWatch/CNBC(ECB 已加);继续扩充财经源,去广告/低质
 - [ ] 假设复盘质量:LLM 判定 held/invalidated/open 需人工抽查;考虑给「依据数据点」要求
 - [ ] 「偏离预期」需要 consensus / 经济日历预期值——数据源待定(见 §4)
 

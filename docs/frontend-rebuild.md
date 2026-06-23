@@ -117,7 +117,7 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 ## 5. 各区块渲染规格
 
 ### 5.1 MARKET DATA(指标表)
-`metrics` data-driven(后端 10 行)。每行 grid `52px 1fr 66px 50px`,虚线下边框:标签(mono `--ink2`)/ sparkline / 值 `fmtVal` / 日变化 `fmtChg`(色 `colorFor(change)`)。sparkline 受 showSparklines 控制。
+`metrics` data-driven(后端 10 行)。每行 grid `48px 1fr 60px 48px 58px`(5 列),虚线下边框:标签(mono `--ink2`)/ sparkline / 值 `fmtVal` / 单日Δ `fmtChg` / 单日% `fmtPctChange`(返回 `string|null`,空显 `—`;后两列同用色 `colorFor(change)`)。sparkline 受 showSparklines 控制。
 - `fmtVal`:yield→`v.toFixed(2)%`;spread→`round(v*100)bp`;index→`v.toFixed(1)`;price→`toLocaleString(maxFrac 1)`。
 - `fmtChg`:带 `+`;yield/spread→`round(c*100)bp`;index→`c.toFixed(1)`;price→`|c|<10?toFixed(1):round`。
 
@@ -135,8 +135,8 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 
 ### 5.4 AI BRIEF 四层(4 个独立打孔面板,渲染**当前选中模型的 view**,见 §3 模型切换)
 - **FACTS / INTERPRETATION**:正文用 `renderRichText(text, figures)` = ① figures 按 dir 给数字上色 ② 已知术语(regime 的 `key=value`/复合 token + 行话 higher-for-longer/熊平/牛陡/倒挂)加**虚下划线 + hover 中文解释**(`glossary.ts` 单一源;保留 LLM 原文措辞,不改 prompt)。
-- **HYPOTHESIS=预测卡**(图标 blue):多模型时上方先给一行**跨模型共识**(`consensus`:资产 + 多数方向 + `agree/n 认同` + 均值信心 + 各方向票数;平票=分歧→横盘)。每条预测卡:头(资产中文 + 方向箭头↑↓→ + 期限 + 信心 % + 信心条 + **信心 tooltip**:模型自评、未校准、非真实概率)/ ifThen / `✕ 失效`+invalidation / keyFactors chips。资产映射:NASDAQCOM→纳指,XAUUSD→黄金,DTWEXBGS→广义美元,DGS2→美债2Y。
-- **IMPACT**(图标 up):每条 `dirInfo(dir)` + **资产中文名**(`im.asset`,后端已规范化)+ watch;若 `im.code` 有英文代码 → 放 hover。
+- **HYPOTHESIS=预测卡**:多模型时上方先给一行**跨模型共识**(`consensus`:资产 + 多数方向 + `agree/n 认同` + 均值信心 + 各方向票数;平票=分歧→横盘)。每条预测卡:头(资产中文 + 方向箭头↑↓→ + 期限 + 信心 % + 信心条 + **信心 tooltip**:模型自评、未校准、非真实概率)/ ifThen / `✕ 失效`+invalidation / **关键因子 chip**(`KeyFactorChip`:常显短标签 `label`,完整读数 `detail` 进 hover,`detail≠label` 才挂 Tooltip)。资产映射:NASDAQCOM→纳指,XAUUSD→黄金,DTWEXBGS→广义美元,DGS2→美债2Y。
+- **IMPACT**:每条 `dirInfo(dir)` + **资产中文名**(`im.asset`,后端已规范化)+ watch;若 `im.code` 有英文代码 → 放 hover。
 
 ### 5.5 REVIEW 复盘(hasReviews 才显)
 状态:held{✓,up,已兑现} / invalidated{✕,down,已失效} / open{○,accent,待观察}。18px 圆描边徽标 + ifThen + 状态标签 + note。
@@ -171,7 +171,7 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 顶层 `{model, generatedAt, briefs:[Brief]}`(briefs 倒序)。Brief 字段:
 **脊柱(模型无关)**:`date/weekday/issue/time` · `metrics[key,label,value,change,kind,spark:[{date,value}]]` · `signals[key,label,value,unit,group]` · `regime{}` · `priceSeries{key:[{date,value}]}`(5 资产×30 点)· `reviews[ifThen,status,note]` · `news[title,source,cat,assets,dir,link]`。
 **多模型**:`models[]`(模型 id,有序,[0]=主)· `views{modelId: ModelView}` · `consensus[{asset,direction,votes{up,down,flat},n,agree,meanConfidence}]`(≥2 模型才有)。
-`ModelView` = `tone/headline · facts[{tag,text,figures:[{t,dir}]}] · reads[同]`(`renderRichText` 按 figures 给数字上色 + 给已知术语加 hover)`· hypotheses[ifThen,invalidation,asset,direction,horizon,confidence,keyFactors] · impacts[{asset(中文名),watch,dir,code(英文代码,可空→hover)}]`。
+`ModelView` = `tone/headline · facts[{tag,text,figures:[{t,dir}]}] · reads[同]`(`renderRichText` 按 figures 给数字上色 + 给已知术语加 hover)`· hypotheses[ifThen,invalidation,asset,direction,horizon,confidence,keyFactors:[{label,detail}]] · impacts[{asset(中文名),watch,dir,code(英文代码,可空→hover)}]`。`keyFactors` 每条 = 短标签(`label`,chip 常显)+ 完整读数(`detail`,hover);后端由 LLM 扁平串 `'label|detail'` 解析。
 前端用 `viewOf(brief, selectedModel)` 取当前视图(选中模型缺失则回退主模型);切换器选项 = `allModels(briefs)`(>1 才显示)。所有展示文本后端已过 `textnorm.normalize_text`(英文标点 + 中英空格 + 数字单位上色);影响层 `asset` 经 `render._split_asset` 规范成中文名 + 提取 `code`。
 
 - **设计有、后端无**:`q`(nasdaq/btc 报价)、BTC/DXY 价格序列 → 不做(纳指已在 metrics;BTC 不加)。`track`(命中率)、`PERIODS`(区间聚合)→ 空态待 V2。

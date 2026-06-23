@@ -54,7 +54,7 @@
 | `__main__.py` | CLI:`--date` / `--no-news` / `--history-years` / `-v` |
 | `deliver/feishu.py` | 飞书机器人推送(HMAC 签名可选;失败不阻断,已存 md) |
 | `framework/linkage_map.md` | 核心 IP:人工维护的宏观传导图,运行时读入喂给 LLM |
-| `tests/` | 63 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析/补单位 + 多模型视图/共识 + 影响层 asset 规范化 + 向后兼容旧 str[] facts 与旧扁平 brief 迁移) |
+| `tests/` | 64 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析/补单位 + 关键因子 label/detail 拆分 + 多模型视图/共识 + 影响层 asset 规范化 + 向后兼容旧 str[] facts 与旧扁平 brief 迁移) |
 
 ## 数据源分工(已接入)
 
@@ -63,7 +63,7 @@
 | 利率 2Y/10Y、2s10s、实际利率 DFII10、通胀预期 T10YIE、广义美元 DTWEXBGS、VIX、月频宏观(CPI/失业/非农/FFR) | FRED | — |
 | 黄金 | Twelve Data `XAU/USD`(现货) | Tiingo `GLD` / Yahoo `GC=F` |
 | 窄口径美元(DXY 代理) | Tiingo `UUP` | — (只比收益率/趋势/标准化,不取绝对价位) |
-| 股指长历史 | Tiingo `SPY`/`QQQ` | FRED `SP500`/`NASDAQCOM` |
+| 股指长历史 | FRED `SP500`/`NASDAQCOM` | Tiingo `SPY`/`QQQ` |
 
 ## 数据落盘(`data/`)
 

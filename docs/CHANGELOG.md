@@ -18,6 +18,16 @@
 
 ---
 
+## 2026-06-23 — 预测卡关键因子结构化(短标签 chip + 完整读数 hover)
+
+体验打磨延续。原「关键因子」chip 直接显示 LLM 写的长短语(如 `纳指较 MA200 上方 12.3%`),太啰嗦;改为**短标签常显 + 完整读数 hover**。
+
+- **契约变更**:`Hypothesis.keyFactors` 从 `string[]` → `KeyFactor[]`(`{label, detail}`)。
+- **LLM 扁平串**:schema 让 `key_factors` 每条输出 `'短标签|完整读数'`(竖线分隔),`render._parse_key_factors` 拆成 `{label, detail}` 并各自规范化。**关键**:走扁平串而非「数组套对象」,避开 `hypotheses→对象→key_factors→对象` 的双层嵌套(就是当初 figures 让 DeepSeek 失稳的形态)。
+- **前端**:`KeyFactorChip` 常显 `label`(虚下划线 + help 光标),`detail` 与 `label` 不同才挂统一 Tooltip。
+- **不写向后兼容**:产品仍在大量迭代,历史简报数据直接丢弃、只留最新单日重跑(旧 `keyFactors: string[]` 不迁移)。
+- 后端离线单测 63 → **64**(关键因子 label/detail 拆分)。
+
 ## 2026-06-23 — 简报页体验打磨(全区块打孔 + 响应式两列 + 术语 hover)
 
 紧接多模型之后的前端打磨。详见 [frontend-rebuild.md](frontend-rebuild.md)。
@@ -36,7 +46,7 @@
 
 - **契约重构**:`Brief` 拆为**脊柱(模型无关:metrics/signals/regime/priceSeries/news/reviews)+ `views{modelId: ModelView}`(随模型变的六层)+ `consensus`**。旧扁平 brief 由 `model_validator` 自动迁进 `views.archive`(向后兼容,`briefs.json` 不崩)。
 - **多模型生成**:`LLM_MODELS` 逗号列表;`generate_briefs` 逐模型生成、**单模型失败只跳过它**;缺 key 自动跳过。
-- **代码级共识**:对固定 roster 各资产**纯代码投票**(多数方向 + 票数 + 认同数 + 多数方向均值信心,平票=分歧)。不调 LLM、抗污染;留 `weights` 入参待 V2 按战绩加权。
+- **代码级共识**:对固定 roster 各资产**纯代码投票**(多数方向 + 票数 + 认同数 + 多数方向均值信心,平票=分歧)。不调 LLM、抗污染;为 V2 按战绩加权预留(目前等权,加权入参待加)。
 - **中转站接入**(`sub.foyego.com`,跑 Claude `claude-opus-4-8` + OpenAI `gpt-5.5`;DeepSeek 直连):`AnthropicProvider` 支持 `ANTHROPIC_BASE_URL` + `ANTHROPIC_AUTH_TOKEN`(x-api-key & Bearer 双头)+ **三路 tool 解析兜底**(中转站 Claude 复杂 schema 偶发把 JSON 当文本吐);`_compat_url` 让 base 填 host 自动补 `/v1/...`。排坑:**各模型族用不同 key**。
 - **前端**:右上角**模型切换器**(>1 模型才显示)、假设层**跨模型共识行**、**信心 tooltip**(说明 confidence 是模型自评、未校准、非真实概率)。
 - 后端离线单测 58 → **62**(多模型视图保序 / 共识多数·平票 / 单模型无共识 / 旧扁平 brief 迁移)。端到端三模型实跑通过(DeepSeek + Claude Opus 4.8 + GPT-5.5)。

@@ -69,7 +69,7 @@ py/newsletter/             # 纯 Python 数据管线
   news.py hypotheses.py    # 新闻分类 + 假设追踪复盘
   pipeline.py __main__.py  # 编排(target_date 贯穿)+ CLI
   framework/linkage_map.md # 核心 IP:人工维护的宏观传导图
-  tests/                   # 41 个离线单测(含特征因果性红线)
+  tests/                   # 64 个离线单测(含特征因果性红线)
 data/                      # git-as-database
   raw/latest/*.parquet     # 原始全量快照(history/ 归档已 gitignore)
   briefs/<date>.{md,json}  # 每日简报(人读 + 单日 JSON)
