@@ -45,16 +45,18 @@
 | `store.py` | parquet 原始层读写:`write_snapshot`(归档上一份再写 latest)、`write_features`(单日特征快照,gitignore) |
 | `features.py` | 技术特征(纯 pandas):趋势(MA/距 MA)、动量(收益率/利率变化 bp)、波动(年化已实现波动/回撤)、利率·通胀、美元(广义 vs 窄口径代理背离)、跨资产 60 日滚动相关、52 周分位、极值;`FEATURE_VIEW`(signals 单一源)、`metric_spark`(小走势序列)、`price_series`(30D 价格序列)|
 | `regime.py` | 基于特征**纯代码派生** regime 标签(股票趋势 / 波动率档 / 收益率曲线 / 实际利率 / 美元强弱),不让 LLM 猜 |
+| `factors.py` | **量化因子层(v1.6)**:`snap` 高阶聚合 → roster 各资产 trend/momentum/value 归一化打分 + 方向合成 composite + **代码基线方向/信心**(AI 陪练标尺)+ EWMA 波动率预测;按 kind 分支(利率走 bp/z)。喂 LLM 当锚 + 落 `factors` 块 + 进预测账本当基线 |
+| `evaluate.py` | **评估层(v1.6,前向)**:读 `predictions.csv` settled 行 → **技能 skill = 命中 − max(漂移/动量/因子基线)** + 信心**校准**分桶 + **Brier**(+climatology 基线);因子模型当 `_factor` 选手同台打分 → `data/scorecard.json`/`.md`。只跑前向真实数据 |
 | `llm/` | `providers`(多模型可插拔:`select_providers` 读 `LLM_MODELS` 逐个构建;OpenAI 兼容家走 **JSON mode**;`AnthropicProvider` 支持中转站 base_url + AUTH_TOKEN + 三路 tool 解析兜底;`_compat_url` 补 `/v1/...`)、`schema`(四层 + tag/figs 的 JSON Schema)、`prompt`(`build_feature_block`)、`style`(`TEXT_STYLE`)、`service`(`generate_brief` 单模型 / `generate_briefs` 多模型逐个降级) |
 | `textnorm.py` | 确定性中英文排版规范化(`normalize_text`:全角标点→ASCII、中英盘古空格、双引号→单引号;不拆 `MA200/2s10s/9bp`)。render 落库前对所有展示文本统一应用 |
 | `render.py` | LLM 输出 → pydantic 校验/归一化 + `normalize_text`(+ figure 补单位/去死)→ `build_metrics`(含 spark)/ `build_signals` / `build_price_series` / `build_view`(单模型六层)/ `build_consensus`(跨模型代码投票)/ `build_brief`(脊柱 + views + consensus)/ `_split_asset`(影响层 asset 规范成中文名 + 提取英文 `code`)/ `render_markdown` / `render_text`(取主视图)/ `upsert_briefs_json` |
 | `news.py` | RSS/Atom 抓取(stdlib)+ LLM 分类(事实/解读/影响资产);**按模型回填的 `index` 对齐**,免疫 LLM 改写/翻译标题 |
 | `predictions.py` | 预测追踪账本(`predictions.csv`):登记**各模型**每日预测,到 horizon 期满后**代码**算真实走势 + 命中(`features.realized_move`)、LLM 给本次结算写复盘 `note`;按 (date,model,asset,horizon) 幂等。替代旧 `hypotheses.py` 主观复盘 |
-| `pipeline.py` | 编排:`fetch_and_store` → `build_report`(算特征→**多模型 LLM**→预测账本(各模型 record + 往日到期 backfill + LLM review)→新闻→组装多视图 Brief + 共识)→ `write_outputs`;`target_date` 贯穿,各 LLM 环节独立 try/except 降级 |
+| `pipeline.py` | 编排:`fetch_and_store` → `build_report`(算特征 + **因子层**→**多模型 LLM**→预测账本(record 带因子基线 + 往日到期 backfill + LLM review)→**评估层 scorecard**→新闻→组装多视图 Brief + 共识)→ `write_outputs`;`target_date` 贯穿,各环节独立 try/except 降级 |
 | `__main__.py` | CLI:`--date` / `--no-news` / `--history-years` / `-v` |
 | `deliver/feishu.py` | 飞书机器人推送(HMAC 签名可选;失败不阻断,已存 md) |
 | `framework/linkage_map.md` | 核心 IP:人工维护的宏观传导图,运行时读入喂给 LLM |
-| `tests/` | 73 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析/补单位 + 关键因子 label/detail 拆分 + 预测账本 record/到期结算/命中 + apply_actuals 加固 + 多模型视图/共识 + 影响层 asset 规范化 + 向后兼容旧 str[] facts 与旧扁平 brief 迁移) |
+| `tests/` | 93 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析/补单位 + 关键因子 label/detail 拆分 + 预测账本 record/到期结算/命中 + apply_actuals 加固 + 多模型视图/共识 + 影响层 asset 规范化 + 向后兼容旧 str[] facts 与旧扁平 brief 迁移 + **因子合成/kind 分支/EWMA** + **confidence 语义钉死** + **评估层技能/校准/Brier 手算/_factor 选手/老行容错**) |
 
 ## 数据源分工(已接入)
 
@@ -73,7 +75,8 @@ data/
   raw/latest/manifest.json     本次拉取元信息(pull_date / 行数 / 序列 / 日期范围)
   briefs/<date>.{md,json}      每日简报(人读 + 单日结构化)
   briefs.json                  聚合简报(前端 fetch 的接缝)
-  predictions.csv              预测追踪账本(created_date/model/asset/horizon/status/resolved_date/realized_dir/realized_text/hit/note)
+  predictions.csv              预测追踪账本(…/hit/note/base_dir/base_conf;后两列=创建时的因子基线快照)
+  scorecard.json / .md         评估层产出(前向):技能 vs 基线 + 校准 + Brier(前端命中率页未来读)
 ```
 
 ## 运行

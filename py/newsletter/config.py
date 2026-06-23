@@ -87,6 +87,15 @@ class Paths:
         return self.data / "predictions.csv"
 
     @property
+    def scorecard_json(self) -> Path:
+        """评估层产出:技能 vs 基线 + 校准 + Brier(前向)。前端命中率页未来读。"""
+        return self.data / "scorecard.json"
+
+    @property
+    def scorecard_md(self) -> Path:
+        return self.data / "scorecard.md"
+
+    @property
     def news_cache(self) -> Path:
         return self.data / "news_cache"
 

@@ -14,7 +14,16 @@ from typing import Any
 
 import pandas as pd
 
-from . import catalog, factors as factors_mod, features, news as news_mod, predictions as pred, regime, render
+from . import (
+    catalog,
+    evaluate,
+    factors as factors_mod,
+    features,
+    news as news_mod,
+    predictions as pred,
+    regime,
+    render,
+)
 from .config import PATHS, Settings, get_settings
 from .deliver.feishu import push_text
 from .llm import generate_briefs
@@ -117,13 +126,20 @@ def build_report(
     # 2) 预测追踪:登记当天各模型的预测,回填往日已到期预测的实际结果(代码裁决 + LLM 复盘叙述)
     pred_rows = pred.load(PATHS.predictions_csv)
     try:
-        pred.record(pred_rows, target_date, views_llm)  # 各模型当天预测,按 (date,model,asset,horizon) 幂等
+        # 各模型当天预测(带因子基线快照),按 (date,model,asset,horizon) 幂等
+        pred.record(pred_rows, target_date, views_llm, factors=af_by_sid)
         newly = pred.backfill(pred_rows, long_df, target_date)  # 代码算到期项真实走势 + 命中
         pred.review(newly)  # LLM 给本次新结算的写一句复盘叙述
         pred.save(PATHS.predictions_csv, pred_rows)
     except Exception as e:  # noqa: BLE001
         log.warning("预测追踪失败,跳过: %s", e)
         pred_rows = pred.load(PATHS.predictions_csv)  # 出错时仍读最新账本供实际结果回填展示
+
+    # 2b) 评估层:用真实积累的账本算技能 vs 基线 + 校准 + Brier → scorecard.json(前向;失败不阻断)
+    try:
+        evaluate.write_scorecard(pred_rows, long_df)
+    except Exception as e:  # noqa: BLE001
+        log.warning("评估层 scorecard 生成失败,跳过: %s", e)
 
     # 3) 新闻(live 才抓;none = 历史回填不带新闻)
     merged: list[dict[str, Any]] = []
