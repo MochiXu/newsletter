@@ -159,20 +159,28 @@ def _factor_rows(settled: list[dict]) -> list[dict]:
     return list(seen.values())
 
 
+def _lane(r: dict) -> str:
+    """参赛单元 = 模型 + A/B 臂(无臂则只用模型)。A/B 对比即比 'x·A' vs 'x·B'。"""
+    arm = r.get("arm") or ""
+    return f"{r['model']}·{arm}" if arm else r["model"]
+
+
 def score(rows: list[dict], long_df=None, as_of: str | None = None) -> dict:
-    """对 settled 预测打分 → scorecard 字典(前向)。"""
+    """对 settled 预测打分 → scorecard 字典。source 诚实标注(forward/backfill/mixed)。"""
     settled = [r for r in rows if (r.get("status") == "settled") and r.get("realized_dir")]
     models: dict[str, dict] = {}
-    for m in sorted({r["model"] for r in settled}):
-        models[m] = _score_model([r for r in settled if r["model"] == m], long_df, include_factor=True)
+    for lane in sorted({_lane(r) for r in settled}):
+        models[lane] = _score_model([r for r in settled if _lane(r) == lane], long_df, include_factor=True)
     frows = _factor_rows(settled)
     if frows:
         models["_factor"] = _score_model(frows, long_df, include_factor=False)  # 不拿自己当基线
     if as_of is None:
         dates = [r.get("resolved_date") or r.get("created_date") or "" for r in settled]
         as_of = max(dates) if dates else ""
+    srcs = {(r.get("source") or "forward") for r in settled}
+    source = next(iter(srcs)) if len(srcs) == 1 else ("mixed" if srcs else "forward")
     return {
-        "asOf": as_of, "source": "forward",
+        "asOf": as_of, "source": source,
         "buckets": [[lo, hi] for lo, hi in BUCKETS],
         "models": models,
     }

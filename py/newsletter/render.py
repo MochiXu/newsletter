@@ -361,12 +361,21 @@ def apply_actuals(brief: Brief, ledger_rows: list[dict]) -> Brief:
     预测卡:按 (date, model, asset, horizon) 精确匹配。共识行:realized 与模型无关,按该资产当日
     **多数 horizon** 取一条已结算行的真实走势,hit=共识方向是否命中。
     """
-    by_key = {(r["created_date"], r["model"], r["asset"], r["horizon"]): r for r in ledger_rows}
+    by_key = {
+        (r["created_date"], r["model"], r["asset"], r["horizon"], r.get("arm") or ""): r for r in ledger_rows
+    }
+
+    def _lookup(model_id: str, asset: str, hz: str) -> dict | None:
+        # 简报展示 B 臂(新闻感知);按 B → 无臂 → A 兜底匹配账本
+        for arm in ("B", "", "A"):
+            r = by_key.get((brief.date, model_id, asset, hz, arm))
+            if r is not None:
+                return r
+        return None
+
     for model_id, view in brief.views.items():
         for h in view.hypotheses:
-            h.actual = _row_to_actual(
-                by_key.get((brief.date, model_id, h.asset, h.horizon.value)), h.direction.value
-            )
+            h.actual = _row_to_actual(_lookup(model_id, h.asset, h.horizon.value), h.direction.value)
 
     # 共识行:统计该资产当日各 horizon 的票数 + 找一条已结算行(realized 模型无关)
     day_rows = [r for r in ledger_rows if r.get("created_date") == brief.date]

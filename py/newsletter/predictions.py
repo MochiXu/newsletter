@@ -21,6 +21,8 @@ FIELDS = [
     "created_date", "model", "asset", "direction", "horizon", "confidence",
     "status", "resolved_date", "realized_dir", "realized_text", "hit", "note",
     "base_dir", "base_conf",  # 创建时的因子基线方向/信心(point-in-time;评估层当基线之一)
+    "arm",     # A/B 消融臂:A=纯价格因子 / B=加新闻特征(空=未分臂)
+    "source",  # forward=当日实盘积累(干净)/ backfill=历史回放(含记忆污染,仅供参考)
 ]
 
 # horizon 枚举 → 交易日数(与 models.Horizon 对齐)
@@ -47,7 +49,7 @@ def save(path: Path, rows: list[dict]) -> None:
 
 
 def _key(r: dict) -> tuple:
-    return (r.get("created_date"), r.get("model"), r.get("asset"), r.get("horizon"))
+    return (r.get("created_date"), r.get("model"), r.get("asset"), r.get("horizon"), r.get("arm") or "")
 
 
 def record(
@@ -55,12 +57,15 @@ def record(
     created_date: str,
     views_llm: dict[str, LLMBrief | None],
     factors: dict | None = None,
+    arm: str = "",
+    source: str = "forward",
 ) -> list[dict]:
     """登记当天**各模型**对固定 roster 的预测(status=pending)。
 
-    按 (created_date, model, asset, horizon) 幂等:同日重跑/重试不会重复登记。
+    按 (created_date, model, asset, horizon, arm) 幂等:同日重跑/重试不会重复登记。
     factors = factors.compute_factors(snap)(AssetFactors by series_id);存当时的代码基线方向/信心
     (point-in-time,模型无关 → 同资产各模型行写同值),供评估层(evaluate)当基线之一。
+    arm = A/B 消融臂;source = forward/backfill(诚实标注,backfill 含记忆污染)。
     """
     existing = {_key(r) for r in rows}
     for model, lb in (views_llm or {}).items():
@@ -77,6 +82,7 @@ def record(
                 "resolved_date": "", "realized_dir": "", "realized_text": "", "hit": "", "note": "",
                 "base_dir": af.baseline_dir if af else "",
                 "base_conf": f"{af.baseline_conf:.4f}" if af else "",
+                "arm": arm, "source": source,
             }
             if _key(row) in existing:
                 continue

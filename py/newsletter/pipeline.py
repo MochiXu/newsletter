@@ -29,6 +29,7 @@ from .deliver.feishu import push_text
 from .llm import generate_briefs
 from .llm.prompt import build_feature_block
 from .models import Brief
+from .news.cache import ExtractCache
 from .store import RawStore
 
 log = logging.getLogger(__name__)
@@ -51,6 +52,15 @@ def _models_label(names: list[str]) -> str:
 def _start_date(target: str, years: int) -> str:
     y, m, d = (int(x) for x in target.split("-"))
     return datetime.date(y - years, m, d).isoformat()
+
+
+def _news_window(target_date: str, news_mode: str) -> tuple[str | None, str | None]:
+    """新闻检索时间窗。live=最新(None);backfill=回放日前 3 天 → 当日(不取未来新闻)。"""
+    if news_mode != "backfill":
+        return None, None
+    y, m, d = (int(x) for x in target_date.split("-"))
+    start = (datetime.date(y, m, d) - datetime.timedelta(days=3)).isoformat()
+    return start, target_date
 
 
 def fetch_and_store(settings: Settings, target_date: str, history_years: int = 12) -> pd.DataFrame:
@@ -101,9 +111,10 @@ def build_report(
     news_mode: str = "live",
     persist_features: bool = True,
 ) -> tuple[Brief, dict[str, Any]]:
-    """在 long 帧上算特征 → LLM → 假设复盘 → 新闻 → 组装 Brief。返回 (brief, 附属物)。
+    """在 long 帧上算特征 + 因子 → 新闻 → LLM(A/B 两臂)→ 预测账本 + 评估 → 组装 Brief。返回 (brief, 附属物)。
 
-    news_mode: 'live'=抓当前 RSS(今日报告);'none'=不带新闻(历史回填,避免预知未来,v2)。
+    news_mode:'live'=抓最新(RSS+TheNewsAPI,今日);'backfill'=抓回放日历史新闻(TheNewsAPI);'none'=不带新闻。
+    有新闻时产 A/B 两臂(A=纯价格因子 / B=加新闻),简报用 B;无新闻则单臂。
     """
     wide = features.build_wide(long_df)
     feat = features.compute_features(wide)
@@ -114,20 +125,61 @@ def build_report(
 
     metrics = render.build_metrics(long_df, target_date)
     metrics_prompt = [{"label": m.label, "value": m.value, "change": m.change, "kind": m.kind.value} for m in metrics]
-    block = build_feature_block(target_date, metrics_prompt, snap, reg, macro, factors=af_by_sid)
+    block_base = build_feature_block(target_date, metrics_prompt, snap, reg, macro, factors=af_by_sid)  # A 臂:纯价格因子
 
-    # 1) 四层简报(多模型:每个配置的模型各出一份;失败的模型自动跳过)
+    # 1) 新闻(live/backfill 都抓;none 不抓):抓 → 抽全文 → 分类 → 代码特征(喂 B 臂)
+    merged: list[dict[str, Any]] = []
+    news_features: dict[str, Any] = {}
+    settings = get_settings()
+    if news_mode != "none" and not settings.news_disabled:
+        try:
+            start, end = _news_window(target_date, news_mode)
+            items = news_mod.fetch_news(news_mode, start=start, end=end)
+            items = news_mod.enrich(items, cache=ExtractCache(PATHS.news_cache))  # 抓全文 + 缓存,死链丢弃
+        except Exception as e:  # noqa: BLE001
+            items = []
+            log.warning("新闻抓取/抽取失败,跳过: %s", e)
+        if items:
+            classified = None
+            try:
+                classified = news_mod.classify(items)  # fetch/classify 解耦:分类失败仍展示未分类
+            except Exception as e:  # noqa: BLE001
+                log.warning("新闻分类失败,展示未分类新闻: %s", e)
+            merged = _merge_news(items, classified)
+            try:
+                news_features = news_mod.compute_news_features(items, classified)
+            except Exception as e:  # noqa: BLE001
+                log.warning("新闻特征计算失败,跳过: %s", e)
+            log.info("新闻 %s 条(%s),特征资产 %s", len(items),
+                     "已分类" if classified else "未分类", list(news_features.get("byAsset", {})))
+
+    # 2) 四层简报 A/B:B = 纯价格因子 + 新闻(主视图);A = 纯价格因子(影子臂,仅记账对照)
     linkage = PATHS.linkage_map.read_text(encoding="utf-8") if PATHS.linkage_map.exists() else ""
+    block_b = (
+        build_feature_block(target_date, metrics_prompt, snap, reg, macro, factors=af_by_sid, news_features=news_features)
+        if news_features else block_base
+    )
     try:
-        views_llm = generate_briefs(block, linkage)
+        views_llm = generate_briefs(block_b, linkage)  # 主视图(无新闻时即纯因子)
     except Exception as e:  # noqa: BLE001 — LLM 整体失败降级,不阻断
         log.warning("LLM 生成失败,退回特征层: %s", e)
         views_llm = {}
-    # 2) 预测追踪:登记当天各模型的预测,回填往日已到期预测的实际结果(代码裁决 + LLM 复盘叙述)
+    views_llm_a: dict[str, Any] = {}
+    if news_features:
+        try:
+            views_llm_a = generate_briefs(block_base, linkage)  # A 影子臂(无新闻)
+        except Exception as e:  # noqa: BLE001
+            log.warning("A 臂生成失败,跳过 A 臂: %s", e)
+
+    # 3) 预测账本:记 A/B(有新闻则两臂,否则单记无臂)+ 到期结算 + LLM 复盘
+    source = "forward" if target_date >= _today() else "backfill"  # 回放历史日 = backfill(含记忆污染)
     pred_rows = pred.load(PATHS.predictions_csv)
     try:
-        # 各模型当天预测(带因子基线快照),按 (date,model,asset,horizon) 幂等
-        pred.record(pred_rows, target_date, views_llm, factors=af_by_sid)
+        if news_features:
+            pred.record(pred_rows, target_date, views_llm, factors=af_by_sid, arm="B", source=source)
+            pred.record(pred_rows, target_date, views_llm_a, factors=af_by_sid, arm="A", source=source)
+        else:
+            pred.record(pred_rows, target_date, views_llm, factors=af_by_sid, arm="", source=source)
         newly = pred.backfill(pred_rows, long_df, target_date)  # 代码算到期项真实走势 + 命中
         pred.review(newly)  # LLM 给本次新结算的写一句复盘叙述
         pred.save(PATHS.predictions_csv, pred_rows)
@@ -135,31 +187,11 @@ def build_report(
         log.warning("预测追踪失败,跳过: %s", e)
         pred_rows = pred.load(PATHS.predictions_csv)  # 出错时仍读最新账本供实际结果回填展示
 
-    # 2b) 评估层:用真实积累的账本算技能 vs 基线 + 校准 + Brier → scorecard.json(前向;失败不阻断)
+    # 3b) 评估层:技能 vs 基线 + 校准 + Brier(按 A/B 臂)→ scorecard.json(失败不阻断)
     try:
         evaluate.write_scorecard(pred_rows, long_df)
     except Exception as e:  # noqa: BLE001
         log.warning("评估层 scorecard 生成失败,跳过: %s", e)
-
-    # 3) 新闻(live 才抓;none = 历史回填不带新闻)
-    merged: list[dict[str, Any]] = []
-    settings = get_settings()
-    if news_mode == "live" and not settings.news_disabled:
-        # fetch 与 classify 解耦:抓到了就展示;分类(LLM)失败只降级为「未分类新闻」,
-        # 绝不因分类报错把已抓到的新闻(都带链接)一并丢掉。
-        try:
-            items = news_mod.fetch_news()
-        except Exception as e:  # noqa: BLE001
-            items = []
-            log.warning("新闻抓取失败,跳过: %s", e)
-        if items:
-            classified = None
-            try:
-                classified = news_mod.classify(items)
-            except Exception as e:  # noqa: BLE001
-                log.warning("新闻分类失败,展示未分类新闻: %s", e)
-            merged = _merge_news(items, classified)
-            log.info("抓取 %s 条新闻(%s)", len(items), "已分类" if classified else "未分类")
 
     signals = render.build_signals(snap)
     price_series = render.build_price_series(long_df, target_date)
