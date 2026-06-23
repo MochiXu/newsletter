@@ -1,4 +1,4 @@
-import type { ConsensusItem, Hypothesis, Impact, KeyFactor, TaggedItem } from '../../types'
+import type { Actual, ConsensusItem, Horizon, Hypothesis, Impact, KeyFactor, TaggedItem } from '../../types'
 import { ASSET_CN, dirInfo, HORIZON_CN, PRED_DIR } from '../../lib/format'
 import { renderRichText } from '../../lib/highlight'
 import { Card, SectionHead } from '../../components/Card'
@@ -90,6 +90,32 @@ function KeyFactorChip({ kf }: { kf: KeyFactor }) {
   )
 }
 
+// 预测卡的「实际结果」行:未到期 → 沙漏;已结算 → 实际方向 + 幅度 + 命中✓/未中✗,LLM 复盘进 hover。
+function ActualLine({ a, horizon }: { a?: Actual | null; horizon: Horizon }) {
+  if (!a) return null
+  const top = { borderTop: '1px dashed var(--hair)', marginTop: 7, paddingTop: 6 } as const
+  if (a.status !== 'settled' || !a.realizedDir) {
+    return (
+      <div style={{ ...top, display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--ink2)' }}>
+        <span style={{ fontSize: 11 }}>⏳</span>
+        <span>实际结果待验证 · 到 {HORIZON_CN[horizon]} 后揭晓</span>
+      </div>
+    )
+  }
+  const rd = PRED_DIR[a.realizedDir]
+  const hit = a.hit ? { t: '✓ 命中', col: 'var(--up)' } : { t: '✗ 未中', col: 'var(--down)' }
+  return (
+    <div style={{ ...top, display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap', fontFamily: 'var(--mono)', fontSize: 10.5 }}>
+      <span style={{ color: 'var(--ink2)' }}>实际</span>
+      <span style={{ color: rd.col, fontWeight: 700 }}>
+        {rd.ch} {rd.lab} {a.realizedText}
+      </span>
+      <span style={{ color: hit.col, fontWeight: 700 }}>{hit.t}</span>
+      {a.note && <InfoHint text={a.note} />}
+    </div>
+  )
+}
+
 // 跨模型共识行(代码级投票,非某模型观点)。仅在 ≥2 模型(consensus 非空)时由 BriefPage 传入。
 function ConsensusRow({ items }: { items: ConsensusItem[] }) {
   const order = ['up', 'down', 'flat'] as const
@@ -124,6 +150,20 @@ function ConsensusRow({ items }: { items: ConsensusItem[] }) {
               {c.agree}/{c.n} 认同
               {c.meanConfidence > 0 && ` · 均值信心 ${Math.round(c.meanConfidence * 100)}%`}
             </span>
+            {c.actual &&
+              (c.actual.status === 'settled' && c.actual.realizedDir ? (
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ color: PRED_DIR[c.actual.realizedDir].col, fontWeight: 700 }}>
+                    实 {PRED_DIR[c.actual.realizedDir].ch}
+                    {c.actual.realizedText}
+                  </span>
+                  <span style={{ color: c.actual.hit ? 'var(--up)' : 'var(--down)', fontWeight: 700 }}>
+                    {c.actual.hit ? '✓' : '✗'}
+                  </span>
+                </span>
+              ) : (
+                <span title="实际结果待验证" style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--ink2)' }}>⏳</span>
+              ))}
             <span style={{ marginLeft: 'auto', display: 'flex', gap: 7, fontFamily: 'var(--mono)', fontSize: 10 }}>
               {order.map((k) =>
                 c.votes[k] ? (
@@ -190,6 +230,7 @@ function PredictionCard({ h }: { h: Hypothesis }) {
           ))}
         </div>
       )}
+      <ActualLine a={h.actual} horizon={h.horizon} />
     </div>
   )
 }

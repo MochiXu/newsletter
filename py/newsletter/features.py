@@ -173,6 +173,31 @@ def metric_level_change(long_df: pd.DataFrame, sid: str, target_date: str) -> tu
     return level, change
 
 
+def realized_move(
+    long_df: pd.DataFrame, sid: str, created_date: str, horizon_n: int
+) -> tuple[str, float, float] | None:
+    """某序列从 created_date 起、经 horizon_n 个交易日后的真实走势,供预测账本结算实际结果。
+
+    起点 = 最后一个 <= created_date 的真实观测(模型当时看到的值);终点 = 其后第 horizon_n 个真实
+    观测。返回 (resolved_date, v0, vh);未来交易日不足(尚未到期)返回 None。只用真实观测点(因果)。
+    """
+    sub = long_df[long_df["series_id"] == sid].sort_values(DATE)
+    dates = [str(d) for d in sub[DATE].tolist()]
+    vals = [float(v) for v in sub[VALUE].tolist()]
+    base_i = -1
+    for i, d in enumerate(dates):
+        if d <= created_date:
+            base_i = i
+        else:
+            break
+    if base_i < 0:
+        return None
+    tgt_i = base_i + horizon_n
+    if tgt_i >= len(dates):
+        return None  # 未来交易日不足 → 尚未到期
+    return dates[tgt_i], vals[base_i], vals[tgt_i]
+
+
 # ── 特征视图注册表(signals 块的单一事实源)──────────────────────────────
 # 决定「哪些特征露出给前端、叫什么名、什么单位、归哪组」。值取自 snapshot_at(snap),与喂 LLM 的
 # prompt 特征块同读一份 snap(故数值一致)。unit:pct=带符号%、pct0=无符号%、bp、z、corr、yield(电平%)。

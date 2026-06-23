@@ -116,6 +116,22 @@ class TestBuildBrief(unittest.TestCase):
             ("VIX 中波", "VIX 中波"),                     # 竖线后为空 → detail 回退 label
         ])
 
+    def test_apply_actuals_hit_from_brief_direction(self):
+        # 加固:命中按「简报展示的预测方向 vs 真实走势」现算,不照搬账本 hit。
+        # 构造账本方向(down)与简报方向(up)不一致(模拟并发写入残留),真实走势 up:
+        # 卡片应显示命中(up==up),而非账本存的 hit=0,绝不出现"预测 up / 实际 up / ✗"自相矛盾。
+        llm = LLMBrief(hypotheses=[{"asset": "NASDAQCOM", "direction": "up", "horizon": "h_5d",
+                                    "if_then": "x", "invalidation": "z"}])
+        brief = render.build_brief("2026-06-01", {"deepseek": llm}, [], [], [])
+        ledger = [{"created_date": "2026-06-01", "model": "deepseek", "asset": "NASDAQCOM",
+                   "horizon": "h_5d", "direction": "down", "status": "settled", "realized_dir": "up",
+                   "realized_text": "+2.0%", "hit": "0", "resolved_date": "2026-06-08", "note": "n"}]
+        render.apply_actuals(brief, ledger)
+        a = brief.views["deepseek"].hypotheses[0].actual
+        self.assertEqual(a.status, "settled")
+        self.assertEqual(a.realized_dir.value, "up")
+        self.assertTrue(a.hit)  # up(简报)== up(真实)→ 命中,尽管账本 hit=0
+
     def test_full_from_llm(self):
         llm = LLMBrief(headline="H", tone="risk_on", facts=["f1"], interpretation=["i1"],
                        hypotheses=[{"if_then": "x", "invalidation": "z"}],

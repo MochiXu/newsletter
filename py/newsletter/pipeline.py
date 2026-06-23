@@ -14,7 +14,7 @@ from typing import Any
 
 import pandas as pd
 
-from . import catalog, features, hypotheses as hyp, news as news_mod, regime, render
+from . import catalog, features, news as news_mod, predictions as pred, regime, render
 from .config import PATHS, Settings, get_settings
 from .deliver.feishu import push_text
 from .llm import generate_briefs
@@ -113,23 +113,16 @@ def build_report(
     except Exception as e:  # noqa: BLE001 — LLM 整体失败降级,不阻断
         log.warning("LLM 生成失败,退回特征层: %s", e)
         views_llm = {}
-    primary_llm = next(iter(views_llm.values()), None)  # 主模型(视图顺序第一)用于假设追踪登记
-
-    # 2) 假设追踪:复盘往日 open(不拿当天数据自我验证),登记今天新假设(以主模型为准)
-    hyp_rows = hyp.load(PATHS.hypotheses_csv)
+    # 2) 预测追踪:登记当天各模型的预测,回填往日已到期预测的实际结果(代码裁决 + LLM 复盘叙述)
+    pred_rows = pred.load(PATHS.predictions_csv)
     try:
-        open_hyps = [h for h in hyp.open_items(hyp_rows) if h.get("created_date") != target_date]
-        reviews_raw = hyp.review(open_hyps, block)
-        hyp.apply_reviews(open_hyps, reviews_raw, target_date)
-        if primary_llm and primary_llm.hypotheses:
-            hyp.record_new(
-                hyp_rows, target_date,
-                [{"if_then": h.if_then, "invalidation": h.invalidation} for h in primary_llm.hypotheses],
-            )
-        hyp.save(PATHS.hypotheses_csv, hyp_rows)
+        pred.record(pred_rows, target_date, views_llm)  # 各模型当天预测,按 (date,model,asset,horizon) 幂等
+        newly = pred.backfill(pred_rows, long_df, target_date)  # 代码算到期项真实走势 + 命中
+        pred.review(newly)  # LLM 给本次新结算的写一句复盘叙述
+        pred.save(PATHS.predictions_csv, pred_rows)
     except Exception as e:  # noqa: BLE001
-        log.warning("假设追踪失败,跳过: %s", e)
-    reviews = render.build_reviews(hyp_rows, target_date)
+        log.warning("预测追踪失败,跳过: %s", e)
+        pred_rows = pred.load(PATHS.predictions_csv)  # 出错时仍读最新账本供实际结果回填展示
 
     # 3) 新闻(live 才抓;none = 历史回填不带新闻)
     merged: list[dict[str, Any]] = []
@@ -154,7 +147,7 @@ def build_report(
     signals = render.build_signals(snap)
     price_series = render.build_price_series(long_df, target_date)
     brief = render.build_brief(
-        target_date, views_llm, metrics, reviews, render.build_news(merged),
+        target_date, views_llm, metrics, [], render.build_news(merged),  # reviews 已停用(改预测账本)
         signals=signals, regime=reg, price_series=price_series,
     )
     if persist_features:
@@ -162,18 +155,18 @@ def build_report(
             RawStore(PATHS).write_features(target_date, pd.DataFrame([{"date": target_date, **snap}]))
         except Exception as e:  # noqa: BLE001
             log.warning("特征快照落盘失败,跳过: %s", e)
-    return brief, {"macro": macro, "feature_block": block}
+    return brief, {"macro": macro, "feature_block": block, "pred_rows": pred_rows}
 
 
-def write_outputs(brief: Brief, macro: list[dict[str, Any]]) -> None:
-    """写 markdown + briefs.json + 推飞书。"""
+def write_outputs(brief: Brief, macro: list[dict[str, Any]], pred_rows: list[dict] | None = None) -> None:
+    """写 markdown + briefs.json + 推飞书。pred_rows = 预测账本(把实际结果回填进所有保留简报)。"""
     PATHS.briefs.mkdir(parents=True, exist_ok=True)
     md_path = PATHS.briefs / f"{brief.date}.md"
     md_path.write_text(render.render_markdown(brief, macro), encoding="utf-8")
     log.info("简报已存: %s", md_path)
 
     try:
-        days = render.upsert_briefs_json(PATHS, brief, _models_label(brief.models))
+        days = render.upsert_briefs_json(PATHS, brief, _models_label(brief.models), pred_rows)
         log.info("已导出 briefs.json(共 %s 天)", days)
     except Exception as e:  # noqa: BLE001
         log.warning("导出 briefs.json 失败: %s", e)
@@ -192,5 +185,5 @@ def run(target_date: str | None = None, history_years: int = 12, news_mode: str 
     log.info("生成简报 target_date=%s", target)
     long_df = fetch_and_store(settings, target, history_years)
     brief, extra = build_report(long_df, target, news_mode=news_mode)
-    write_outputs(brief, extra["macro"])
+    write_outputs(brief, extra["macro"], extra.get("pred_rows"))
     return brief

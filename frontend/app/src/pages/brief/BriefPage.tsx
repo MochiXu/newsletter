@@ -8,7 +8,6 @@ import PriceChart from './PriceChart'
 import SignalsCard from './SignalsCard'
 import NewsCard from './NewsCard'
 import { FactsPanel, HypothesisPanel, ImpactPanel, ReadsPanel } from './AiBrief'
-import ReviewCard from './ReviewCard'
 
 interface Props {
   briefs: Brief[]
@@ -146,7 +145,6 @@ export default function BriefPage({ briefs, model, route, tweaks }: Props) {
             <ReadsPanel reads={view.reads} />
             <ImpactPanel impacts={view.impacts} />
             <NewsCard news={b.news} />
-            {b.reviews.length > 0 && <ReviewCard reviews={b.reviews} />}
           </div>
         </div>
 

@@ -83,8 +83,8 @@ class Paths:
         return self.data / "briefs.json"
 
     @property
-    def hypotheses_csv(self) -> Path:
-        return self.data / "hypotheses.csv"
+    def predictions_csv(self) -> Path:
+        return self.data / "predictions.csv"
 
     @property
     def news_cache(self) -> Path:

@@ -54,6 +54,16 @@ export interface KeyFactor {
   detail: string
 }
 
+/** 预测的实际结果(到 horizon 期满由后端预测账本回填:代码裁决 + LLM 复盘叙述)。 */
+export interface Actual {
+  status: 'pending' | 'settled' // pending=还没到验证时刻(沙漏)
+  realizedDir: PredDir | null // 已实现方向(代码算)
+  realizedText: string // 已实现幅度,如 '+2.3%' / '+12bp'
+  hit: boolean | null // 是否命中预测方向
+  resolvedDate: string // 结算日(到期那天)
+  note: string // LLM 复盘叙述(为什么命中/未中)
+}
+
 /** 假设层 = 对固定方向的可证伪预测(纳指/黄金/广义美元/2Y)。 */
 export interface Hypothesis {
   ifThen: string
@@ -63,6 +73,7 @@ export interface Hypothesis {
   horizon: Horizon
   confidence: number
   keyFactors: KeyFactor[]
+  actual?: Actual | null // 实际结果(账本回填;缺省=未登记)
 }
 
 export interface Impact {
@@ -105,6 +116,7 @@ export interface ConsensusItem {
   n: number // 参与模型数
   agree: number // 认同多数方向的模型数
   meanConfidence: number // 多数方向那批的均值信心
+  actual?: Actual | null // 该资产实际走势(按多数 horizon;hit=共识方向是否对)
 }
 
 /** 单个交易日的完整简报(= 后端 Brief 契约):脊柱(模型无关)+ 每模型 view + 代码共识。 */

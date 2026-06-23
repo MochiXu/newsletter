@@ -59,7 +59,7 @@ class TestContractSerialization(unittest.TestCase):
         self.assertEqual(view["hypotheses"][0], {
             "ifThen": "若A则B", "invalidation": "Z",
             "asset": "", "direction": "flat", "horizon": "h_20d",
-            "confidence": 0.0, "keyFactors": [],
+            "confidence": 0.0, "keyFactors": [], "actual": None,
         })
         self.assertEqual(view["tone"], "neutral")
 

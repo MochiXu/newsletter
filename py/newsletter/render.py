@@ -17,6 +17,7 @@ from . import catalog, features
 from .config import Paths
 from .textnorm import normalize_text
 from .models import (
+    Actual,
     Brief,
     BriefsPayload,
     ConsensusItem,
@@ -313,6 +314,72 @@ def build_brief(
     )
 
 
+# ── 实际结果回填(预测账本 → 简报契约)──────────────────────────────────────
+def _row_to_actual(r: dict | None, predicted_dir: str | None = None) -> Actual | None:
+    """账本一行 → Actual;None 行 → None(未登记);pending 行 → 沙漏态。
+
+    命中按「**简报展示的预测方向** `predicted_dir` vs 真实走势 `realized_dir`(模型无关)」现算,
+    而非直接取账本存的 `hit`——这样即便账本方向与简报方向偶发不一致(如并发写入),卡片也绝不会
+    出现"预测 flat / 实际 down / ✓命中"这种自相矛盾。缺 predicted_dir 时退回账本 hit。
+    """
+    if r is None:
+        return None
+    if (r.get("status") or "pending") != "settled":
+        return Actual(status="pending")
+    rdir = r.get("realized_dir") or None
+    hit = (rdir == predicted_dir) if (rdir and predicted_dir) else (r.get("hit") == "1")
+    return Actual(
+        status="settled",
+        realized_dir=rdir,  # type: ignore[arg-type]
+        realized_text=r.get("realized_text", ""),
+        hit=hit,
+        resolved_date=r.get("resolved_date", ""),
+        note=r.get("note", ""),
+    )
+
+
+def apply_actuals(brief: Brief, ledger_rows: list[dict]) -> Brief:
+    """把预测账本的实际结果 join 进 brief(每模型预测卡 + 跨模型共识行),原地填充。
+
+    预测卡:按 (date, model, asset, horizon) 精确匹配。共识行:realized 与模型无关,按该资产当日
+    **多数 horizon** 取一条已结算行的真实走势,hit=共识方向是否命中。
+    """
+    by_key = {(r["created_date"], r["model"], r["asset"], r["horizon"]): r for r in ledger_rows}
+    for model_id, view in brief.views.items():
+        for h in view.hypotheses:
+            h.actual = _row_to_actual(
+                by_key.get((brief.date, model_id, h.asset, h.horizon.value)), h.direction.value
+            )
+
+    # 共识行:统计该资产当日各 horizon 的票数 + 找一条已结算行(realized 模型无关)
+    day_rows = [r for r in ledger_rows if r.get("created_date") == brief.date]
+    for c in brief.consensus:
+        hz_counts: dict[str, int] = {}
+        settled_by_hz: dict[str, dict] = {}
+        for r in day_rows:
+            if r.get("asset") != c.asset:
+                continue
+            hz = r.get("horizon", "")
+            hz_counts[hz] = hz_counts.get(hz, 0) + 1
+            if (r.get("status") == "settled") and hz not in settled_by_hz:
+                settled_by_hz[hz] = r
+        if not hz_counts:
+            continue
+        modal = sorted(hz_counts.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]  # 多数 horizon,平票取较短
+        row = settled_by_hz.get(modal)
+        if row is None:
+            c.actual = Actual(status="pending")
+        else:
+            rdir = row.get("realized_dir") or None
+            c.actual = Actual(
+                status="settled", realized_dir=rdir,  # type: ignore[arg-type]
+                realized_text=row.get("realized_text", ""),
+                hit=(rdir == c.direction.value),
+                resolved_date=row.get("resolved_date", ""),
+            )
+    return brief
+
+
 def _primary_view(brief: Brief) -> ModelView:
     """主视图(models[0]);缺失则任取其一,再不行给空视图。供 markdown/飞书等单一文本产物用。"""
     if brief.models and brief.models[0] in brief.views:
@@ -443,8 +510,12 @@ def render_text(brief: Brief) -> str:
 
 
 # ── 聚合 briefs.json(前端接缝)──────────────────────────────────────────
-def upsert_briefs_json(paths: Paths, brief: Brief, model: str) -> int:
-    """写单日 briefs/<date>.json + 增量维护聚合 briefs.json(按日期 upsert,倒序,刊号按年代序)。"""
+def upsert_briefs_json(paths: Paths, brief: Brief, model: str, ledger_rows: list[dict] | None = None) -> int:
+    """写单日 briefs/<date>.json + 增量维护聚合 briefs.json(按日期 upsert,倒序,刊号按年代序)。
+
+    传入 `ledger_rows`(预测账本)时,对**所有保留的简报**重算实际结果 —— 这样早先生成时还是沙漏的
+    预测,到期后会在后续每天的运行里被刷新成已结算(无需重生成历史简报)。
+    """
     by_date: dict[str, dict] = {}
     if paths.briefs_json.exists():
         try:
@@ -459,18 +530,20 @@ def upsert_briefs_json(paths: Paths, brief: Brief, model: str) -> int:
     dates_asc = sorted(by_date)
     for i, d in enumerate(dates_asc, 1):
         by_date[d]["issue"] = i  # 刊号 = 年代序(最早=1),可重算
-    payload = BriefsPayload(
-        model=model,
-        generated_at=dates_asc[-1],
-        briefs=[Brief.model_validate(by_date[d]) for d in reversed(dates_asc)],
-    )
+    briefs_objs = [Brief.model_validate(by_date[d]) for d in reversed(dates_asc)]
+    if ledger_rows is not None:
+        for bo in briefs_objs:
+            apply_actuals(bo, ledger_rows)  # 用最新账本刷新所有保留简报的实际结果
+    payload = BriefsPayload(model=model, generated_at=dates_asc[-1], briefs=briefs_objs)
+    payload_obj = payload.to_json_obj()
+    single = next((b for b in payload_obj["briefs"] if b.get("date") == brief.date), by_date[brief.date])
 
     paths.briefs.mkdir(parents=True, exist_ok=True)
     (paths.briefs / f"{brief.date}.json").write_text(
-        json.dumps(by_date[brief.date], ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        json.dumps(single, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     paths.briefs_json.write_text(
-        json.dumps(payload.to_json_obj(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        json.dumps(payload_obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     return len(dates_asc)
 

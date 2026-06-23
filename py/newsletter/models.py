@@ -343,6 +343,21 @@ class KeyFactor(_CamelModel):
     detail: str = ""
 
 
+class Actual(_CamelModel):
+    """一条预测的实际结果(到 horizon 期满后由 predictions 账本回填,代码裁决 + LLM 复盘叙述)。
+
+    status=pending → 还没到验证时刻(前端显示沙漏);settled → 已结算:realized_dir/text 是代码算的
+    真实走势,hit 是是否命中,note 是 LLM 的一句复盘。
+    """
+
+    status: str = "pending"  # pending | settled
+    realized_dir: PredDir | None = Field(None, alias="realizedDir")
+    realized_text: str = Field("", alias="realizedText")  # 已实现幅度,如 '+2.3%' / '+12bp'
+    hit: bool | None = None  # 实际方向是否命中预测方向(平票/flat 同向也算)
+    resolved_date: str = Field("", alias="resolvedDate")
+    note: str = ""  # LLM 复盘叙述(为什么命中/未中)
+
+
 class Hypothesis(_CamelModel):
     if_then: str = Field(alias="ifThen")
     invalidation: str
@@ -351,6 +366,7 @@ class Hypothesis(_CamelModel):
     horizon: Horizon = Horizon.H_20D
     confidence: float = 0.0
     key_factors: list[KeyFactor] = Field(default_factory=list, alias="keyFactors")
+    actual: Actual | None = None  # 实际结果(预测账本回填;None=尚未登记)
 
 
 class Impact(_CamelModel):
@@ -412,6 +428,7 @@ class ConsensusItem(_CamelModel):
     n: int = 0  # 参与该资产预测的模型数
     agree: int = 0  # 认同多数方向的模型数
     mean_confidence: float = Field(0.0, alias="meanConfidence")  # 多数方向那批的均值信心
+    actual: Actual | None = None  # 该资产实际走势(按多数 horizon 取;hit=共识方向是否对)
 
 
 class Brief(_CamelModel):
