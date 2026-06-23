@@ -9,12 +9,17 @@ openai / minimax / deepseek / moonshot / zhipu / 通用 openai-compat。
 from __future__ import annotations
 
 import json
+import logging
 import os
+import random
+import time
 import urllib.error
 import urllib.request
 
+log = logging.getLogger(__name__)
 
-def _http_post_json(url: str, headers: dict, payload: dict, timeout: int = 60) -> dict:
+
+def _http_post_json(url: str, headers: dict, payload: dict, timeout: int = 90) -> dict:
     req = urllib.request.Request(
         url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST"
     )
@@ -24,6 +29,40 @@ def _http_post_json(url: str, headers: dict, payload: dict, timeout: int = 60) -
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", "replace")[:300]
         raise RuntimeError(f"{url.split('?', 1)[0]} 返回 {e.code}: {detail}") from None
+
+
+def _retry_call(fn, label: str, attempts: int = 3):
+    """指数退避重试 fn():超时 / HTTP 错误 / 解析失败统一退避后重试,全部失败抛最后异常。
+    标准参数:base 1s、factor 2、上限 8s,带 full jitter(避免雷同重试同时打到中转站)。"""
+    last: Exception | None = None
+    for i in range(attempts):
+        try:
+            return fn()
+        except Exception as e:  # noqa: BLE001 — 任意失败都退避重试(超时是主因)
+            last = e
+            if i < attempts - 1:
+                delay = min(8.0, 2.0**i) * (0.5 + random.random())  # 1·2^i 截断 8s + jitter
+                log.warning("%s 第 %d/%d 次失败: %s;%.1fs 后退避重试", label, i + 1, attempts, e, delay)
+                time.sleep(delay)
+    assert last is not None
+    raise last
+
+
+def _call_with_fallback(models: list[str], call_one, provider: str) -> dict:
+    """按 models 顺序尝试(主 → 回退);每个模型指数退避重试(主 3 次、回退各 2 次)。
+
+    最好:主模型一次成功;其次:退避后成功;再次:回退到次新同族模型;最差:全失败抛错
+    (上层 service 捕获 → 该 provider 当天无结果,其余模型不受影响)。
+    """
+    errs: list[str] = []
+    for i, model in enumerate(models):
+        try:
+            return _retry_call(lambda m=model: call_one(m), f"{provider}/{model}", attempts=3 if i == 0 else 2)
+        except Exception as e:  # noqa: BLE001 — 该模型退避后仍失败 → 回退下一个
+            errs.append(f"{model}: {e}")
+            if i + 1 < len(models):
+                log.warning("%s 模型 %s 退避后仍失败,回退 %s", provider, model, models[i + 1])
+    raise RuntimeError(f"{provider} 所有模型均失败: " + "; ".join(errs))
 
 
 def _extract_json(text: str) -> dict:
@@ -70,19 +109,18 @@ def _extract_tool_input(body: dict, tool_name: str) -> dict | None:
 
 
 class AnthropicProvider:
-    """Claude Messages API + tool use(强制工具调用)。支持自定义 base_url(中转站)。"""
+    """Claude Messages API + tool use(强制工具调用)。支持自定义 base_url(中转站)+ 主/回退模型链。"""
 
     name = "anthropic"
     DEFAULT_BASE = "https://api.anthropic.com"
 
-    def __init__(self, api_key: str, model: str, base_url: str | None = None):
+    def __init__(self, api_key: str, models: list[str], base_url: str | None = None, max_tokens: int = 8192):
         self.api_key = api_key
-        self.model = model
+        self.models = models  # [主模型, 回退模型...](按序尝试,见 _call_with_fallback)
+        self.max_tokens = max_tokens  # 输出上限(非输入;新闻等输入不占这里)
         self.url = (base_url or self.DEFAULT_BASE).rstrip("/") + "/v1/messages"
 
-    def call_structured(
-        self, system: str, user: str, tool_name: str, description: str, schema: dict
-    ) -> dict:
+    def _call_once(self, model: str, system: str, user: str, tool_name: str, description: str, schema: dict) -> dict:
         headers = {
             "content-type": "application/json",
             "anthropic-version": "2023-06-01",
@@ -91,35 +129,41 @@ class AnthropicProvider:
             "authorization": f"Bearer {self.api_key}",
         }
         payload = {
-            "model": self.model,
-            "max_tokens": 8192,
+            "model": model,
+            "max_tokens": self.max_tokens,
             "system": system,
             "tools": [{"name": tool_name, "description": description, "input_schema": schema}],
             "tool_choice": {"type": "tool", "name": tool_name},
             "messages": [{"role": "user", "content": user}],
         }
-        last = ""
-        for _ in range(3):  # 中转站 Claude 偶发只回文本/不回 tool_use → 多路兜底 + 重试
-            body = _http_post_json(self.url, headers, payload)
-            data = _extract_tool_input(body, tool_name)
-            if data is not None:
-                return data
-            last = str(body)[:200]
-        raise RuntimeError(f"Anthropic 未返回可解析的 {tool_name} 结构: {last}")
-
-
-class OpenAICompatProvider:
-    """OpenAI 兼容 Chat Completions + function calling(失败回退解析 JSON)。"""
-
-    def __init__(self, name: str, url: str, api_key: str, model: str):
-        self.name = name
-        self.url = url
-        self.api_key = api_key
-        self.model = model
+        body = _http_post_json(self.url, headers, payload)
+        # 中转站 Claude 偶发只回文本/不回 tool_use → 多路兜底;拿不到则抛错触发上层退避重试。
+        data = _extract_tool_input(body, tool_name)
+        if data is None:
+            raise RuntimeError(f"Anthropic({model}) 未返回可解析的 {tool_name}: {str(body)[:200]}")
+        return data
 
     def call_structured(
         self, system: str, user: str, tool_name: str, description: str, schema: dict
     ) -> dict:
+        return _call_with_fallback(
+            self.models,
+            lambda m: self._call_once(m, system, user, tool_name, description, schema),
+            self.name,
+        )
+
+
+class OpenAICompatProvider:
+    """OpenAI 兼容 Chat Completions(JSON mode)+ 主/回退模型链。"""
+
+    def __init__(self, name: str, url: str, api_key: str, models: list[str], max_tokens: int = 8192):
+        self.name = name
+        self.url = url
+        self.api_key = api_key
+        self.models = models  # [主模型, 回退模型...]
+        self.max_tokens = max_tokens  # 输出上限(非输入)
+
+    def _call_once(self, model: str, system: str, user: str, tool_name: str, description: str, schema: dict) -> dict:
         # 用 JSON mode(response_format)而非强制 function-calling:后者在复杂 schema 下
         # 结构性失稳(DeepSeek 会在大数组后提前闭合根对象、把后续字段当兄弟对象续写);
         # JSON mode + 把 schema 写进 system(需含 "JSON" 字样)更稳。返回正文里的 JSON。
@@ -131,8 +175,8 @@ class OpenAICompatProvider:
             + json.dumps(schema, ensure_ascii=False)
         )
         payload = {
-            "model": self.model,
-            "max_tokens": 8192,
+            "model": model,
+            "max_tokens": self.max_tokens,
             "temperature": 0.3,
             "response_format": {"type": "json_object"},
             "messages": [
@@ -140,21 +184,24 @@ class OpenAICompatProvider:
                 {"role": "user", "content": user},
             ],
         }
-        last_err: Exception | None = None
-        for _ in range(3):  # 偶发非法 JSON(未转义引号等)→ 重试,非零温度二次大概率合法
-            body = _http_post_json(self.url, headers, payload)
-            base = body.get("base_resp")  # MiniMax 等把错误塞在 HTTP 200 的 base_resp
-            if isinstance(base, dict) and base.get("status_code") not in (0, None):
-                raise RuntimeError(f"{self.name} 返回错误: {base}")
-            choices = body.get("choices")
-            if not choices:
-                raise RuntimeError(f"{self.name} 响应无 choices: {str(body)[:200]}")
-            content = choices[0].get("message", {}).get("content") or ""
-            try:
-                return _extract_json(content)
-            except (json.JSONDecodeError, ValueError) as e:
-                last_err = e
-        raise RuntimeError(f"{self.name} 结构化输出 JSON 解析失败(已重试): {last_err}")
+        body = _http_post_json(self.url, headers, payload)
+        base = body.get("base_resp")  # MiniMax 等把错误塞在 HTTP 200 的 base_resp
+        if isinstance(base, dict) and base.get("status_code") not in (0, None):
+            raise RuntimeError(f"{self.name} 返回错误: {base}")
+        choices = body.get("choices")
+        if not choices:
+            raise RuntimeError(f"{self.name} 响应无 choices: {str(body)[:200]}")
+        content = choices[0].get("message", {}).get("content") or ""
+        return _extract_json(content)  # 非法 JSON 抛错 → 上层退避重试(非零温度二次大概率合法)
+
+    def call_structured(
+        self, system: str, user: str, tool_name: str, description: str, schema: dict
+    ) -> dict:
+        return _call_with_fallback(
+            self.models,
+            lambda m: self._call_once(m, system, user, tool_name, description, schema),
+            self.name,
+        )
 
 
 # 预设 OpenAI 兼容端点:(url, key_env, model_env, default_model)。模型名会随各家目录更新。
@@ -167,6 +214,37 @@ PRESETS = {
 }
 
 _AUTO_ORDER = ["anthropic", "openai", "minimax", "deepseek", "moonshot", "zhipu", "openai-compat"]
+
+# 主模型 → 同族回退模型(中转站主模型连续退避失败后降级)。可被 <PFX>_MODELS 逗号列表覆盖。
+_MODEL_FALLBACK = {
+    "claude-opus-4-8": "claude-opus-4-7",
+    "gpt-5.5": "gpt-5.4",
+}
+
+
+# 输出 max_tokens 默认(可被 <PFX>_MAX_TOKENS 覆盖)。注意是**输出**上限,与输入(新闻等)无关。
+# deepseek-chat 输出硬上限 8192,设更大会被拒,故不在此提高。
+_MAX_TOKENS_DEFAULT = {"anthropic": 16384, "openai": 16384}
+
+
+def _max_tokens(name: str) -> int:
+    env = os.environ.get(f"{name.upper().replace('-', '_')}_MAX_TOKENS")
+    if env and env.strip().isdigit():
+        return int(env.strip())
+    return _MAX_TOKENS_DEFAULT.get(name, 8192)
+
+
+def _models_for(primary: str, env_list: str | None) -> list[str]:
+    """模型链:优先 env 显式逗号列表(<PFX>_MODELS);否则 [主] + 内置同族回退(若有)。去重保序。"""
+    if env_list and env_list.strip():
+        names = [m.strip() for m in env_list.split(",") if m.strip()]
+    else:
+        names = [primary] + ([_MODEL_FALLBACK[primary]] if primary in _MODEL_FALLBACK else [])
+    out: list[str] = []
+    for m in names:
+        if m and m not in out:
+            out.append(m)
+    return out or [primary]
 
 
 def _compat_url(override: str | None, default_full: str) -> str:
@@ -187,10 +265,13 @@ def _build(name: str):
             return None
         base = os.environ.get("ANTHROPIC_BASE_URL")
         model = os.environ.get("ANTHROPIC_MODEL") or "claude-sonnet-4-6"
-        return AnthropicProvider(key, model, base)
+        return AnthropicProvider(
+            key, _models_for(model, os.environ.get("ANTHROPIC_MODELS")), base, _max_tokens("anthropic")
+        )
     if name in ("openai-compat", "generic", "custom"):
         key, url = os.environ.get("LLM_API_KEY"), os.environ.get("LLM_BASE_URL")
-        return OpenAICompatProvider("openai-compat", _compat_url(url, url or ""), key, os.environ.get("LLM_MODEL") or "gpt-4o-mini") if (key and url) else None
+        models = _models_for(os.environ.get("LLM_MODEL") or "gpt-4o-mini", os.environ.get("LLM_MODEL_FALLBACKS"))
+        return OpenAICompatProvider("openai-compat", _compat_url(url, url or ""), key, models, _max_tokens("openai-compat")) if (key and url) else None
     if name in PRESETS:
         url, key_env, model_env, default_model = PRESETS[name]
         key = os.environ.get(key_env)
@@ -198,7 +279,7 @@ def _build(name: str):
             return None
         url = _compat_url(os.environ.get(f"{name.upper()}_BASE_URL"), url)
         model = os.environ.get(model_env) or os.environ.get("LLM_MODEL") or default_model
-        return OpenAICompatProvider(name, url, key, model)
+        return OpenAICompatProvider(name, url, key, _models_for(model, os.environ.get(f"{name.upper()}_MODELS")), _max_tokens(name))
     return None
 
 

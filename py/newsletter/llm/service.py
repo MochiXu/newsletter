@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 from ..models import LLMBrief
 from .prompt import build_user
@@ -38,10 +39,16 @@ def generate_briefs(feature_block: str, linkage_map: str) -> dict[str, LLMBrief]
     if not providers:
         return out
     user = build_user(feature_block, linkage_map)
-    for p in providers:
+    # 各模型相互独立 → 并发调用(每天 LLM 墙钟从「三者之和」降到「三者最大值」);
+    # 每个 provider 内部已带退避重试 + 模型回退(见 providers._call_with_fallback)。
+    with ThreadPoolExecutor(max_workers=len(providers)) as ex:
+        futures = {
+            p.name: ex.submit(p.call_structured, SYSTEM, user, BRIEF_TOOL, _DESC, BRIEF_SCHEMA)
+            for p in providers
+        }
+    for p in providers:  # 按 providers 顺序收集,保证 [0]=主模型(视图顺序稳定)
         try:
-            raw = p.call_structured(SYSTEM, user, BRIEF_TOOL, _DESC, BRIEF_SCHEMA)
-            out[p.name] = LLMBrief.model_validate(raw)
+            out[p.name] = LLMBrief.model_validate(futures[p.name].result())
         except Exception as e:  # noqa: BLE001 — 单模型失败降级,不阻断其余模型
             log.warning("模型 %s 生成失败,跳过: %s", p.name, e)
     return out
