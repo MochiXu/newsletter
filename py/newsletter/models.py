@@ -436,6 +436,7 @@ class Brief(_CamelModel):
     weekday: str
     issue: int = 0
     time: str = "07:00 CST"
+    tz: str = "America/New_York"  # date 所属时区(美东交易日);前端据此显式标注 + 换算到本地
     # ── 脊柱:模型无关(代码算)──
     metrics: list[Metric] = Field(default_factory=list)
     signals: list[Signal] = Field(default_factory=list)  # 技术指标(代码计算)

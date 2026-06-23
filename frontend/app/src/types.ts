@@ -125,6 +125,7 @@ export interface Brief {
   weekday: string
   issue: number
   time: string
+  tz?: string // date 所属时区(IANA,如 America/New_York);缺省按美东
   // 脊柱:模型无关(代码算)
   metrics: Metric[]
   signals: Signal[]

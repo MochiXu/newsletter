@@ -2,6 +2,7 @@ import { useEffect, useRef, type CSSProperties } from 'react'
 import type { Brief, Route, Tweaks } from '../../types'
 import { nav } from '../../lib/hooks'
 import { modelLabel, resolveModel, viewOf } from '../../lib/format'
+import { tzLabel, usCloseLocal } from '../../lib/tz'
 import { Card } from '../../components/Card'
 import MarketData from './MarketData'
 import PriceChart from './PriceChart'
@@ -101,8 +102,9 @@ export default function BriefPage({ briefs, model, route, tweaks }: Props) {
         {/* 简报头 */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '2px', color: 'var(--ink2)' }}>
-            MACRO BRIEF · {b.weekday} · 第 {b.issue} 刊 · {b.time}
+            MACRO BRIEF · {b.weekday} · 第 {b.issue} 刊
           </div>
+          {/* 主标题 = 美东交易日(权威锚,不按用户时区改);旁边浅色时区标签,下面一行浅色给本地对应时刻 */}
           <div
             style={{
               fontFamily: 'var(--mono)',
@@ -114,7 +116,20 @@ export default function BriefPage({ briefs, model, route, tweaks }: Props) {
             }}
           >
             {b.date}
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink2)', marginLeft: 10, letterSpacing: 0 }}>
+              {tzLabel(b.tz ?? 'America/New_York')}
+            </span>
           </div>
+          {(() => {
+            const lm = usCloseLocal(b.date, b.tz ?? 'America/New_York')
+            if (!lm) return null
+            return (
+              <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink2)', marginTop: 5, opacity: 0.85 }}>
+                美股收盘 · 本地 {lm.shifted ? `${lm.date} ` : ''}
+                {lm.time} · {lm.tz}
+              </div>
+            )
+          })()}
           <div
             style={{
               fontSize: 17,

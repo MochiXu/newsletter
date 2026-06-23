@@ -93,7 +93,7 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 - 钻入态(route.date 存在)顶部**返回条**:`‹ 时间线`/`‹ 命中率` + 虚线 + 右 `第 N 刊 · DETAIL`。
 - 未加载 → 520px `mbpulse` 骨架。
 - **日详情**(`isBriefDay`,取 `briefs[routeIdx]`):
-  - 头:`MACRO BRIEF · {weekday} · 第{issue}刊 · {time}` / 大号 mono 日期(34px)/ headline(17px·700)。右侧命中率徽章 **仅 hasScore 时**(后端无 track → 不显示)。
+  - 头:`MACRO BRIEF · {weekday} · 第{issue}刊` / 大号 mono 日期(34px,= 美东交易日)+ 浅色时区标签 `tzLabel(brief.tz)`(如「美东」)/ 下一行浅色「美股收盘 · 本地 {时刻} · {时区}」(`usCloseLocal`,锚 16:00 ET 收盘换算到浏览器时区)/ headline(17px·700)。**发布时间不再显示在头部**(歧义「07:00 CST」已去)。右侧命中率徽章 **仅 hasScore 时**(后端无 track → 不显示)。
   - **声明式两列排版**(BriefPage 一处定义左/右两个区块数组,顺序即布局;两列等宽 `flex:1 1 360px` + flex-wrap → 宽屏两列、窄屏自动并一列,无手写断点)。所有区块都是打孔小票(`<Card punch>`)。AI BRIEF 四层是 4 个**独立面板**(`FactsPanel/ReadsPanel/HypothesisPanel/ImpactPanel`,从 AiBrief.tsx 分别导出),可跨列自由摆放:
     - **左栏**:① MARKET DATA(§5.1)② PRICE 30D 价格图(§5.2)③ **SIGNALS 技术指标**(§5.6)④ **HYPOTHESIS 假设层**(§5.4,技术指标下)
     - **右栏**:① FACTS 事实层 ② INTERPRETATION 解读层 ③ IMPACT 影响层(§5.4)④ **NEWS 新闻**(§5.3,影响层下,缺失自动隐藏)⑤ REVIEW 复盘(`hasReviews` 才显,§5.5)
@@ -127,9 +127,9 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 - hover:`onChartMove` 取 `getBoundingClientRect`,`idx=round(cx/width*(n-1))` clamp;十字线 `<line>` opacity `hover?.55:0`;游标点用绝对定位 HTML span(`left=xs/W%`,`top=ys/H%`,7px 圆)。读数行:`fmtChartVal(kind,v)` + 该点 date。`onChartLeave`→null(看末点)。触屏 `e.touches` + `touch-action:none`。
 - 底部刻度:起始 date / `30 交易日` / 末 date。
 
-### 5.3 NEWS(类目计数 + 折叠 + 多标签,参考 SIGNALS 思路)
-- **类目(影响资产)计数常显**:把 `news[].assets`(多值)汇总成 chip「资产 N」按条数降序(一条多资产则每个都计);点 chip 按该类目**筛选**(命中资产标签高亮 accent),开关显示「仅看 X N 条」。
-- **折叠展开**(默认收起「▸ 展开新闻 · N 条」,同 SIGNALS)。
+### 5.3 NEWS(类目计数 + 多标签,列表常显)
+- **类目(影响资产)计数常显**:把 `news[].assets`(多值)汇总成 chip「资产 N」按条数降序(一条多资产则每个都计);点 chip 按该类目**筛选**(命中资产标签高亮 accent),筛选时显示「仅看 X · N/总 条(点标签取消)」。
+- **列表常显**(不折叠;早先的展开/收起已去掉)。
 - 每条:`catMap` 分类徽章(fact 事实/read 解读/both 事实+解读/noise 噪音)+ **标题(后端有 link → `<a target=_blank rel=noopener>` + ↗)** + 方向 `dirInfo(dir)`;次行来源(mono)+ 多个 assets chips。noise 标题用 ink2。
 - **缺失自动隐藏**:`news` 为空 → 组件返回 null(数据缺失则不展示)。复用现有 `news.assets`,无后端改动。
 
@@ -169,9 +169,9 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 ## 8. 数据契约(= 真实 `data/briefs.json`)与后端映射
 
 顶层 `{model, generatedAt, briefs:[Brief]}`(briefs 倒序)。Brief 字段:
-**脊柱(模型无关)**:`date/weekday/issue/time` · `metrics[key,label,value,change,kind,spark:[{date,value}]]` · `signals[key,label,value,unit,group]` · `regime{}` · `priceSeries{key:[{date,value}]}`(5 资产×30 点)· `reviews[ifThen,status,note]` · `news[title,source,cat,assets,dir,link]`。
-**多模型**:`models[]`(模型 id,有序,[0]=主)· `views{modelId: ModelView}` · `consensus[{asset,direction,votes{up,down,flat},n,agree,meanConfidence}]`(≥2 模型才有)。
-`ModelView` = `tone/headline · facts[{tag,text,figures:[{t,dir}]}] · reads[同]`(`renderRichText` 按 figures 给数字上色 + 给已知术语加 hover)`· hypotheses[ifThen,invalidation,asset,direction,horizon,confidence,keyFactors:[{label,detail}]] · impacts[{asset(中文名),watch,dir,code(英文代码,可空→hover)}]`。`keyFactors` 每条 = 短标签(`label`,chip 常显)+ 完整读数(`detail`,hover);后端由 LLM 扁平串 `'label|detail'` 解析。
+**脊柱(模型无关)**:`date/weekday/issue/time/tz`(`tz` = `date` 所属时区 IANA,默认 `America/New_York`;前端据此在大日期旁标「美东」并把美股收盘换算到浏览器本地)· `metrics[key,label,value,change,kind,spark:[{date,value}]]` · `signals[key,label,value,unit,group]` · `regime{}` · `priceSeries{key:[{date,value}]}`(5 资产×30 点)· `reviews[ifThen,status,note]` · `news[title,source,cat,assets,dir,link]`。
+**多模型**:`models[]`(模型 id,有序,[0]=主)· `views{modelId: ModelView}` · `consensus[{asset,direction,votes{up,down,flat},n,agree,meanConfidence,actual?}]`(≥2 模型才有)。
+`ModelView` = `tone/headline · facts[{tag,text,figures:[{t,dir}]}] · reads[同]`(`renderRichText` 按 figures 给数字上色 + 给已知术语加 hover)`· hypotheses[ifThen,invalidation,asset,direction,horizon,confidence,keyFactors:[{label,detail}],actual?] · impacts[{asset(中文名),watch,dir,code(英文代码,可空→hover)}]`。`keyFactors` 每条 = 短标签(`label`,chip 常显)+ 完整读数(`detail`,hover);后端由 LLM 扁平串 `'label|detail'` 解析。`Actual` = `{status(pending|settled),realizedDir,realizedText,hit,resolvedDate,note}`:预测账本(`data/predictions.csv`)到 horizon 期满后**代码**算真实走势 + 命中、LLM 写 `note`,由 `render.apply_actuals` join 进所有保留简报;未到期 → 前端沙漏。预测卡 + 共识行均显示实际结果。
 前端用 `viewOf(brief, selectedModel)` 取当前视图(选中模型缺失则回退主模型);切换器选项 = `allModels(briefs)`(>1 才显示)。所有展示文本后端已过 `textnorm.normalize_text`(英文标点 + 中英空格 + 数字单位上色);影响层 `asset` 经 `render._split_asset` 规范成中文名 + 提取 `code`。
 
 - **设计有、后端无**:`q`(nasdaq/btc 报价)、BTC/DXY 价格序列 → 不做(纳指已在 metrics;BTC 不加)。`track`(命中率)、`PERIODS`(区间聚合)→ 空态待 V2。

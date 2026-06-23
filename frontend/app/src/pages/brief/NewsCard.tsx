@@ -25,25 +25,8 @@ const catChip = (active: boolean): CSSProperties => ({
   transition: 'all .15s',
 })
 
-const toggleBtn: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 7,
-  width: '100%',
-  border: '1px solid var(--hair)',
-  background: 'transparent',
-  borderRadius: 7,
-  padding: '7px 11px',
-  cursor: 'pointer',
-  color: 'var(--ink2)',
-  fontFamily: 'var(--mono)',
-  fontSize: 11,
-  letterSpacing: '.5px',
-}
-
-/** NEWS 新闻:类目(影响资产)计数常显、可点筛选 + 折叠展开;每条多资产标签 + 事实/解读类型 + 方向 + 链接。 */
+/** NEWS 新闻:类目(影响资产)计数 + 可点筛选,列表常显;每条多资产标签 + 事实/解读类型 + 方向 + 链接。 */
 export default function NewsCard({ news }: { news: News[] }) {
-  const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState<string | null>(null)
   if (news.length === 0) return null // 数据缺失 → 自动不展示
 
@@ -64,10 +47,7 @@ export default function NewsCard({ news }: { news: News[] }) {
             <button
               key={a}
               style={catChip(filter === a)}
-              onClick={() => {
-                setFilter((f) => (f === a ? null : a))
-                setOpen(true)
-              }}
+              onClick={() => setFilter((f) => (f === a ? null : a))}
             >
               {a}
               <span style={{ fontWeight: 700 }}>{c}</span>
@@ -76,17 +56,14 @@ export default function NewsCard({ news }: { news: News[] }) {
         </div>
       )}
 
-      {/* 折叠开关 */}
-      <button onClick={() => setOpen((o) => !o)} style={toggleBtn}>
-        <span style={{ transition: 'transform .18s', transform: open ? 'rotate(90deg)' : 'none' }}>▸</span>
-        <span>
-          {open ? '收起新闻' : `展开新闻 · ${news.length} 条`}
-          {filter && `(仅看 ${filter} ${shown.length} 条)`}
-        </span>
-      </button>
+      {/* 筛选时给个计数 + 取消提示;未筛选直接列表 */}
+      {filter && (
+        <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--ink2)', marginBottom: 6 }}>
+          仅看 {filter} · {shown.length}/{news.length} 条(点上方标签取消)
+        </div>
+      )}
 
-      {open &&
-        shown.map((n, i) => {
+      {shown.map((n, i) => {
           const cat = n.cat ? catMap[n.cat] : null
           const di = dirInfo(n.dir)
           const titleColor = n.cat === 'noise' ? 'var(--ink2)' : 'var(--ink)'
