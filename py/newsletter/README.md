@@ -30,7 +30,7 @@
                           │
         ┌─────────────────┼──────────────────────┬─────────────┐
         ▼                 ▼                       ▼             ▼
-  briefs/<date>.md   briefs/<date>.json     briefs.json   hypotheses.csv   飞书(可选)
+  briefs/<date>.md   briefs/<date>.json     briefs.json   predictions.csv   飞书(可选)
   (人读)             (单日)                 (聚合,前端)   (假设追踪复盘)
 ```
 
@@ -49,12 +49,12 @@
 | `textnorm.py` | 确定性中英文排版规范化(`normalize_text`:全角标点→ASCII、中英盘古空格、双引号→单引号;不拆 `MA200/2s10s/9bp`)。render 落库前对所有展示文本统一应用 |
 | `render.py` | LLM 输出 → pydantic 校验/归一化 + `normalize_text`(+ figure 补单位/去死)→ `build_metrics`(含 spark)/ `build_signals` / `build_price_series` / `build_view`(单模型六层)/ `build_consensus`(跨模型代码投票)/ `build_brief`(脊柱 + views + consensus)/ `_split_asset`(影响层 asset 规范成中文名 + 提取英文 `code`)/ `render_markdown` / `render_text`(取主视图)/ `upsert_briefs_json` |
 | `news.py` | RSS/Atom 抓取(stdlib)+ LLM 分类(事实/解读/影响资产);**按模型回填的 `index` 对齐**,免疫 LLM 改写/翻译标题 |
-| `hypotheses.py` | 假设追踪复盘(`hypotheses.csv`):登记新假设、对**往日** open 假设复盘 held/invalidated/open(不拿当天数据自我验证),按天幂等 |
-| `pipeline.py` | 编排:`fetch_and_store` → `build_report`(算特征→**多模型 LLM**→假设(以主模型为准)→新闻→组装多视图 Brief + 共识)→ `write_outputs`;`target_date` 贯穿,各 LLM 环节独立 try/except 降级 |
+| `predictions.py` | 预测追踪账本(`predictions.csv`):登记**各模型**每日预测,到 horizon 期满后**代码**算真实走势 + 命中(`features.realized_move`)、LLM 给本次结算写复盘 `note`;按 (date,model,asset,horizon) 幂等。替代旧 `hypotheses.py` 主观复盘 |
+| `pipeline.py` | 编排:`fetch_and_store` → `build_report`(算特征→**多模型 LLM**→预测账本(各模型 record + 往日到期 backfill + LLM review)→新闻→组装多视图 Brief + 共识)→ `write_outputs`;`target_date` 贯穿,各 LLM 环节独立 try/except 降级 |
 | `__main__.py` | CLI:`--date` / `--no-news` / `--history-years` / `-v` |
 | `deliver/feishu.py` | 飞书机器人推送(HMAC 签名可选;失败不阻断,已存 md) |
 | `framework/linkage_map.md` | 核心 IP:人工维护的宏观传导图,运行时读入喂给 LLM |
-| `tests/` | 64 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析/补单位 + 关键因子 label/detail 拆分 + 多模型视图/共识 + 影响层 asset 规范化 + 向后兼容旧 str[] facts 与旧扁平 brief 迁移) |
+| `tests/` | 73 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析/补单位 + 关键因子 label/detail 拆分 + 预测账本 record/到期结算/命中 + apply_actuals 加固 + 多模型视图/共识 + 影响层 asset 规范化 + 向后兼容旧 str[] facts 与旧扁平 brief 迁移) |
 
 ## 数据源分工(已接入)
 
@@ -73,7 +73,7 @@ data/
   raw/latest/manifest.json     本次拉取元信息(pull_date / 行数 / 序列 / 日期范围)
   briefs/<date>.{md,json}      每日简报(人读 + 单日结构化)
   briefs.json                  聚合简报(前端 fetch 的接缝)
-  hypotheses.csv               假设追踪日志(created_date/if_then/invalidation/status/verdict/...)
+  predictions.csv              预测追踪账本(created_date/model/asset/horizon/status/resolved_date/realized_dir/realized_text/hit/note)
 ```
 
 ## 运行

@@ -85,8 +85,8 @@
 - **强制分层是质量的最大杠杆**:数字全由代码算成技术特征,LLM 只判断/解释、不再「心算」。
   任一 LLM 环节失败都 `try/except` 降级,报告仍能基于已算好的特征层产出。
 - **接缝(当前契约)**:原始层 `data/raw/latest/series.parquet`(可重建缓存)+ 对外产物
-  `data/briefs/<date>.{md,json}`、聚合 `data/briefs.json`(前端 fetch)、`data/hypotheses.csv`
-  (假设追踪)——产物走 git,可 diff、有历史。
+  `data/briefs/<date>.{md,json}`、聚合 `data/briefs.json`(前端 fetch)、`data/predictions.csv`
+  (预测追踪账本)——产物走 git,可 diff、有历史。
 - **依赖**:`pandas`/`numpy`(特征)、`pyarrow`(parquet)、`pydantic`(边界校验);LLM provider 层仍是纯 `urllib`。
 - **模型**:**provider 可插拔**(Anthropic / OpenAI / MiniMax / DeepSeek / Moonshot / Zhipu / 通用 openai-compat),
   换 env 不改码(`LLM_MODELS` 逗号列表选模型)。当前活跃 = **DeepSeek + Claude(claude-opus-4-8)+ OpenAI(gpt-5.5)三模型并行**(经中转站),收敛靠**代码级共识**、不靠 LLM。

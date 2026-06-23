@@ -199,7 +199,7 @@ py/newsletter/
     prompt.py      # build_user:特征块固定格式
   render.py        # LLM 输出 → pydantic 校验(含 facts 归一化)→ 前端 JSON / md / 飞书文本
   news.py          # 新闻抓取+分类(沿用,微调)
-  hypotheses.py    # 假设追踪(沿用;v2 升级为结构化 L4 验证)
+  hypotheses.py    # 假设追踪(沿用;V1.5 起被 predictions.py 预测账本替代)
   pipeline.py      # 编排:fetch→store→features→regime→llm→render→输出(+ deliver)
   deliver/feishu.py
   tests/
@@ -214,7 +214,7 @@ py/newsletter/
 
 ### 取舍
 
-- **沿用**(质量已验证):`providers`(多模型)、`news`、`hypotheses`、`deliver/feishu`、四层 schema 的纪律。
+- **沿用**(质量已验证):`providers`(多模型)、`news`、`hypotheses`(V1.5 起改 `predictions` 预测账本)、`deliver/feishu`、四层 schema 的纪律。
 - **重写**:数据获取(Rust→Python 多源)、存储(CSV run_date 日志 → parquet 干净序列)、**新增特征/regime 层**、`build_user`(改喂特征)、`render`(pydantic 校验 + 归一化)、`pipeline` 编排。
 - **`target_date` 参数**:`pipeline` 接受 `target_date`(默认今天),全链路据此切片 —— v1 只跑「今天」,但接口为 v2 回测就位。
 

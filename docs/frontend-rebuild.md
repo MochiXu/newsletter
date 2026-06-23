@@ -93,10 +93,10 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 - 钻入态(route.date 存在)顶部**返回条**:`‹ 时间线`/`‹ 命中率` + 虚线 + 右 `第 N 刊 · DETAIL`。
 - 未加载 → 520px `mbpulse` 骨架。
 - **日详情**(`isBriefDay`,取 `briefs[routeIdx]`):
-  - 头:`MACRO BRIEF · {weekday} · 第{issue}刊` / 大号 mono 日期(34px,= 美东交易日)+ 浅色时区标签 `tzLabel(brief.tz)`(如「美东」)/ 下一行浅色「美股收盘 · 本地 {时刻} · {时区}」(`usCloseLocal`,锚 16:00 ET 收盘换算到浏览器时区)/ headline(17px·700)。**发布时间不再显示在头部**(歧义「07:00 CST」已去)。右侧命中率徽章 **仅 hasScore 时**(后端无 track → 不显示)。
+  - 头:`MACRO BRIEF · {weekday} · 第{issue}刊` / 大号 mono 日期(34px,= 美东交易日)+ 浅色时区标签 `tzLabel(brief.tz)`(如「美东」)/ 下一行浅色「美股收盘 · 本地 {时刻} · {时区}」(`usCloseLocal`,锚 16:00 ET 收盘换算到浏览器时区)/ headline(17px·700)。**发布时间不再显示在头部**(歧义「07:00 CST」已去)。(命中率不在头部展示;聚合命中率属 V2 命中率页。)
   - **声明式两列排版**(BriefPage 一处定义左/右两个区块数组,顺序即布局;两列等宽 `flex:1 1 360px` + flex-wrap → 宽屏两列、窄屏自动并一列,无手写断点)。所有区块都是打孔小票(`<Card punch>`)。AI BRIEF 四层是 4 个**独立面板**(`FactsPanel/ReadsPanel/HypothesisPanel/ImpactPanel`,从 AiBrief.tsx 分别导出),可跨列自由摆放:
     - **左栏**:① MARKET DATA(§5.1)② PRICE 30D 价格图(§5.2)③ **SIGNALS 技术指标**(§5.6)④ **HYPOTHESIS 假设层**(§5.4,技术指标下)
-    - **右栏**:① FACTS 事实层 ② INTERPRETATION 解读层 ③ IMPACT 影响层(§5.4)④ **NEWS 新闻**(§5.3,影响层下,缺失自动隐藏)⑤ REVIEW 复盘(`hasReviews` 才显,§5.5)
+    - **右栏**:① FACTS 事实层 ② INTERPRETATION 解读层 ③ IMPACT 影响层(§5.4)④ **NEWS 新闻**(§5.3,影响层下,缺失自动隐藏)。逐条预测的实际结果改在左栏 HYPOTHESIS 预测卡内(§5.4 ActualLine),不再有独立 REVIEW 卡。
   - 页脚:`...NOT INVESTMENT ADVICE · GEN {modelLabel(activeModel)}`(当前视图模型)。
 - **区间详情**(`isBriefAgg`):后端无聚合 → **空态卡**「区间聚合待 V2 评估层」。
 
@@ -109,7 +109,7 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 
 ### 4.3 命中率页(`track`)
 - 头:`TRACK RECORD·命中率` + 维度段控件 月度/季度/年度/ALL。
-- **后端无 track 打分 → 整页空态**:暖纸卡居中,`评估层未就绪(V2)` + 一句说明(逐条复盘 ✓/✕/○ 已在简报页 REVIEW;聚合命中率统计待 V2 评估层 backfill+scoring 落地)。维度 tab 仍可点但都显示同一空态。
+- **后端无 track 打分 → 整页空态**:暖纸卡居中,`评估层未就绪(V2)` + 一句说明(逐条预测的实际结果 ✓命中/✗未中/⏳待验证 已在简报页预测卡;聚合命中率统计待 V2 评估层 backfill+scoring 落地)。维度 tab 仍可点但都显示同一空态。
 - (设计原图:年热力图 / 月日历+折线 / 季度 / ALL 柱状 + 浮动 tooltip——**待 V2 评估层产出 `track.json` 后按 §7 算法接入**,本期不画假数据。)
 
 ---
@@ -135,11 +135,11 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 
 ### 5.4 AI BRIEF 四层(4 个独立打孔面板,渲染**当前选中模型的 view**,见 §3 模型切换)
 - **FACTS / INTERPRETATION**:正文用 `renderRichText(text, figures)` = ① figures 按 dir 给数字上色 ② 已知术语(regime 的 `key=value`/复合 token + 行话 higher-for-longer/熊平/牛陡/倒挂)加**虚下划线 + hover 中文解释**(`glossary.ts` 单一源;保留 LLM 原文措辞,不改 prompt)。
-- **HYPOTHESIS=预测卡**:多模型时上方先给一行**跨模型共识**(`consensus`:资产 + 多数方向 + `agree/n 认同` + 均值信心 + 各方向票数;平票=分歧→横盘)。每条预测卡:头(资产中文 + 方向箭头↑↓→ + 期限 + 信心 % + 信心条 + **信心 tooltip**:模型自评、未校准、非真实概率)/ ifThen / `✕ 失效`+invalidation / **关键因子 chip**(`KeyFactorChip`:常显短标签 `label`,完整读数 `detail` 进 hover,`detail≠label` 才挂 Tooltip)。资产映射:NASDAQCOM→纳指,XAUUSD→黄金,DTWEXBGS→广义美元,DGS2→美债2Y。
+- **HYPOTHESIS=预测卡**:多模型时上方先给一行**跨模型共识**(`consensus`:资产 + 多数方向 + `agree/n 认同` + 均值信心 + 各方向票数;平票=分歧→横盘)。每条预测卡:头(资产中文 + 方向箭头↑↓→ + 期限 + 信心 % + 信心条 + **信心 tooltip**:模型自评、未校准、非真实概率)/ ifThen / `✕ 失效`+invalidation / **关键因子 chip**(`KeyFactorChip`:常显短标签 `label`,完整读数 `detail` 进 hover,`detail≠label` 才挂 Tooltip)/ **实际结果行 `ActualLine`**(未到期 → ⏳「待验证 · 到 {horizon} 后揭晓」;已结算 → 实际方向 + 幅度 + ✓命中/✗未中,LLM 复盘 `note` 进 hover);共识行同带「实 + ✓/✗」(代码裁决,见后端预测账本)。资产映射:NASDAQCOM→纳指,XAUUSD→黄金,DTWEXBGS→广义美元,DGS2→美债2Y。
 - **IMPACT**:每条 `dirInfo(dir)` + **资产中文名**(`im.asset`,后端已规范化)+ watch;若 `im.code` 有英文代码 → 放 hover。
 
-### 5.5 REVIEW 复盘(hasReviews 才显)
-状态:held{✓,up,已兑现} / invalidated{✕,down,已失效} / open{○,accent,待观察}。18px 圆描边徽标 + ifThen + 状态标签 + note。
+### 5.5 预测实际结果(原 REVIEW 复盘卡已移除)
+独立 REVIEW 复盘卡已去掉:逐条预测的「实际结果」改在 HYPOTHESIS 预测卡内(`ActualLine`,§5.4)+ 跨模型共识行就地显示——未到期 ⏳ 沙漏,到期 ✓命中/✗未中 + 实际幅度(**代码**裁决),LLM 复盘 `note` 进 hover。后端由预测账本 `data/predictions.csv` 驱动(`render.apply_actuals` join 进所有保留简报);`Brief.reviews` 契约字段保留但现恒为空。
 
 ### 5.6 SIGNALS 技术指标(新增卡,设计同款视觉)
 - **regime 徽章**常显:6 个 chip(键中文 + 值翻译;token map:above_ma200→MA200上方 等,`/` 拆开 `·` 连),每个 chip 包 `Tooltip`,hover 出该维度的中文解释(`glossary.regimeTooltip`)。
@@ -183,7 +183,7 @@ state:`route`(hash 解析)、`themeMode('auto'|'light'|'dark', localStorage key=
 ## 9. 构建顺序
 1. 骨架 + theme.css(变量/punch/纹理/keyframes)+ 字体 + copy-data。
 2. 基础:types.ts(契约)/ lib/format.ts(fmt+颜色)/ lib/geometry.ts / hooks(useHashRoute/useTheme/useIsMobile)/ Card+SectionHead+Header+NavTabs。
-3. 简报页(MARKET DATA / PRICE 图 / SIGNALS 卡 / NEWS / AI BRIEF 预测卡 / REVIEW)。
+3. 简报页(MARKET DATA / PRICE 图 / SIGNALS 卡 / NEWS / AI BRIEF 预测卡含实际结果)。
 4. 时间线页(day 真实 + 区间空态)。
 5. 命中率页(空态)。
 6. Tweaks 浮层 / 响应式 / 空态;preview 实测明暗+窄屏。

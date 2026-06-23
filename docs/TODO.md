@@ -27,7 +27,7 @@
 
 ### 近期(dogfood + 打磨,见 §6)
 - [ ] 固定简报格式、固定发布时间、建立 voice
-- [ ] 连续运行让 `hypotheses.csv` 攒出真实复盘记录(信任引擎的价值靠时间)
+- [ ] 连续运行让 `predictions.csv` 攒出真实结算记录(信任引擎的价值靠时间)
 - [ ] 开始发给 5–10 个朋友收反馈(免费,先证明留存)
 
 ---
@@ -72,7 +72,7 @@
 ### 基础设施 / CI
 - [x] CI 改纯 Python(`setup-python` + `pip` 缓存;无 Rust 构建)
 - [ ] 失败可见性:简报部分序列失败/无分类时,除日志外发通知(现有 `::warning::` 注解)
-- [ ] `data/briefs`、`data/raw`、`hypotheses.csv` 随 cron 累积,定期归档/清理脚本
+- [ ] `data/briefs`、`data/raw`、`predictions.csv` 随 cron 累积,定期归档/清理脚本
 - [ ] 回填脚本(V2):逐日 `target_date` 重跑简报(严格 point-in-time),见 [refactor/v2-progress](refactor/v2-progress.md)
 
 ---
@@ -88,7 +88,7 @@
   且标题也对不上,该条退化为未分类(不会错位贴到别条——有意的安全取舍)。
 - **假设复盘依赖 LLM 判断**:held/invalidated/open 的判定质量取决于模型,需人工抽查。
 - **原始层用 parquet(git-as-database)**:V1 已把数据落盘从 CSV 改为 `data/raw/*.parquet`;
-  对外产物(briefs JSON/md、`hypotheses.csv`)走 git。复杂查询/大数据量时再评估 DuckDB。
+  对外产物(briefs JSON/md、`predictions.csv`)走 git。复杂查询/大数据量时再评估 DuckDB。
 - **数据源脆弱性**:Yahoo 限流(已加礼貌间隔+退避)、Stooq 反爬(已弃用)、RSS 源可能失效/限流
   (单源失败静默跳过)。
 - **仓库体积**:每日往 `data/` 提交快照+简报,长期会变大;需归档策略。
@@ -124,6 +124,6 @@
 
 1. **每天读简报**,判断是否比刷推特信息量大、哪里没用——这是四层简报的真正验收
 2. **每天维护 `linkage_map.md`**(5 分钟复盘 → 修订):核心 IP + 学经济的载体 + 飞轮发动机
-3. **让假设追踪攒数据**:连续运行,`hypotheses.csv` 才会出现真实的 ✅已兑现/❌已失效 记录
+3. **让预测追踪攒数据**:连续运行,`predictions.csv` 才会出现真实的 ✅命中/❌未中 结算记录
 4. **盯前几天的 cron**:推送是否每天到、有无序列失败(Yahoo 限流/RSS 挂)、简报质量 → 调 prompt
 5. 固定简报格式/voice,开始发给 5–10 个朋友收反馈(多市场扩展已搁置,见 [parked-scope](parked-scope.md))

@@ -43,8 +43,8 @@
                           │
         ┌─────────────────┼──────────────────────┐
         ▼                 ▼                       ▼
-  data/briefs/<date>.md  data/briefs.json   data/hypotheses.csv   飞书(可选)
-  (人读)                (前端接缝)          (假设追踪复盘)
+  data/briefs/<date>.md  data/briefs.json   data/predictions.csv  飞书(可选)
+  (人读)                (前端接缝)          (预测追踪账本)
 ```
 
 - **数据源强强联合**:FRED(利率/利差/实际利率/广义美元/VIX/月频宏观)+ Twelve Data(金现货
@@ -66,15 +66,15 @@ py/newsletter/             # 纯 Python 数据管线
   features.py regime.py    # 技术特征(因果)+ 代码派生 regime 标签
   llm/                     # providers(多模型)+ schema(四层)+ prompt(特征块)+ service
   render.py                # → 前端 JSON / markdown / 飞书文本
-  news.py hypotheses.py    # 新闻分类 + 假设追踪复盘
+  news.py predictions.py   # 新闻分类 + 预测追踪账本
   pipeline.py __main__.py  # 编排(target_date 贯穿)+ CLI
   framework/linkage_map.md # 核心 IP:人工维护的宏观传导图
-  tests/                   # 64 个离线单测(含特征因果性红线)
+  tests/                   # 73 个离线单测(含特征因果性红线)
 data/                      # git-as-database
   raw/latest/*.parquet     # 原始全量快照(history/ 归档已 gitignore)
   briefs/<date>.{md,json}  # 每日简报(人读 + 单日 JSON)
   briefs.json              # 展示平面接缝:聚合简报(供前端 fetch)
-  hypotheses.csv           # 假设追踪日志
+  predictions.csv          # 预测追踪日志
 frontend/app/              # 展示平面:React+Vite+TS 小票阅读器
 .github/workflows/daily.yml# 每日 cron:拉数 → 简报 → 提交回仓库 →(可选)推飞书
 DESIGN.md  docs/           # 设计哲学 + 重构设计/路线图/变更日志
