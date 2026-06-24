@@ -50,9 +50,11 @@ class TestContractSerialization(unittest.TestCase):
         br = Brief(date="2026-06-18", weekday="周四",
                   hypotheses=[{"ifThen": "若A则B", "invalidation": "Z"}])
         obj = br.to_json_obj()
-        self.assertEqual(set(obj), {"date", "weekday", "issue", "time", "tz", "metrics", "signals",
+        self.assertEqual(set(obj), {"date", "weekday", "issue", "time", "tz",
+                                    "session", "closedReason", "metrics", "signals",
                                     "regime", "priceSeries", "factors", "reviews", "news",
                                     "models", "views", "consensus"})
+        self.assertEqual(obj["session"], "trading")  # 默认交易日(向后兼容)
         self.assertEqual(obj["models"], ["archive"])
         view = obj["views"]["archive"]
         self.assertEqual(set(view), {"tone", "headline", "facts", "reads", "hypotheses", "impacts"})

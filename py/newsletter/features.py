@@ -148,6 +148,22 @@ def snapshot_at(feat: pd.DataFrame, target_date: str) -> dict[str, float]:
     return {k: float(v) for k, v in row.items() if pd.notna(v)}
 
 
+def has_observation(long_df: pd.DataFrame, sid: str, target_date: str) -> bool:
+    """long_df 中 sid 在 target_date 当天**是否有真实观测**(判交易日用)。
+
+    对 DATE 列 dtype 健壮(Timestamp / str 皆可):逐个 stringify 取 YYYY-MM-DD 比对。
+    """
+    sub = long_df[long_df["series_id"] == sid]
+    return any(str(d)[:10] == target_date for d in sub[DATE].tolist())
+
+
+def last_observation_date(long_df: pd.DataFrame, sid: str) -> str | None:
+    """sid 最新有观测的日(ISO);无则 None。区间重生成用来把 end 截到"最新有数据日"。"""
+    sub = long_df[long_df["series_id"] == sid]
+    dates = [str(d)[:10] for d in sub[DATE].tolist()]
+    return max(dates) if dates else None
+
+
 def metric_spark(long_df: pd.DataFrame, sid: str, target_date: str, n: int = 20) -> list[dict[str, object]]:
     """某序列截至 target_date 的最近 n 个**真实观测点**(带日期,因果),供前端指标表画 sparkline。
 

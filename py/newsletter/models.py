@@ -451,6 +451,9 @@ class Brief(_CamelModel):
     issue: int = 0
     time: str = "07:00 CST"
     tz: str = "America/New_York"  # date 所属时区(美东交易日);前端据此显式标注 + 换算到本地
+    # 交易状态:trading=交易日有数据 / closed=休市(周末或节假日)/ no_data=应为交易日但数据缺失·未发布·源问题
+    session: str = "trading"
+    closed_reason: str = Field("", alias="closedReason")  # closed 细分:weekend / holiday(其余为空)
     # ── 脊柱:模型无关(代码算)──
     metrics: list[Metric] = Field(default_factory=list)
     signals: list[Signal] = Field(default_factory=list)  # 技术指标(代码计算)

@@ -19,6 +19,7 @@ from . import (
     evaluate,
     factors as factors_mod,
     features,
+    market_calendar,
     news as news_mod,
     predictions as pred,
     regime,
@@ -61,6 +62,19 @@ def _news_window(target_date: str, news_mode: str) -> tuple[str | None, str | No
     y, m, d = (int(x) for x in target_date.split("-"))
     start = (datetime.date(y, m, d) - datetime.timedelta(days=3)).isoformat()
     return start, target_date
+
+
+def _effective_news_mode(news_mode: str, target_date: str) -> str:
+    """历史回放强制 backfill —— 杜绝"先知泄漏"。
+
+    live 只该用于"当天/未来"(抓最新,含无法时间过滤的 RSS)。若拿 live 跑一个**过去**的
+    target_date,会抓到运行日(=未来)的新闻挂到历史简报上 → 先知泄漏。所以过去日自动降级
+    backfill:TheNewsAPI 带时间窗(published_before<回放日,实测排他边界,不含当天及之后)+ 去掉 RSS。
+    none/backfill 保持原样。
+    """
+    if news_mode == "live" and target_date < _today():
+        return "backfill"
+    return news_mode
 
 
 def fetch_and_store(settings: Settings, target_date: str, history_years: int = 12) -> pd.DataFrame:
@@ -132,9 +146,12 @@ def build_report(
     news_features: dict[str, Any] = {}
     settings = get_settings()
     if news_mode != "none" and not settings.news_disabled:
+        eff_mode = _effective_news_mode(news_mode, target_date)  # 历史日 live→backfill,防先知泄漏
+        if eff_mode != news_mode:
+            log.info("target_date %s 为历史日,新闻 %s→%s(时间窗,防先知泄漏)", target_date, news_mode, eff_mode)
         try:
-            start, end = _news_window(target_date, news_mode)
-            items = news_mod.fetch_news(news_mode, start=start, end=end)
+            start, end = _news_window(target_date, eff_mode)
+            items = news_mod.fetch_news(eff_mode, start=start, end=end)
             items = news_mod.enrich(items, cache=ExtractCache(PATHS.news_cache))  # 抓全文 + 缓存,死链丢弃
         except Exception as e:  # noqa: BLE001
             items = []
@@ -208,8 +225,13 @@ def build_report(
     return brief, {"macro": macro, "feature_block": block_b, "pred_rows": pred_rows}
 
 
-def write_outputs(brief: Brief, macro: list[dict[str, Any]], pred_rows: list[dict] | None = None) -> None:
-    """写 markdown + briefs.json + 推飞书。pred_rows = 预测账本(把实际结果回填进所有保留简报)。"""
+def write_outputs(
+    brief: Brief, macro: list[dict[str, Any]], pred_rows: list[dict] | None = None, *, push: bool = True
+) -> None:
+    """写 markdown + briefs.json +(可选)推飞书。pred_rows = 预测账本(回填实际结果进所有保留简报)。
+
+    push=False:区间重生成时用,避免把一堆历史简报推到飞书。
+    """
     PATHS.briefs.mkdir(parents=True, exist_ok=True)
     md_path = PATHS.briefs / f"{brief.date}.md"
     md_path.write_text(render.render_markdown(brief, macro), encoding="utf-8")
@@ -221,6 +243,8 @@ def write_outputs(brief: Brief, macro: list[dict[str, Any]], pred_rows: list[dic
     except Exception as e:  # noqa: BLE001
         log.warning("导出 briefs.json 失败: %s", e)
 
+    if not push:
+        return
     try:
         pushed = push_text(render.render_text(brief))
         log.info("已推送飞书" if pushed else "未配置 FEISHU_WEBHOOK,跳过推送(已存 md)")
@@ -228,12 +252,76 @@ def write_outputs(brief: Brief, macro: list[dict[str, Any]], pred_rows: list[dic
         log.warning("飞书推送失败(已存 md): %s", e)
 
 
+_TRADING_REF = "NASDAQCOM"  # 判交易日的参考股指(该日有观测=交易日)
+
+
+def _write_closed(brief: Brief) -> None:
+    """休市 / 无数据日:只写 md + upsert briefs.json(不记预测、不推飞书)。"""
+    PATHS.briefs.mkdir(parents=True, exist_ok=True)
+    (PATHS.briefs / f"{brief.date}.md").write_text(render.render_markdown(brief), encoding="utf-8")
+    try:
+        days = render.upsert_briefs_json(PATHS, brief, "—", None)
+        log.info("已导出 briefs.json(共 %s 天)", days)
+    except Exception as e:  # noqa: BLE001
+        log.warning("导出 briefs.json 失败: %s", e)
+
+
+def _run_trading_or_nodata(
+    long_df: pd.DataFrame, target_date: str, *, news_mode: str = "live", push: bool = True
+) -> Brief:
+    """已知是工作日且非节假日:有观测→完整 brief;无观测→no_data 空 brief。"""
+    if not features.has_observation(long_df, _TRADING_REF, target_date):
+        brief = render.build_closed_brief(target_date, "no_data", "")
+        _write_closed(brief)
+        log.warning("%s 应为交易日但无 %s 观测,产出 no_data brief", target_date, _TRADING_REF)
+        return brief
+    brief, extra = build_report(long_df, target_date, news_mode=news_mode)
+    write_outputs(brief, extra["macro"], extra.get("pred_rows"), push=push)
+    return brief
+
+
 def run(target_date: str | None = None, history_years: int = 12, news_mode: str = "live") -> Brief:
-    """完整跑一天:拉数→落盘→报告→写产物。返回 Brief。"""
+    """完整跑一天。周末/节假日直接产空 closed brief(不拉数);否则拉数→报告→写产物。"""
     settings = get_settings()
     target = target_date or _today()
+    reason = market_calendar.nontrading_reason(target)
+    if reason:  # 周末 / 节假日:无需拉数,直接空 brief
+        log.info("生成简报 target_date=%s(休市:%s)", target, reason)
+        brief = render.build_closed_brief(target, "closed", reason)
+        _write_closed(brief)
+        return brief
     log.info("生成简报 target_date=%s", target)
     long_df = fetch_and_store(settings, target, history_years)
-    brief, extra = build_report(long_df, target, news_mode=news_mode)
-    write_outputs(brief, extra["macro"], extra.get("pred_rows"))
-    return brief
+    return _run_trading_or_nodata(long_df, target, news_mode=news_mode)
+
+
+def run_range(
+    start: str, end: str | None = None, history_years: int = 12, news_mode: str = "live"
+) -> dict[str, int]:
+    """区间重生成:[start, end] 每个**日历日**各产一份 brief(交易日完整 / 非交易日空)。
+
+    价格**只 fetch 一次**(到 end),循环复用 → 快;新闻仍按日抓(历史日自动走 backfill 时间窗,防先知)。
+    end 默认 = 参考股指最新有观测的日(避免给"今天数据未发布"造一堆 no_data 尾巴)。
+    返回 {trading, closed, no_data, days} 计数。
+    """
+    settings = get_settings()
+    fetch_end = end or _today()
+    long_df = fetch_and_store(settings, fetch_end, history_years)  # 一次拉到 fetch_end
+    if end is None:
+        end = features.last_observation_date(long_df, _TRADING_REF) or fetch_end  # 截到最新有数据日
+    days = market_calendar.iter_days(start, end)
+    counts = {"trading": 0, "closed": 0, "no_data": 0, "days": len(days)}
+    log.info("区间重生成 %s → %s,共 %s 个日历日", start, end, len(days))
+    for d in days:
+        reason = market_calendar.nontrading_reason(d)
+        if reason:
+            brief = render.build_closed_brief(d, "closed", reason)
+            _write_closed(brief)
+            counts["closed"] += 1
+        else:
+            brief = _run_trading_or_nodata(long_df, d, news_mode=news_mode, push=False)
+            counts[brief.session] += 1
+        tag = brief.session + (f"/{brief.closed_reason}" if brief.closed_reason else "")
+        log.info("  %s → %s", d, tag)
+    log.info("区间完成:trading=%(trading)s closed=%(closed)s no_data=%(no_data)s", counts)
+    return counts

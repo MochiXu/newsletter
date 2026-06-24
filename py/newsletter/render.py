@@ -338,6 +338,20 @@ def build_brief(
     )
 
 
+def build_closed_brief(target_date: str, session: str, reason: str = "", issue: int = 0) -> Brief:
+    """非交易日(closed:周末/节假日)或无数据日(no_data)的空 brief。
+
+    只有 date / weekday / session / closed_reason,其余脊柱与 views 全空 —— 前端据 session 渲染休市界面。
+    """
+    return Brief(
+        date=target_date,
+        weekday=weekday_cn(target_date),
+        issue=issue,
+        session=session,
+        closed_reason=reason,
+    )
+
+
 # ── 实际结果回填(预测账本 → 简报契约)──────────────────────────────────────
 def _row_to_actual(r: dict | None, predicted_dir: str | None = None) -> Actual | None:
     """账本一行 → Actual;None 行 → None(未登记);pending 行 → 沙漏态。
@@ -421,7 +435,17 @@ def _primary_view(brief: Brief) -> ModelView:
 
 
 # ── 人读 markdown ───────────────────────────────────────────────────────
+_SESSION_CN = {"weekend": "周末", "holiday": "节假日"}
+
+
 def render_markdown(brief: Brief, macro: list[dict[str, Any]] | None = None) -> str:
+    if brief.session != "trading":  # 非交易日 / 无数据日:极简 md,无脊柱
+        if brief.session == "no_data":
+            note = "应为交易日,但数据缺失 / 未发布 / 数据源异常"
+        else:
+            note = f"市场休市 · {_SESSION_CN.get(brief.closed_reason, brief.closed_reason or '休市')}"
+        return "\n".join([f"# 每日宏观简报 · {brief.date} · {brief.weekday}", "", f"> {note}", ""])
+
     pv = _primary_view(brief)  # 单文本产物取主模型视图
     p: list[str] = [f"# 每日宏观简报 · {brief.date}", ""]
     if pv.headline:

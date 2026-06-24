@@ -135,6 +135,9 @@ export interface Brief {
   issue: number
   time: string
   tz?: string // date 所属时区(IANA,如 America/New_York);缺省按美东
+  // 交易状态(v1.7):trading=交易日有数据 / closed=休市(周末或节假日)/ no_data=应交易但数据缺失
+  session?: 'trading' | 'closed' | 'no_data'
+  closedReason?: 'weekend' | 'holiday' | '' // closed 细分;前端据此渲染休市/咖啡界面(后续)
   // 脊柱:模型无关(代码算)
   metrics: Metric[]
   signals: Signal[]
