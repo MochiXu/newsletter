@@ -205,7 +205,7 @@ def build_report(
             RawStore(PATHS).write_features(target_date, pd.DataFrame([{"date": target_date, **snap}]))
         except Exception as e:  # noqa: BLE001
             log.warning("特征快照落盘失败,跳过: %s", e)
-    return brief, {"macro": macro, "feature_block": block, "pred_rows": pred_rows}
+    return brief, {"macro": macro, "feature_block": block_b, "pred_rows": pred_rows}
 
 
 def write_outputs(brief: Brief, macro: list[dict[str, Any]], pred_rows: list[dict] | None = None) -> None:
