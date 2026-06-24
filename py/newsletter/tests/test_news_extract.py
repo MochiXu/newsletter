@@ -9,7 +9,7 @@ from newsletter.news import extract as ex
 from newsletter.news.base import NewsItem
 from newsletter.news.cache import ExtractCache, _safe_key
 
-_LONG = "Gold prices rose as the Federal Reserve signaled a pause. " * 8  # >120 字真实文本
+_LONG = "Gold prices rose as the Federal Reserve signaled a pause. " * 12  # >500 字真实文本
 _HTML = f"<html><head><style>x{{}}</style></head><body><nav>menu</nav><p>{_LONG}</p>" \
         "<script>var a=1;</script></body></html>"
 
@@ -40,6 +40,30 @@ class TestExtract(unittest.TestCase):
 
     def test_empty_url(self):
         self.assertIsNone(ex.extract(""))
+
+    def test_hollow_benzinga_disclaimer_dropped(self):
+        # 长度够,但是 Benzinga 免责残文(正文 JS 墙)→ 判空洞丢弃
+        body = ("Some headline. A Sector-Wide Pivot. Why It Matters. " * 12
+                + " © 2026 Benzinga.com. Benzinga does not provide investment advice.")
+        html = f"<html><body><p>{body}</p></body></html>"
+        with mock.patch.object(ex, "_fetch_html", return_value=html):
+            self.assertIsNone(ex.extract("https://benzinga.com/x"))
+
+    def test_paywall_phrase_dropped(self):
+        body = "Markets moved today. " * 30 + " Subscribe to read the full article."
+        html = f"<html><body><p>{body}</p></body></html>"
+        with mock.patch.object(ex, "_fetch_html", return_value=html):
+            self.assertIsNone(ex.extract("https://paywall.example/x"))
+
+    def test_real_long_text_with_subscribe_link_kept(self):
+        # 真文里偶尔带裸 "subscribe" 链接,不应误杀(只命中完整 paywall 短语才丢)
+        body = ("The Federal Reserve held rates steady amid mixed signals. " * 12
+                + " Subscribe to our newsletter for updates.")
+        html = f"<html><body><p>{body}</p></body></html>"
+        with mock.patch.object(ex, "_fetch_html", return_value=html):
+            text = ex.extract("https://real.example/x")
+        self.assertIsNotNone(text)
+        self.assertIn("Federal Reserve held rates", text)
 
 
 class TestEnrich(unittest.TestCase):

@@ -19,13 +19,20 @@ log = logging.getLogger(__name__)
 
 _BASE = "https://api.thenewsapi.com/v1/news/all"
 
-# 人工筛定的财经专业源 source_id(docs/news-sources.md §5;business/en 列表里无 reuters/bloomberg/AP)。
+# 财经专业源白名单(docs/news-sources.md §5)。**实测筛定**(2026-06,见 §6 诊断):
+# - source_id 必须用 /sources 端点拿到的真实值(早期版本几乎全填错 → 全部 miss → 噪音兜底到 Benzinga)。
+# - 只保留"能抓到真全文"的源:逐源拉最新 3 条实测抽取,中位本文 >2000 字、无 paywall/免责残文。
+# - 剔除:Benzinga(正文 JS 墙,抽出来只有小标题 + 免责)、FT / SeekingAlpha(硬 paywall,抽 0 字)、
+#   dailyfx(抽 0 字);reuters/bloomberg/wsj/marketwatch/kitco 免费档根本不在源列表里。
+# - economictimes 转载 Reuters/AP/Bloomberg 通讯社全球宏观稿,正文完整,是拿"通讯社内容"的可行替身。
 SOURCE_ALLOWLIST: tuple[str, ...] = (
-    "cnbc.com-124", "marketwatch.com-19", "wsj.com-4", "ft.com-226",
-    "finance.yahoo.com-15", "investing.com-18",
-    "businessinsider.com-67", "fortune.com-10", "forbes.com-465",
-    "thestreet.com-4", "bengzinga-34", "247wallst.com-1",
-    "kitco.com-1", "dailyfx.com-2", "capitaleconomics.com-1",
+    "cnbc.com-1", "cnbc.com-2", "cnbc.com-3",
+    "finance.yahoo.com-2",
+    "investing.com-18",
+    "economictimes.indiatimes.com-2", "economictimes.indiatimes.com-3",
+    "fortune.com-1",
+    "businessinsider.com-1", "businessinsider.com-2",
+    "forbes.com-1",
 )
 
 

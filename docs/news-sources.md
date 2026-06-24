@@ -120,34 +120,48 @@ news/  base.py(NewsProvider 协议 + 能力元数据)  rss.py  thenewsapi.py(本
 
 ---
 
-## 5. 优质源筛选(source allowlist —— 实测筛定 2026-06-24)
+## 5. 优质源筛选(source allowlist —— 实测重订 2026-06-24)
 
 裸 `search` 噪音极大(印度金价/选股博客/游戏站),**必须用 `source_ids` 白名单**。
-实测拉取 `/v1/news/sources?categories=business&language=en`(**1539 个域名 / 54 页**),人工筛出经济/金融专业源:
+
+> **⚠️ v1 白名单事故(2026-06-24 复盘,见 §6)**:首版白名单的 `source_id` 几乎**全填错**
+> (`cnbc.com-124` / `wsj.com-4` / `ft.com-226` … 真实值是 `cnbc.com-1` / `ft.com-2` …),且把
+> **Benzinga**(`bengzinga-34`,拼写还错)放进去。TheNewsAPI 对错误 id 静默忽略 → 几乎全部 miss →
+> 噪音兜底全落到 **Benzinga**(实测占抓取量 **87%**)。而 Benzinga 正文是 **JS 墙**:抽取只拿到
+> 小标题 + "Benzinga does not provide investment advice" 免责,**正文空洞**(还混大量 "unpaid
+> external contributor" 寄稿 / PR 定型文)。→ B 臂(新闻臂)被垃圾喂养。**已重订如下。**
+
+**重订方法**:`/v1/news/sources`(business+general+tech,实测 **906 个唯一 source_id**)拿**真实 id** →
+逐源拉最新 3 条**实测抽取**,只保留"能抓到真全文"的源(中位本文 >2000 字、无 paywall/免责残文):
 
 ```python
-# TheNewsAPI source_id 白名单(常量,代码里维护)
-THENEWSAPI_SOURCES = [
-    # 核心市场/宏观(美股/利率/美元/宏观主力)
-    "cnbc.com-124", "marketwatch.com-19", "wsj.com-4", "ft.com-226",
-    "finance.yahoo.com-15", "investing.com-18",
-    # 市场评论
-    "businessinsider.com-67", "fortune.com-10", "forbes.com-465",
-    "thestreet.com-4", "bengzinga-34",   # 注:benzinga 官方 source_id 拼写带 typo
-    "247wallst.com-1",
-    # 资产专项
-    "kitco.com-1",     # 黄金 XAUUSD
-    "dailyfx.com-2",   # 美元/外汇 DTWEXBGS
-    # 宏观研究
-    "capitaleconomics.com-1",
+# TheNewsAPI source_id 白名单(代码:py/newsletter/news/thenewsapi.py)
+# 实测抽取中位本文字数(2026-06-24):
+SOURCE_ALLOWLIST = [
+    "cnbc.com-1", "cnbc.com-2", "cnbc.com-3",          # CNBC      ~2220 字 ✅ 顶级市场/宏观
+    "finance.yahoo.com-2",                              # Yahoo Fin ~3087 字 ✅ 聚合通讯社
+    "investing.com-18",                                 # Investing ~3268 字 ✅ 市场/外汇/商品
+    "economictimes.indiatimes.com-2", "...-3",         # EconTimes ~4000 字 ✅ 转载 Reuters/AP/Bloomberg 全球宏观
+    "fortune.com-1",                                    # Fortune   ~4000 字 ✅
+    "businessinsider.com-1", "businessinsider.com-2",  # Bus.Insid ~3119 字 ✅
+    "forbes.com-1",                                     # Forbes    ~4000 字 ✅(寄稿偏多,靠下游分类滤)
 ]
-# 可选(噪音偏多,视效果开关):seekingalpha.com-137 / nytimes.com-413 / washingtonpost.com-31
 ```
 
-- **覆盖缺口(实测)**:business/en 源列表里**没有** Reuters / Bloomberg / AP / Economist / Barron's
-  (未索引或归别类,且多 paywall)→ 不强求;**央行一手消息由 RSS 的 Fed/ECB 覆盖**,与 TheNewsAPI 的市场评论互补。
-- 通用过滤再叠:`language=en`、`categories=business`、按需 `published_after/before`、`sort=published_at`(回填要时序)。
-- 白名单是**常量**(类似 `catalog`),可随效果增删;`source_id` 随 TheNewsAPI 变动时用 `/sources` 重核。
+**实测剔除(抓不到真全文,留着只是污染)**:
+- **Benzinga** —— 正文 JS 墙,抽出来只有小标题 + 免责(见上)。
+- **FT / SeekingAlpha** —— 硬 paywall,抽取 **0 字**(`ft.com-2` / `seekingalpha.com-1` 实测全空)。
+- **dailyfx** —— 抽取 **0 字**。
+- **Reuters / Bloomberg / WSJ / MarketWatch / Kitco / Barron's / Economist** —— 免费档**源列表里根本没有**
+  (未索引或归别类)→ 不强求;**Reuters/AP/Bloomberg 的通讯社稿由 economictimes 转载替身覆盖**,
+  **央行一手消息由 RSS 的 Fed/ECB 覆盖**。
+
+- 通用过滤再叠:`language=en`、`search_fields=title,description`(避正文偶提的噪音)、按需
+  `published_after/before`、`sort=published_at`(回填要时序)。
+- 白名单是**常量**,可随效果增删;`source_id` 随 TheNewsAPI 变动时用 `/sources` 重核(**务必核对真实 id**)。
+- **第二道防线**:`news/extract.py` 质量门(`_MIN_CHARS=500` + paywall/免责短语黑名单 `_is_hollow`)——
+  即便某条 paywall/空洞文漏进来,抽取阶段也会丢弃(实测 live 抓取 22 条 → 抽后 19 条,MarketWatch
+  RSS 3 条 paywall 被门挡掉,Benzinga 残留 0)。
 
 ---
 

@@ -22,14 +22,36 @@ except Exception:  # noqa: BLE001
 log = logging.getLogger(__name__)
 
 _MAX_CHARS = 4000  # 喂 LLM 的正文上限(控成本/上下文)
-_MIN_CHARS = 120   # 低于此视为抽取失败(paywall 残文/空)→ 丢
+_MIN_CHARS = 500   # 低于此视为抽取失败(paywall 残文/只剩小标题)→ 丢(实测真文 >2000 字)
 _TAG = re.compile(r"<[^>]+>")
 _SCRIPT = re.compile(r"<(script|style|noscript)[^>]*>.*?</\1>", re.I | re.S)
 _WS = re.compile(r"\s+")
 
+# paywall / 免责 / PR 定型残文标志(命中即判空洞,丢弃)。用**完整短语**避免误伤
+# (如裸 "subscribe" 会误杀正文里带订阅链接的真文;economictimes 转载稿实测不中)。
+_BOILERPLATE = (
+    "benzinga does not provide investment advice",
+    "unpaid external contributor",
+    "to add benzinga news",
+    "subscribe to read the full",
+    "subscribe to continue reading",
+    "you have reached your article limit",
+    "this content is not available in your region",
+    "please enable javascript",
+    "javascript is not available",
+    "register to continue reading",
+    "create a free account to read",
+)
+
 
 def _clean(text: str) -> str:
     return _WS.sub(" ", text or "").strip()[:_MAX_CHARS]
+
+
+def _is_hollow(text: str) -> bool:
+    """空洞判定:命中 paywall/免责/PR 定型短语 → True(抽到的不是真正文,丢)。"""
+    low = text.lower()
+    return any(m in low for m in _BOILERPLATE)
 
 
 def _fetch_html(url: str, timeout: int = 10) -> str | None:
@@ -69,7 +91,9 @@ def extract(url: str) -> str | None:
     if not text:
         text = _heuristic(html)
     text = _clean(text)
-    return text if len(text) >= _MIN_CHARS else None
+    if len(text) < _MIN_CHARS or _is_hollow(text):  # 过短 or paywall/免责残文 → 丢
+        return None
+    return text
 
 
 def enrich(items: list[NewsItem], cache=None, drop_on_fail: bool = True) -> list[NewsItem]:
