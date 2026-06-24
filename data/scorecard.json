@@ -1,0 +1,700 @@
+{
+  "asOf": "2026-06-22",
+  "source": "backfill",
+  "buckets": [
+    [
+      0.0,
+      0.6
+    ],
+    [
+      0.6,
+      0.75
+    ],
+    [
+      0.75,
+      1.01
+    ]
+  ],
+  "models": {
+    "anthropic·A": {
+      "n": 18,
+      "overall": {
+        "n": 18,
+        "hit": 0.2222,
+        "brier": 0.2808,
+        "brierBaseline": 0.1728
+      },
+      "byAsset": {
+        "DGS2": {
+          "h_5d": {
+            "n": 4,
+            "hit": 0.25,
+            "driftBaseline": 0.75,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.75,
+            "skill": -0.5,
+            "brier": 0.2921,
+            "brierBaseline": 0.1875
+          }
+        },
+        "DTWEXBGS": {
+          "h_5d": {
+            "n": 5,
+            "hit": 0.0,
+            "driftBaseline": 0.4,
+            "momentumBaseline": 0.2,
+            "factorBaseline": 0.4,
+            "skill": -0.4,
+            "brier": 0.2815,
+            "brierBaseline": 0.0
+          }
+        },
+        "NASDAQCOM": {
+          "h_5d": {
+            "n": 3,
+            "hit": 0.3333,
+            "driftBaseline": 0.6667,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.6667,
+            "skill": -0.3333,
+            "brier": 0.3048,
+            "brierBaseline": 0.2222
+          },
+          "next_1d": {
+            "n": 2,
+            "hit": 0.0,
+            "driftBaseline": 1.0,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 1.0,
+            "skill": -1.0,
+            "brier": 0.3195,
+            "brierBaseline": 0.0
+          }
+        },
+        "XAUUSD": {
+          "h_20d": {
+            "n": 1,
+            "hit": 0.0,
+            "driftBaseline": 1.0,
+            "momentumBaseline": 1.0,
+            "factorBaseline": 0.0,
+            "skill": -1.0,
+            "brier": 0.3025,
+            "brierBaseline": 0.0
+          },
+          "h_5d": {
+            "n": 3,
+            "hit": 0.6667,
+            "driftBaseline": 1.0,
+            "momentumBaseline": 0.3333,
+            "factorBaseline": 0.6667,
+            "skill": -0.3333,
+            "brier": 0.2078,
+            "brierBaseline": 0.2222
+          }
+        }
+      },
+      "calibration": [
+        {
+          "lo": 0.0,
+          "hi": 0.6,
+          "n": 14,
+          "stated": 0.5471,
+          "realized": 0.1429
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.75,
+          "n": 4,
+          "stated": 0.635,
+          "realized": 0.5
+        },
+        {
+          "lo": 0.75,
+          "hi": 1.01,
+          "n": 0,
+          "stated": null,
+          "realized": null
+        }
+      ]
+    },
+    "anthropic·B": {
+      "n": 16,
+      "overall": {
+        "n": 16,
+        "hit": 0.3125,
+        "brier": 0.2747,
+        "brierBaseline": 0.2148
+      },
+      "byAsset": {
+        "DGS2": {
+          "h_5d": {
+            "n": 3,
+            "hit": 0.0,
+            "driftBaseline": 0.6667,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.6667,
+            "skill": -0.6667,
+            "brier": 0.3223,
+            "brierBaseline": 0.0
+          }
+        },
+        "DTWEXBGS": {
+          "h_5d": {
+            "n": 4,
+            "hit": 0.5,
+            "driftBaseline": 0.75,
+            "momentumBaseline": 0.25,
+            "factorBaseline": 0.75,
+            "skill": -0.25,
+            "brier": 0.2478,
+            "brierBaseline": 0.25
+          }
+        },
+        "NASDAQCOM": {
+          "h_5d": {
+            "n": 4,
+            "hit": 0.25,
+            "driftBaseline": 0.75,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.75,
+            "skill": -0.5,
+            "brier": 0.2958,
+            "brierBaseline": 0.1875
+          },
+          "next_1d": {
+            "n": 1,
+            "hit": 0.0,
+            "driftBaseline": 1.0,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 1.0,
+            "skill": -1.0,
+            "brier": 0.3025,
+            "brierBaseline": 0.0
+          }
+        },
+        "XAUUSD": {
+          "h_20d": {
+            "n": 2,
+            "hit": 0.0,
+            "driftBaseline": 1.0,
+            "momentumBaseline": 1.0,
+            "factorBaseline": 0.0,
+            "skill": -1.0,
+            "brier": 0.3025,
+            "brierBaseline": 0.0
+          },
+          "h_5d": {
+            "n": 2,
+            "hit": 1.0,
+            "driftBaseline": 1.0,
+            "momentumBaseline": 0.5,
+            "factorBaseline": 0.5,
+            "skill": 0.0,
+            "brier": 0.1734,
+            "brierBaseline": 0.0
+          }
+        }
+      },
+      "calibration": [
+        {
+          "lo": 0.0,
+          "hi": 0.6,
+          "n": 12,
+          "stated": 0.5508,
+          "realized": 0.25
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.75,
+          "n": 4,
+          "stated": 0.61,
+          "realized": 0.5
+        },
+        {
+          "lo": 0.75,
+          "hi": 1.01,
+          "n": 0,
+          "stated": null,
+          "realized": null
+        }
+      ]
+    },
+    "deepseek": {
+      "n": 1,
+      "overall": {
+        "n": 1,
+        "hit": 1.0,
+        "brier": 0.16,
+        "brierBaseline": 0.0
+      },
+      "byAsset": {
+        "XAUUSD": {
+          "h_5d": {
+            "n": 1,
+            "hit": 1.0,
+            "driftBaseline": 1.0,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 1.0,
+            "skill": 0.0,
+            "brier": 0.16,
+            "brierBaseline": 0.0
+          }
+        }
+      },
+      "calibration": [
+        {
+          "lo": 0.0,
+          "hi": 0.6,
+          "n": 0,
+          "stated": null,
+          "realized": null
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.75,
+          "n": 1,
+          "stated": 0.6,
+          "realized": 1.0
+        },
+        {
+          "lo": 0.75,
+          "hi": 1.01,
+          "n": 0,
+          "stated": null,
+          "realized": null
+        }
+      ]
+    },
+    "deepseek·A": {
+      "n": 38,
+      "overall": {
+        "n": 38,
+        "hit": 0.3947,
+        "brier": 0.2713,
+        "brierBaseline": 0.2389
+      },
+      "byAsset": {
+        "DGS2": {
+          "h_5d": {
+            "n": 10,
+            "hit": 0.3,
+            "driftBaseline": 0.5,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.5,
+            "skill": -0.2,
+            "brier": 0.2565,
+            "brierBaseline": 0.21
+          }
+        },
+        "DTWEXBGS": {
+          "h_5d": {
+            "n": 9,
+            "hit": 0.1111,
+            "driftBaseline": 0.4444,
+            "momentumBaseline": 0.2222,
+            "factorBaseline": 0.4444,
+            "skill": -0.3333,
+            "brier": 0.3106,
+            "brierBaseline": 0.0988
+          }
+        },
+        "NASDAQCOM": {
+          "h_5d": {
+            "n": 9,
+            "hit": 0.4444,
+            "driftBaseline": 0.5556,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.5556,
+            "skill": -0.1111,
+            "brier": 0.3206,
+            "brierBaseline": 0.2469
+          }
+        },
+        "XAUUSD": {
+          "h_5d": {
+            "n": 10,
+            "hit": 0.7,
+            "driftBaseline": 0.9,
+            "momentumBaseline": 0.5,
+            "factorBaseline": 0.7,
+            "skill": -0.2,
+            "brier": 0.2065,
+            "brierBaseline": 0.21
+          }
+        }
+      },
+      "calibration": [
+        {
+          "lo": 0.0,
+          "hi": 0.6,
+          "n": 17,
+          "stated": 0.5265,
+          "realized": 0.3529
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.75,
+          "n": 21,
+          "stated": 0.631,
+          "realized": 0.4286
+        },
+        {
+          "lo": 0.75,
+          "hi": 1.01,
+          "n": 0,
+          "stated": null,
+          "realized": null
+        }
+      ]
+    },
+    "deepseek·B": {
+      "n": 36,
+      "overall": {
+        "n": 36,
+        "hit": 0.4444,
+        "brier": 0.2671,
+        "brierBaseline": 0.2469
+      },
+      "byAsset": {
+        "DGS2": {
+          "h_5d": {
+            "n": 10,
+            "hit": 0.6,
+            "driftBaseline": 0.5,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.5,
+            "skill": 0.1,
+            "brier": 0.248,
+            "brierBaseline": 0.24
+          }
+        },
+        "DTWEXBGS": {
+          "h_5d": {
+            "n": 8,
+            "hit": 0.0,
+            "driftBaseline": 0.375,
+            "momentumBaseline": 0.25,
+            "factorBaseline": 0.375,
+            "skill": -0.375,
+            "brier": 0.3169,
+            "brierBaseline": 0.0
+          }
+        },
+        "NASDAQCOM": {
+          "h_5d": {
+            "n": 10,
+            "hit": 0.4,
+            "driftBaseline": 0.6,
+            "momentumBaseline": 0.1,
+            "factorBaseline": 0.6,
+            "skill": -0.2,
+            "brier": 0.3063,
+            "brierBaseline": 0.24
+          }
+        },
+        "XAUUSD": {
+          "h_5d": {
+            "n": 8,
+            "hit": 0.75,
+            "driftBaseline": 0.875,
+            "momentumBaseline": 0.375,
+            "factorBaseline": 0.625,
+            "skill": -0.125,
+            "brier": 0.1922,
+            "brierBaseline": 0.1875
+          }
+        }
+      },
+      "calibration": [
+        {
+          "lo": 0.0,
+          "hi": 0.6,
+          "n": 10,
+          "stated": 0.54,
+          "realized": 0.2
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.75,
+          "n": 26,
+          "stated": 0.6462,
+          "realized": 0.5385
+        },
+        {
+          "lo": 0.75,
+          "hi": 1.01,
+          "n": 0,
+          "stated": null,
+          "realized": null
+        }
+      ]
+    },
+    "openai·A": {
+      "n": 20,
+      "overall": {
+        "n": 20,
+        "hit": 0.35,
+        "brier": 0.2826,
+        "brierBaseline": 0.2275
+      },
+      "byAsset": {
+        "DGS2": {
+          "h_5d": {
+            "n": 2,
+            "hit": 0.5,
+            "driftBaseline": 0.5,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.5,
+            "skill": 0.0,
+            "brier": 0.3392,
+            "brierBaseline": 0.25
+          }
+        },
+        "DTWEXBGS": {
+          "h_5d": {
+            "n": 9,
+            "hit": 0.3333,
+            "driftBaseline": 0.4444,
+            "momentumBaseline": 0.2222,
+            "factorBaseline": 0.4444,
+            "skill": -0.1111,
+            "brier": 0.2608,
+            "brierBaseline": 0.2222
+          }
+        },
+        "NASDAQCOM": {
+          "h_5d": {
+            "n": 5,
+            "hit": 0.2,
+            "driftBaseline": 0.6,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.6,
+            "skill": -0.4,
+            "brier": 0.3037,
+            "brierBaseline": 0.16
+          }
+        },
+        "XAUUSD": {
+          "h_5d": {
+            "n": 4,
+            "hit": 0.5,
+            "driftBaseline": 0.75,
+            "momentumBaseline": 0.25,
+            "factorBaseline": 0.25,
+            "skill": -0.25,
+            "brier": 0.2767,
+            "brierBaseline": 0.25
+          }
+        }
+      },
+      "calibration": [
+        {
+          "lo": 0.0,
+          "hi": 0.6,
+          "n": 13,
+          "stated": 0.5285,
+          "realized": 0.3077
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.75,
+          "n": 7,
+          "stated": 0.6529,
+          "realized": 0.4286
+        },
+        {
+          "lo": 0.75,
+          "hi": 1.01,
+          "n": 0,
+          "stated": null,
+          "realized": null
+        }
+      ]
+    },
+    "openai·B": {
+      "n": 22,
+      "overall": {
+        "n": 22,
+        "hit": 0.5909,
+        "brier": 0.2535,
+        "brierBaseline": 0.2417
+      },
+      "byAsset": {
+        "DGS2": {
+          "h_5d": {
+            "n": 3,
+            "hit": 0.3333,
+            "driftBaseline": 0.3333,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.3333,
+            "skill": 0.0,
+            "brier": 0.356,
+            "brierBaseline": 0.2222
+          }
+        },
+        "DTWEXBGS": {
+          "h_5d": {
+            "n": 9,
+            "hit": 0.4444,
+            "driftBaseline": 0.4444,
+            "momentumBaseline": 0.2222,
+            "factorBaseline": 0.4444,
+            "skill": 0.0,
+            "brier": 0.2504,
+            "brierBaseline": 0.2469
+          }
+        },
+        "NASDAQCOM": {
+          "h_5d": {
+            "n": 5,
+            "hit": 0.6,
+            "driftBaseline": 0.6,
+            "momentumBaseline": 0.0,
+            "factorBaseline": 0.6,
+            "skill": 0.0,
+            "brier": 0.2644,
+            "brierBaseline": 0.24
+          }
+        },
+        "XAUUSD": {
+          "h_5d": {
+            "n": 5,
+            "hit": 1.0,
+            "driftBaseline": 1.0,
+            "momentumBaseline": 0.6,
+            "factorBaseline": 0.6,
+            "skill": 0.0,
+            "brier": 0.1868,
+            "brierBaseline": 0.0
+          }
+        }
+      },
+      "calibration": [
+        {
+          "lo": 0.0,
+          "hi": 0.6,
+          "n": 15,
+          "stated": 0.5333,
+          "realized": 0.6667
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.75,
+          "n": 7,
+          "stated": 0.65,
+          "realized": 0.4286
+        },
+        {
+          "lo": 0.75,
+          "hi": 1.01,
+          "n": 0,
+          "stated": null,
+          "realized": null
+        }
+      ]
+    },
+    "_factor": {
+      "n": 44,
+      "overall": {
+        "n": 44,
+        "hit": 0.5682,
+        "brier": 0.2766,
+        "brierBaseline": 0.2454
+      },
+      "byAsset": {
+        "DGS2": {
+          "h_5d": {
+            "n": 10,
+            "hit": 0.5,
+            "driftBaseline": 0.5,
+            "momentumBaseline": 0.0,
+            "factorBaseline": null,
+            "skill": 0.0,
+            "brier": 0.3619,
+            "brierBaseline": 0.25
+          }
+        },
+        "DTWEXBGS": {
+          "h_5d": {
+            "n": 9,
+            "hit": 0.4444,
+            "driftBaseline": 0.4444,
+            "momentumBaseline": 0.2222,
+            "factorBaseline": null,
+            "skill": 0.0,
+            "brier": 0.2485,
+            "brierBaseline": 0.2469
+          }
+        },
+        "NASDAQCOM": {
+          "h_5d": {
+            "n": 10,
+            "hit": 0.6,
+            "driftBaseline": 0.6,
+            "momentumBaseline": 0.1,
+            "factorBaseline": null,
+            "skill": 0.0,
+            "brier": 0.3361,
+            "brierBaseline": 0.24
+          },
+          "next_1d": {
+            "n": 2,
+            "hit": 1.0,
+            "driftBaseline": 1.0,
+            "momentumBaseline": 0.0,
+            "factorBaseline": null,
+            "skill": 0.0,
+            "brier": 0.1373,
+            "brierBaseline": 0.0
+          }
+        },
+        "XAUUSD": {
+          "h_20d": {
+            "n": 2,
+            "hit": 0.0,
+            "driftBaseline": 1.0,
+            "momentumBaseline": 1.0,
+            "factorBaseline": null,
+            "skill": -1.0,
+            "brier": 0.2606,
+            "brierBaseline": 0.0
+          },
+          "h_5d": {
+            "n": 11,
+            "hit": 0.7273,
+            "driftBaseline": 0.9091,
+            "momentumBaseline": 0.4545,
+            "factorBaseline": null,
+            "skill": -0.1818,
+            "brier": 0.1964,
+            "brierBaseline": 0.1983
+          }
+        }
+      },
+      "calibration": [
+        {
+          "lo": 0.0,
+          "hi": 0.6,
+          "n": 17,
+          "stated": 0.5332,
+          "realized": 0.4706
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.75,
+          "n": 15,
+          "stated": 0.6837,
+          "realized": 0.9333
+        },
+        {
+          "lo": 0.75,
+          "hi": 1.01,
+          "n": 12,
+          "stated": 0.8127,
+          "realized": 0.25
+        }
+      ]
+    }
+  }
+}

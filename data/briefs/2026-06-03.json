@@ -1,17 +1,57 @@
 {
-  "date": "2026-06-17",
+  "date": "2026-06-03",
   "weekday": "周三",
-  "issue": 13,
+  "issue": 3,
   "time": "07:00 CST",
   "tz": "America/New_York",
   "metrics": [
     {
       "key": "sp500",
       "label": "标普500",
-      "value": 7420.1,
-      "change": -91.25,
+      "value": 7553.68,
+      "change": -56.1,
       "kind": "index",
       "spark": [
+        {
+          "date": "2026-05-06",
+          "value": 7365.12
+        },
+        {
+          "date": "2026-05-07",
+          "value": 7337.11
+        },
+        {
+          "date": "2026-05-08",
+          "value": 7398.93
+        },
+        {
+          "date": "2026-05-11",
+          "value": 7412.84
+        },
+        {
+          "date": "2026-05-12",
+          "value": 7400.96
+        },
+        {
+          "date": "2026-05-13",
+          "value": 7444.25
+        },
+        {
+          "date": "2026-05-14",
+          "value": 7501.24
+        },
+        {
+          "date": "2026-05-15",
+          "value": 7408.5
+        },
+        {
+          "date": "2026-05-18",
+          "value": 7403.05
+        },
+        {
+          "date": "2026-05-19",
+          "value": 7353.61
+        },
         {
           "date": "2026-05-20",
           "value": 7432.97
@@ -51,56 +91,56 @@
         {
           "date": "2026-06-03",
           "value": 7553.68
-        },
-        {
-          "date": "2026-06-04",
-          "value": 7584.31
-        },
-        {
-          "date": "2026-06-05",
-          "value": 7383.74
-        },
-        {
-          "date": "2026-06-08",
-          "value": 7405.73
-        },
-        {
-          "date": "2026-06-09",
-          "value": 7386.65
-        },
-        {
-          "date": "2026-06-10",
-          "value": 7266.99
-        },
-        {
-          "date": "2026-06-11",
-          "value": 7394.3
-        },
-        {
-          "date": "2026-06-12",
-          "value": 7431.46
-        },
-        {
-          "date": "2026-06-15",
-          "value": 7554.29
-        },
-        {
-          "date": "2026-06-16",
-          "value": 7511.35
-        },
-        {
-          "date": "2026-06-17",
-          "value": 7420.1
         }
       ]
     },
     {
       "key": "nasdaqcom",
       "label": "纳指",
-      "value": 26021.66,
-      "change": -354.68,
+      "value": 26853.98,
+      "change": -239.92,
       "kind": "index",
       "spark": [
+        {
+          "date": "2026-05-06",
+          "value": 25838.94
+        },
+        {
+          "date": "2026-05-07",
+          "value": 25806.2
+        },
+        {
+          "date": "2026-05-08",
+          "value": 26247.08
+        },
+        {
+          "date": "2026-05-11",
+          "value": 26274.13
+        },
+        {
+          "date": "2026-05-12",
+          "value": 26088.2
+        },
+        {
+          "date": "2026-05-13",
+          "value": 26402.34
+        },
+        {
+          "date": "2026-05-14",
+          "value": 26635.22
+        },
+        {
+          "date": "2026-05-15",
+          "value": 26225.14
+        },
+        {
+          "date": "2026-05-18",
+          "value": 26090.73
+        },
+        {
+          "date": "2026-05-19",
+          "value": 25870.71
+        },
         {
           "date": "2026-05-20",
           "value": 26270.36
@@ -140,56 +180,56 @@
         {
           "date": "2026-06-03",
           "value": 26853.98
-        },
-        {
-          "date": "2026-06-04",
-          "value": 26830.96
-        },
-        {
-          "date": "2026-06-05",
-          "value": 25709.43
-        },
-        {
-          "date": "2026-06-08",
-          "value": 25929.66
-        },
-        {
-          "date": "2026-06-09",
-          "value": 25678.82
-        },
-        {
-          "date": "2026-06-10",
-          "value": 25169.5
-        },
-        {
-          "date": "2026-06-11",
-          "value": 25809.66
-        },
-        {
-          "date": "2026-06-12",
-          "value": 25888.84
-        },
-        {
-          "date": "2026-06-15",
-          "value": 26683.94
-        },
-        {
-          "date": "2026-06-16",
-          "value": 26376.34
-        },
-        {
-          "date": "2026-06-17",
-          "value": 26021.66
         }
       ]
     },
     {
       "key": "vixcls",
       "label": "VIX",
-      "value": 18.44,
-      "change": 2.03,
+      "value": 16.06,
+      "change": 0.29,
       "kind": "index",
       "spark": [
+        {
+          "date": "2026-05-07",
+          "value": 17.08
+        },
+        {
+          "date": "2026-05-08",
+          "value": 17.19
+        },
+        {
+          "date": "2026-05-11",
+          "value": 18.38
+        },
+        {
+          "date": "2026-05-12",
+          "value": 17.99
+        },
+        {
+          "date": "2026-05-13",
+          "value": 17.87
+        },
+        {
+          "date": "2026-05-14",
+          "value": 17.26
+        },
+        {
+          "date": "2026-05-15",
+          "value": 18.43
+        },
+        {
+          "date": "2026-05-18",
+          "value": 17.82
+        },
+        {
+          "date": "2026-05-19",
+          "value": 18.06
+        },
+        {
+          "date": "2026-05-20",
+          "value": 17.44
+        },
         {
           "date": "2026-05-21",
           "value": 16.76
@@ -229,56 +269,56 @@
         {
           "date": "2026-06-03",
           "value": 16.06
-        },
-        {
-          "date": "2026-06-04",
-          "value": 15.4
-        },
-        {
-          "date": "2026-06-05",
-          "value": 21.51
-        },
-        {
-          "date": "2026-06-08",
-          "value": 18.92
-        },
-        {
-          "date": "2026-06-09",
-          "value": 19.87
-        },
-        {
-          "date": "2026-06-10",
-          "value": 22.22
-        },
-        {
-          "date": "2026-06-11",
-          "value": 19.44
-        },
-        {
-          "date": "2026-06-12",
-          "value": 17.68
-        },
-        {
-          "date": "2026-06-15",
-          "value": 16.2
-        },
-        {
-          "date": "2026-06-16",
-          "value": 16.41
-        },
-        {
-          "date": "2026-06-17",
-          "value": 18.44
         }
       ]
     },
     {
       "key": "dgs2",
       "label": "US2Y",
-      "value": 4.2,
-      "change": 0.15,
+      "value": 4.08,
+      "change": 0.03,
       "kind": "yield",
       "spark": [
+        {
+          "date": "2026-05-06",
+          "value": 3.87
+        },
+        {
+          "date": "2026-05-07",
+          "value": 3.92
+        },
+        {
+          "date": "2026-05-08",
+          "value": 3.9
+        },
+        {
+          "date": "2026-05-11",
+          "value": 3.95
+        },
+        {
+          "date": "2026-05-12",
+          "value": 4.0
+        },
+        {
+          "date": "2026-05-13",
+          "value": 3.98
+        },
+        {
+          "date": "2026-05-14",
+          "value": 4.0
+        },
+        {
+          "date": "2026-05-15",
+          "value": 4.09
+        },
+        {
+          "date": "2026-05-18",
+          "value": 4.07
+        },
+        {
+          "date": "2026-05-19",
+          "value": 4.13
+        },
         {
           "date": "2026-05-20",
           "value": 4.04
@@ -318,46 +358,6 @@
         {
           "date": "2026-06-03",
           "value": 4.08
-        },
-        {
-          "date": "2026-06-04",
-          "value": 4.05
-        },
-        {
-          "date": "2026-06-05",
-          "value": 4.17
-        },
-        {
-          "date": "2026-06-08",
-          "value": 4.15
-        },
-        {
-          "date": "2026-06-09",
-          "value": 4.13
-        },
-        {
-          "date": "2026-06-10",
-          "value": 4.13
-        },
-        {
-          "date": "2026-06-11",
-          "value": 4.05
-        },
-        {
-          "date": "2026-06-12",
-          "value": 4.09
-        },
-        {
-          "date": "2026-06-15",
-          "value": 4.07
-        },
-        {
-          "date": "2026-06-16",
-          "value": 4.05
-        },
-        {
-          "date": "2026-06-17",
-          "value": 4.2
         }
       ]
     },
@@ -365,9 +365,49 @@
       "key": "dgs10",
       "label": "US10Y",
       "value": 4.49,
-      "change": 0.06,
+      "change": 0.03,
       "kind": "yield",
       "spark": [
+        {
+          "date": "2026-05-06",
+          "value": 4.36
+        },
+        {
+          "date": "2026-05-07",
+          "value": 4.41
+        },
+        {
+          "date": "2026-05-08",
+          "value": 4.38
+        },
+        {
+          "date": "2026-05-11",
+          "value": 4.42
+        },
+        {
+          "date": "2026-05-12",
+          "value": 4.46
+        },
+        {
+          "date": "2026-05-13",
+          "value": 4.46
+        },
+        {
+          "date": "2026-05-14",
+          "value": 4.47
+        },
+        {
+          "date": "2026-05-15",
+          "value": 4.59
+        },
+        {
+          "date": "2026-05-18",
+          "value": 4.61
+        },
+        {
+          "date": "2026-05-19",
+          "value": 4.67
+        },
         {
           "date": "2026-05-20",
           "value": 4.57
@@ -407,56 +447,56 @@
         {
           "date": "2026-06-03",
           "value": 4.49
-        },
-        {
-          "date": "2026-06-04",
-          "value": 4.47
-        },
-        {
-          "date": "2026-06-05",
-          "value": 4.55
-        },
-        {
-          "date": "2026-06-08",
-          "value": 4.56
-        },
-        {
-          "date": "2026-06-09",
-          "value": 4.53
-        },
-        {
-          "date": "2026-06-10",
-          "value": 4.55
-        },
-        {
-          "date": "2026-06-11",
-          "value": 4.45
-        },
-        {
-          "date": "2026-06-12",
-          "value": 4.48
-        },
-        {
-          "date": "2026-06-15",
-          "value": 4.47
-        },
-        {
-          "date": "2026-06-16",
-          "value": 4.43
-        },
-        {
-          "date": "2026-06-17",
-          "value": 4.49
         }
       ]
     },
     {
       "key": "t10y2y",
       "label": "2s10s",
-      "value": 0.29,
-      "change": -0.09,
+      "value": 0.41,
+      "change": 0.0,
       "kind": "spread",
       "spark": [
+        {
+          "date": "2026-05-06",
+          "value": 0.49
+        },
+        {
+          "date": "2026-05-07",
+          "value": 0.49
+        },
+        {
+          "date": "2026-05-08",
+          "value": 0.48
+        },
+        {
+          "date": "2026-05-11",
+          "value": 0.47
+        },
+        {
+          "date": "2026-05-12",
+          "value": 0.46
+        },
+        {
+          "date": "2026-05-13",
+          "value": 0.48
+        },
+        {
+          "date": "2026-05-14",
+          "value": 0.47
+        },
+        {
+          "date": "2026-05-15",
+          "value": 0.5
+        },
+        {
+          "date": "2026-05-18",
+          "value": 0.54
+        },
+        {
+          "date": "2026-05-19",
+          "value": 0.54
+        },
         {
           "date": "2026-05-20",
           "value": 0.53
@@ -496,56 +536,56 @@
         {
           "date": "2026-06-03",
           "value": 0.41
-        },
-        {
-          "date": "2026-06-04",
-          "value": 0.42
-        },
-        {
-          "date": "2026-06-05",
-          "value": 0.38
-        },
-        {
-          "date": "2026-06-08",
-          "value": 0.41
-        },
-        {
-          "date": "2026-06-09",
-          "value": 0.4
-        },
-        {
-          "date": "2026-06-10",
-          "value": 0.42
-        },
-        {
-          "date": "2026-06-11",
-          "value": 0.4
-        },
-        {
-          "date": "2026-06-12",
-          "value": 0.39
-        },
-        {
-          "date": "2026-06-15",
-          "value": 0.4
-        },
-        {
-          "date": "2026-06-16",
-          "value": 0.38
-        },
-        {
-          "date": "2026-06-17",
-          "value": 0.29
         }
       ]
     },
     {
       "key": "dfii10",
       "label": "实际10Y",
-      "value": 2.23,
-      "change": 0.09,
+      "value": 2.11,
+      "change": 0.04,
       "kind": "yield",
       "spark": [
+        {
+          "date": "2026-05-06",
+          "value": 1.94
+        },
+        {
+          "date": "2026-05-07",
+          "value": 1.96
+        },
+        {
+          "date": "2026-05-08",
+          "value": 1.93
+        },
+        {
+          "date": "2026-05-11",
+          "value": 1.95
+        },
+        {
+          "date": "2026-05-12",
+          "value": 1.99
+        },
+        {
+          "date": "2026-05-13",
+          "value": 1.99
+        },
+        {
+          "date": "2026-05-14",
+          "value": 2.0
+        },
+        {
+          "date": "2026-05-15",
+          "value": 2.1
+        },
+        {
+          "date": "2026-05-18",
+          "value": 2.13
+        },
+        {
+          "date": "2026-05-19",
+          "value": 2.18
+        },
         {
           "date": "2026-05-20",
           "value": 2.13
@@ -585,56 +625,56 @@
         {
           "date": "2026-06-03",
           "value": 2.11
-        },
-        {
-          "date": "2026-06-04",
-          "value": 2.11
-        },
-        {
-          "date": "2026-06-05",
-          "value": 2.19
-        },
-        {
-          "date": "2026-06-08",
-          "value": 2.21
-        },
-        {
-          "date": "2026-06-09",
-          "value": 2.2
-        },
-        {
-          "date": "2026-06-10",
-          "value": 2.21
-        },
-        {
-          "date": "2026-06-11",
-          "value": 2.16
-        },
-        {
-          "date": "2026-06-12",
-          "value": 2.17
-        },
-        {
-          "date": "2026-06-15",
-          "value": 2.15
-        },
-        {
-          "date": "2026-06-16",
-          "value": 2.14
-        },
-        {
-          "date": "2026-06-17",
-          "value": 2.23
         }
       ]
     },
     {
       "key": "t10yie",
       "label": "通胀预期",
-      "value": 2.26,
-      "change": -0.03,
+      "value": 2.38,
+      "change": -0.01,
       "kind": "yield",
       "spark": [
+        {
+          "date": "2026-05-06",
+          "value": 2.42
+        },
+        {
+          "date": "2026-05-07",
+          "value": 2.45
+        },
+        {
+          "date": "2026-05-08",
+          "value": 2.45
+        },
+        {
+          "date": "2026-05-11",
+          "value": 2.47
+        },
+        {
+          "date": "2026-05-12",
+          "value": 2.47
+        },
+        {
+          "date": "2026-05-13",
+          "value": 2.47
+        },
+        {
+          "date": "2026-05-14",
+          "value": 2.47
+        },
+        {
+          "date": "2026-05-15",
+          "value": 2.49
+        },
+        {
+          "date": "2026-05-18",
+          "value": 2.48
+        },
+        {
+          "date": "2026-05-19",
+          "value": 2.49
+        },
         {
           "date": "2026-05-20",
           "value": 2.44
@@ -674,56 +714,56 @@
         {
           "date": "2026-06-03",
           "value": 2.38
-        },
-        {
-          "date": "2026-06-04",
-          "value": 2.36
-        },
-        {
-          "date": "2026-06-05",
-          "value": 2.36
-        },
-        {
-          "date": "2026-06-08",
-          "value": 2.35
-        },
-        {
-          "date": "2026-06-09",
-          "value": 2.33
-        },
-        {
-          "date": "2026-06-10",
-          "value": 2.34
-        },
-        {
-          "date": "2026-06-11",
-          "value": 2.29
-        },
-        {
-          "date": "2026-06-12",
-          "value": 2.31
-        },
-        {
-          "date": "2026-06-15",
-          "value": 2.32
-        },
-        {
-          "date": "2026-06-16",
-          "value": 2.29
-        },
-        {
-          "date": "2026-06-17",
-          "value": 2.26
         }
       ]
     },
     {
       "key": "dtwexbgs",
       "label": "广义美元",
-      "value": 119.3871,
-      "change": 0.1311,
+      "value": 119.3848,
+      "change": 0.3489,
       "kind": "index",
       "spark": [
+        {
+          "date": "2026-05-06",
+          "value": 118.0982
+        },
+        {
+          "date": "2026-05-07",
+          "value": 118.0116
+        },
+        {
+          "date": "2026-05-08",
+          "value": 118.0392
+        },
+        {
+          "date": "2026-05-11",
+          "value": 118.0562
+        },
+        {
+          "date": "2026-05-12",
+          "value": 118.5238
+        },
+        {
+          "date": "2026-05-13",
+          "value": 118.4737
+        },
+        {
+          "date": "2026-05-14",
+          "value": 118.6696
+        },
+        {
+          "date": "2026-05-15",
+          "value": 119.2825
+        },
+        {
+          "date": "2026-05-18",
+          "value": 119.0574
+        },
+        {
+          "date": "2026-05-19",
+          "value": 119.451
+        },
         {
           "date": "2026-05-20",
           "value": 119.1624
@@ -763,56 +803,72 @@
         {
           "date": "2026-06-03",
           "value": 119.3848
-        },
-        {
-          "date": "2026-06-04",
-          "value": 119.3615
-        },
-        {
-          "date": "2026-06-05",
-          "value": 120.0831
-        },
-        {
-          "date": "2026-06-08",
-          "value": 120.034
-        },
-        {
-          "date": "2026-06-09",
-          "value": 119.9617
-        },
-        {
-          "date": "2026-06-10",
-          "value": 119.9134
-        },
-        {
-          "date": "2026-06-11",
-          "value": 120.1174
-        },
-        {
-          "date": "2026-06-12",
-          "value": 119.5073
-        },
-        {
-          "date": "2026-06-15",
-          "value": 119.3158
-        },
-        {
-          "date": "2026-06-16",
-          "value": 119.256
-        },
-        {
-          "date": "2026-06-17",
-          "value": 119.3871
         }
       ]
     },
     {
       "key": "xauusd",
       "label": "黄金",
-      "value": 4258.073,
-      "change": -73.2965,
+      "value": 4434.4686,
+      "change": -54.203,
       "kind": "price",
       "spark": [
+        {
+          "date": "2026-05-15",
+          "value": 4540.1468
+        },
+        {
+          "date": "2026-05-16",
+          "value": 4537.7255
+        },
+        {
+          "date": "2026-05-17",
+          "value": 4537.7153
+        },
+        {
+          "date": "2026-05-18",
+          "value": 4566.1737
+        },
+        {
+          "date": "2026-05-19",
+          "value": 4481.854
+        },
+        {
+          "date": "2026-05-20",
+          "value": 4544.059
+        },
+        {
+          "date": "2026-05-21",
+          "value": 4543.1066
+        },
+        {
+          "date": "2026-05-22",
+          "value": 4508.8416
+        },
+        {
+          "date": "2026-05-23",
+          "value": 4505.6583
+        },
+        {
+          "date": "2026-05-24",
+          "value": 4505.6491
+        },
+        {
+          "date": "2026-05-25",
+          "value": 4571.2397
+        },
+        {
+          "date": "2026-05-26",
+          "value": 4507.5834
+        },
+        {
+          "date": "2026-05-27",
+          "value": 4456.2988
+        },
+        {
+          "date": "2026-05-28",
+          "value": 4496.3699
+        },
         {
           "date": "2026-05-29",
           "value": 4540.1578
@@ -836,62 +892,6 @@
         {
           "date": "2026-06-03",
           "value": 4434.4686
-        },
-        {
-          "date": "2026-06-04",
-          "value": 4475.9658
-        },
-        {
-          "date": "2026-06-05",
-          "value": 4328.9595
-        },
-        {
-          "date": "2026-06-06",
-          "value": 4330.1515
-        },
-        {
-          "date": "2026-06-07",
-          "value": 4330.1492
-        },
-        {
-          "date": "2026-06-08",
-          "value": 4330.1919
-        },
-        {
-          "date": "2026-06-09",
-          "value": 4260.0848
-        },
-        {
-          "date": "2026-06-10",
-          "value": 4071.581
-        },
-        {
-          "date": "2026-06-11",
-          "value": 4211.0751
-        },
-        {
-          "date": "2026-06-12",
-          "value": 4217.9634
-        },
-        {
-          "date": "2026-06-13",
-          "value": 4215.386
-        },
-        {
-          "date": "2026-06-14",
-          "value": 4215.3695
-        },
-        {
-          "date": "2026-06-15",
-          "value": 4309.4244
-        },
-        {
-          "date": "2026-06-16",
-          "value": 4331.3695
-        },
-        {
-          "date": "2026-06-17",
-          "value": 4258.073
         }
       ]
     }
@@ -900,112 +900,112 @@
     {
       "key": "SP500_px_vs_ma200",
       "label": "标普500 距MA200",
-      "value": 0.07345,
+      "value": 0.10036,
       "unit": "pct",
       "group": "trend"
     },
     {
       "key": "NASDAQCOM_px_vs_ma200",
       "label": "纳指 距MA200",
-      "value": 0.104228,
+      "value": 0.15022,
       "unit": "pct",
       "group": "trend"
     },
     {
       "key": "XAUUSD_px_vs_ma200",
       "label": "黄金 距MA200",
-      "value": -0.047538,
+      "value": 1.7e-05,
       "unit": "pct",
       "group": "trend"
     },
     {
       "key": "DTWEXBGS_px_vs_ma200",
       "label": "广义美元 距MA200",
-      "value": -0.002458,
+      "value": -0.002736,
       "unit": "pct",
       "group": "trend"
     },
     {
       "key": "SP500_ret_20",
       "label": "标普500 近20日",
-      "value": -0.001731,
+      "value": 0.025602,
       "unit": "pct",
       "group": "momentum"
     },
     {
       "key": "NASDAQCOM_ret_20",
       "label": "纳指 近20日",
-      "value": -0.009467,
+      "value": 0.039283,
       "unit": "pct",
       "group": "momentum"
     },
     {
       "key": "XAUUSD_ret_20",
       "label": "黄金 近20日",
-      "value": -0.062936,
+      "value": -0.054668,
       "unit": "pct",
       "group": "momentum"
     },
     {
       "key": "DGS10_chg_20",
       "label": "10Y 近20日",
-      "value": -8.0,
+      "value": 13.0,
       "unit": "bp",
       "group": "momentum"
     },
     {
       "key": "DGS2_chg_20",
       "label": "2Y 近20日",
-      "value": 16.0,
+      "value": 21.0,
       "unit": "bp",
       "group": "momentum"
     },
     {
       "key": "DFII10_chg_20",
       "label": "实际10Y 近20日",
-      "value": 10.0,
+      "value": 17.0,
       "unit": "bp",
       "group": "momentum"
     },
     {
       "key": "VIXCLS_z_252",
       "label": "VIX z分数",
-      "value": 0.10384,
+      "value": -0.612208,
       "unit": "z",
       "group": "vol"
     },
     {
       "key": "SP500_vol_20",
       "label": "标普 20日年化波动",
-      "value": 0.160153,
+      "value": 0.090752,
       "unit": "pct0",
       "group": "vol"
     },
     {
       "key": "SP500_vol_60",
       "label": "标普 60日年化波动",
-      "value": 0.153324,
+      "value": 0.142254,
       "unit": "pct0",
       "group": "vol"
     },
     {
       "key": "SP500_maxdd_252",
       "label": "标普 252日最大回撤",
-      "value": -0.024926,
+      "value": -0.007372,
       "unit": "pct",
       "group": "vol"
     },
     {
       "key": "XAUUSD_maxdd_252",
       "label": "黄金 252日最大回撤",
-      "value": -0.201254,
+      "value": -0.168165,
       "unit": "pct",
       "group": "vol"
     },
     {
       "key": "DGS2_level",
       "label": "2Y 收益率",
-      "value": 4.2,
+      "value": 4.08,
       "unit": "yield",
       "group": "rates"
     },
@@ -1019,98 +1019,138 @@
     {
       "key": "T10Y2Y_level",
       "label": "2s10s 利差",
-      "value": 0.29,
+      "value": 0.41,
       "unit": "yield",
       "group": "rates"
     },
     {
       "key": "DFII10_level",
       "label": "10Y 实际利率",
-      "value": 2.23,
+      "value": 2.11,
       "unit": "yield",
       "group": "rates"
     },
     {
       "key": "T10YIE_level",
       "label": "通胀预期",
-      "value": 2.26,
+      "value": 2.38,
       "unit": "yield",
       "group": "rates"
     },
     {
       "key": "DTWEXBGS_z_252",
       "label": "广义美元 z分数",
-      "value": -0.400295,
+      "value": -0.423683,
       "unit": "z",
       "group": "dollar"
     },
     {
       "key": "usd_broad_vs_narrow_div_20",
       "label": "广义vs窄口径 20日背离",
-      "value": -0.014342,
+      "value": -0.007753,
       "unit": "pct",
       "group": "dollar"
     },
     {
       "key": "corr_SP500_DGS10_60",
       "label": "标普~10Y",
-      "value": -0.646624,
+      "value": -0.701863,
       "unit": "corr",
       "group": "cross_asset"
     },
     {
       "key": "corr_SP500_VIXCLS_60",
       "label": "标普~VIX",
-      "value": -0.804888,
+      "value": -0.788495,
       "unit": "corr",
       "group": "cross_asset"
     },
     {
       "key": "corr_XAUUSD_DFII10_60",
       "label": "黄金~实际利率",
-      "value": -0.423126,
+      "value": -0.417901,
       "unit": "corr",
       "group": "cross_asset"
     },
     {
       "key": "corr_XAUUSD_DTWEXBGS_60",
       "label": "黄金~广义美元",
-      "value": -0.45421,
+      "value": -0.458449,
       "unit": "corr",
       "group": "cross_asset"
     },
     {
       "key": "SP500_rangepct_252",
       "label": "标普500 52周分位",
-      "value": 0.865644,
+      "value": 0.965833,
       "unit": "pct0",
       "group": "range"
     },
     {
       "key": "NASDAQCOM_rangepct_252",
       "label": "纳指 52周分位",
-      "value": 0.8444,
+      "value": 0.968624,
       "unit": "pct0",
       "group": "range"
     },
     {
       "key": "XAUUSD_rangepct_252",
       "label": "黄金 52周分位",
-      "value": 0.473815,
+      "value": 0.563321,
       "unit": "pct0",
       "group": "range"
     }
   ],
   "regime": {
     "equity_trend": "above_ma200",
-    "vol_regime": "mid/elevated",
+    "vol_regime": "mid/easing",
     "curve": "normal/flattening",
     "real_rate": "rising",
     "inflation_expectations": "falling",
-    "dollar": "weak/diverging"
+    "dollar": "weak"
   },
   "priceSeries": {
     "nasdaqcom": [
+      {
+        "date": "2026-04-22",
+        "value": 24657.57
+      },
+      {
+        "date": "2026-04-23",
+        "value": 24438.5
+      },
+      {
+        "date": "2026-04-24",
+        "value": 24836.6
+      },
+      {
+        "date": "2026-04-27",
+        "value": 24887.1
+      },
+      {
+        "date": "2026-04-28",
+        "value": 24663.8
+      },
+      {
+        "date": "2026-04-29",
+        "value": 24673.24
+      },
+      {
+        "date": "2026-04-30",
+        "value": 24892.31
+      },
+      {
+        "date": "2026-05-01",
+        "value": 25114.44
+      },
+      {
+        "date": "2026-05-04",
+        "value": 25067.8
+      },
+      {
+        "date": "2026-05-05",
+        "value": 25326.13
+      },
       {
         "date": "2026-05-06",
         "value": 25838.94
@@ -1190,49 +1230,65 @@
       {
         "date": "2026-06-03",
         "value": 26853.98
-      },
-      {
-        "date": "2026-06-04",
-        "value": 26830.96
-      },
-      {
-        "date": "2026-06-05",
-        "value": 25709.43
-      },
-      {
-        "date": "2026-06-08",
-        "value": 25929.66
-      },
-      {
-        "date": "2026-06-09",
-        "value": 25678.82
-      },
-      {
-        "date": "2026-06-10",
-        "value": 25169.5
-      },
-      {
-        "date": "2026-06-11",
-        "value": 25809.66
-      },
-      {
-        "date": "2026-06-12",
-        "value": 25888.84
-      },
-      {
-        "date": "2026-06-15",
-        "value": 26683.94
-      },
-      {
-        "date": "2026-06-16",
-        "value": 26376.34
-      },
-      {
-        "date": "2026-06-17",
-        "value": 26021.66
       }
     ],
     "xauusd": [
+      {
+        "date": "2026-05-05",
+        "value": 4556.9251
+      },
+      {
+        "date": "2026-05-06",
+        "value": 4690.9127
+      },
+      {
+        "date": "2026-05-07",
+        "value": 4689.4371
+      },
+      {
+        "date": "2026-05-08",
+        "value": 4716.2703
+      },
+      {
+        "date": "2026-05-09",
+        "value": 4715.4877
+      },
+      {
+        "date": "2026-05-10",
+        "value": 4715.4824
+      },
+      {
+        "date": "2026-05-11",
+        "value": 4735.4606
+      },
+      {
+        "date": "2026-05-12",
+        "value": 4715.309
+      },
+      {
+        "date": "2026-05-13",
+        "value": 4688.6101
+      },
+      {
+        "date": "2026-05-14",
+        "value": 4651.9124
+      },
+      {
+        "date": "2026-05-15",
+        "value": 4540.1468
+      },
+      {
+        "date": "2026-05-16",
+        "value": 4537.7255
+      },
+      {
+        "date": "2026-05-17",
+        "value": 4537.7153
+      },
+      {
+        "date": "2026-05-18",
+        "value": 4566.1737
+      },
       {
         "date": "2026-05-19",
         "value": 4481.854
@@ -1296,65 +1352,49 @@
       {
         "date": "2026-06-03",
         "value": 4434.4686
-      },
-      {
-        "date": "2026-06-04",
-        "value": 4475.9658
-      },
-      {
-        "date": "2026-06-05",
-        "value": 4328.9595
-      },
-      {
-        "date": "2026-06-06",
-        "value": 4330.1515
-      },
-      {
-        "date": "2026-06-07",
-        "value": 4330.1492
-      },
-      {
-        "date": "2026-06-08",
-        "value": 4330.1919
-      },
-      {
-        "date": "2026-06-09",
-        "value": 4260.0848
-      },
-      {
-        "date": "2026-06-10",
-        "value": 4071.581
-      },
-      {
-        "date": "2026-06-11",
-        "value": 4211.0751
-      },
-      {
-        "date": "2026-06-12",
-        "value": 4217.9634
-      },
-      {
-        "date": "2026-06-13",
-        "value": 4215.386
-      },
-      {
-        "date": "2026-06-14",
-        "value": 4215.3695
-      },
-      {
-        "date": "2026-06-15",
-        "value": 4309.4244
-      },
-      {
-        "date": "2026-06-16",
-        "value": 4331.3695
-      },
-      {
-        "date": "2026-06-17",
-        "value": 4258.073
       }
     ],
     "dtwexbgs": [
+      {
+        "date": "2026-04-22",
+        "value": 118.6004
+      },
+      {
+        "date": "2026-04-23",
+        "value": 118.7155
+      },
+      {
+        "date": "2026-04-24",
+        "value": 118.7294
+      },
+      {
+        "date": "2026-04-27",
+        "value": 118.5458
+      },
+      {
+        "date": "2026-04-28",
+        "value": 118.7717
+      },
+      {
+        "date": "2026-04-29",
+        "value": 119.0975
+      },
+      {
+        "date": "2026-04-30",
+        "value": 118.671
+      },
+      {
+        "date": "2026-05-01",
+        "value": 118.3926
+      },
+      {
+        "date": "2026-05-04",
+        "value": 118.8264
+      },
+      {
+        "date": "2026-05-05",
+        "value": 118.6207
+      },
       {
         "date": "2026-05-06",
         "value": 118.0982
@@ -1434,49 +1474,49 @@
       {
         "date": "2026-06-03",
         "value": 119.3848
-      },
-      {
-        "date": "2026-06-04",
-        "value": 119.3615
-      },
-      {
-        "date": "2026-06-05",
-        "value": 120.0831
-      },
-      {
-        "date": "2026-06-08",
-        "value": 120.034
-      },
-      {
-        "date": "2026-06-09",
-        "value": 119.9617
-      },
-      {
-        "date": "2026-06-10",
-        "value": 119.9134
-      },
-      {
-        "date": "2026-06-11",
-        "value": 120.1174
-      },
-      {
-        "date": "2026-06-12",
-        "value": 119.5073
-      },
-      {
-        "date": "2026-06-15",
-        "value": 119.3158
-      },
-      {
-        "date": "2026-06-16",
-        "value": 119.256
-      },
-      {
-        "date": "2026-06-17",
-        "value": 119.3871
       }
     ],
     "dgs10": [
+      {
+        "date": "2026-04-22",
+        "value": 4.3
+      },
+      {
+        "date": "2026-04-23",
+        "value": 4.34
+      },
+      {
+        "date": "2026-04-24",
+        "value": 4.31
+      },
+      {
+        "date": "2026-04-27",
+        "value": 4.35
+      },
+      {
+        "date": "2026-04-28",
+        "value": 4.36
+      },
+      {
+        "date": "2026-04-29",
+        "value": 4.42
+      },
+      {
+        "date": "2026-04-30",
+        "value": 4.4
+      },
+      {
+        "date": "2026-05-01",
+        "value": 4.39
+      },
+      {
+        "date": "2026-05-04",
+        "value": 4.45
+      },
+      {
+        "date": "2026-05-05",
+        "value": 4.43
+      },
       {
         "date": "2026-05-06",
         "value": 4.36
@@ -1556,49 +1596,49 @@
       {
         "date": "2026-06-03",
         "value": 4.49
-      },
-      {
-        "date": "2026-06-04",
-        "value": 4.47
-      },
-      {
-        "date": "2026-06-05",
-        "value": 4.55
-      },
-      {
-        "date": "2026-06-08",
-        "value": 4.56
-      },
-      {
-        "date": "2026-06-09",
-        "value": 4.53
-      },
-      {
-        "date": "2026-06-10",
-        "value": 4.55
-      },
-      {
-        "date": "2026-06-11",
-        "value": 4.45
-      },
-      {
-        "date": "2026-06-12",
-        "value": 4.48
-      },
-      {
-        "date": "2026-06-15",
-        "value": 4.47
-      },
-      {
-        "date": "2026-06-16",
-        "value": 4.43
-      },
-      {
-        "date": "2026-06-17",
-        "value": 4.49
       }
     ],
     "vixcls": [
+      {
+        "date": "2026-04-23",
+        "value": 19.31
+      },
+      {
+        "date": "2026-04-24",
+        "value": 18.71
+      },
+      {
+        "date": "2026-04-27",
+        "value": 18.02
+      },
+      {
+        "date": "2026-04-28",
+        "value": 17.83
+      },
+      {
+        "date": "2026-04-29",
+        "value": 18.81
+      },
+      {
+        "date": "2026-04-30",
+        "value": 16.89
+      },
+      {
+        "date": "2026-05-01",
+        "value": 16.99
+      },
+      {
+        "date": "2026-05-04",
+        "value": 18.29
+      },
+      {
+        "date": "2026-05-05",
+        "value": 17.38
+      },
+      {
+        "date": "2026-05-06",
+        "value": 17.39
+      },
       {
         "date": "2026-05-07",
         "value": 17.08
@@ -1678,46 +1718,6 @@
       {
         "date": "2026-06-03",
         "value": 16.06
-      },
-      {
-        "date": "2026-06-04",
-        "value": 15.4
-      },
-      {
-        "date": "2026-06-05",
-        "value": 21.51
-      },
-      {
-        "date": "2026-06-08",
-        "value": 18.92
-      },
-      {
-        "date": "2026-06-09",
-        "value": 19.87
-      },
-      {
-        "date": "2026-06-10",
-        "value": 22.22
-      },
-      {
-        "date": "2026-06-11",
-        "value": 19.44
-      },
-      {
-        "date": "2026-06-12",
-        "value": 17.68
-      },
-      {
-        "date": "2026-06-15",
-        "value": 16.2
-      },
-      {
-        "date": "2026-06-16",
-        "value": 16.41
-      },
-      {
-        "date": "2026-06-17",
-        "value": 18.44
       }
     ]
   },
@@ -1725,103 +1725,104 @@
     "nasdaqcom": {
       "scores": {
         "trend": 1.0,
-        "momentum": -0.0947,
-        "value": 0.6888
+        "momentum": 0.3928,
+        "value": 0.9372
       },
-      "composite": 0.3933,
+      "composite": 0.5634,
       "baselineDir": "up",
-      "baselineConf": 0.6966,
-      "volForecastAnn": 0.2435
+      "baselineConf": 0.7817,
+      "volForecastAnn": 0.1503
     },
     "xauusd": {
       "scores": {
-        "trend": -0.4754,
-        "momentum": -0.6294,
-        "value": -0.0524
+        "trend": 0.0002,
+        "momentum": -0.5467,
+        "value": 0.1266
       },
-      "composite": -0.4894,
+      "composite": -0.2186,
       "baselineDir": "down",
-      "baselineConf": 0.7447,
-      "volForecastAnn": 0.2871
+      "baselineConf": 0.6093,
+      "volForecastAnn": 0.204
     },
     "dtwexbgs": {
       "scores": {
-        "trend": -0.0246,
-        "momentum": 0.0189,
-        "value": -0.1301
+        "trend": -0.0274,
+        "momentum": 0.1089,
+        "value": -0.1311
       },
-      "composite": -0.0047,
+      "composite": 0.0299,
       "baselineDir": "flat",
-      "baselineConf": 0.5024,
-      "volForecastAnn": 0.0392
+      "baselineConf": 0.5149,
+      "volForecastAnn": 0.0379
     },
     "dgs2": {
       "scores": {
-        "trend": 0.72,
-        "momentum": 0.5333,
+        "trend": 0.88,
+        "momentum": 0.7,
         "value": 1.0
       },
-      "composite": 0.4733,
+      "composite": 0.62,
       "baselineDir": "up",
-      "baselineConf": 0.7367,
+      "baselineConf": 0.81,
       "volForecastAnn": 0.0
     }
   },
   "reviews": [],
   "news": [
     {
-      "title": "Robinhood's Fastest-Growing Business Has A Regulation Problem: Here's What It Means For HOOD - Robinhood",
+      "title": "Transcript: Rocky Mountain Chocolate Q4 2026 Earnings Conference Call - Rocky Mountain Chocolate (NASDAQ:",
       "source": "benzinga.com",
       "cat": "both",
       "assets": [
-        "Robinhood (HOOD)",
-        "预测市场平台"
+        "RMCF"
       ],
       "dir": "watch",
-      "link": "https://www.benzinga.com/markets/prediction-markets/26/06/53237596/robinhoods-fastest-growing-business-has-a-regulation-problem-heres-what-it-means-for-h"
+      "link": "https://www.benzinga.com/insights/news/26/06/52938863/transcript-rocky-mountain-chocolate-q4-2026-earnings-conference-call"
     },
     {
-      "title": "Why Is Nebius Stock Surging On Tuesday? - Nebius Group (NASDAQ:NBIS)",
-      "source": "benzinga.com",
-      "cat": "fact",
-      "assets": [
-        "Nebius Group (NBIS)"
-      ],
-      "dir": "up",
-      "link": "https://www.benzinga.com/trading-ideas/movers/26/06/53233833/why-is-nebius-stock-surging-on-tuesday"
-    },
-    {
-      "title": "Why Is CoreWeave Stock Soaring Tuesday? - CoreWeave (NASDAQ:CRWV)",
+      "title": "Stock Market Today: S&P 500, Dow Jones Future Fall As Trump Says He 'Couldn't Care Less' If Iran Negotiat",
       "source": "benzinga.com",
       "cat": "both",
       "assets": [
-        "CoreWeave (CRWV)"
-      ],
-      "dir": "up",
-      "link": "https://www.benzinga.com/analyst-stock-ratings/reiteration/26/06/53231435/coreweave-is-woefully-undervalued-says-analyst"
-    },
-    {
-      "title": "Crude Oil Down 5%; John Wiley & Sons Shares Fall After Q4 Results - Tianci International (NASDAQ:CIIT), D",
-      "source": "benzinga.com",
-      "cat": "fact",
-      "assets": [
+        "美股",
         "原油",
-        "John Wiley & Sons (WLY)",
-        "美股"
+        "美债"
       ],
       "dir": "down",
-      "link": "https://www.benzinga.com/markets/market-summary/26/06/53229429/crude-oil-down-5-john-wiley-sons-shares-fall-after-q4-results"
+      "link": "https://www.benzinga.com/markets/equities/26/06/52930490/stock-market-today-sp-500-dow-jones-future-fall-as-trump-says-he-couldnt-care-less-if-iran-negot"
     },
     {
-      "title": "Gold: Can Bullion Hold Support Ahead of the Fed?",
+      "title": "Stock Market: Will S&P 500 Open Up Or Down Today? - Dell Technologies (NYSE:DELL), Dollar General (NYSE:D",
+      "source": "benzinga.com",
+      "cat": "both",
+      "assets": [
+        "美股",
+        "原油"
+      ],
+      "dir": "watch",
+      "link": "https://www.benzinga.com/markets/prediction-markets/26/06/52930318/sp500-june-2-open-up-or-down-polymarket-ai-rally-oil-prices"
+    },
+    {
+      "title": "Gold: Iran Deal Uncertainty Keeps Bullion at a Crossroads",
       "source": "investing.com",
-      "cat": "read",
+      "cat": "both",
       "assets": [
         "黄金",
         "原油"
       ],
       "dir": "watch",
-      "link": "https://www.investing.com/analysis/gold-can-bullion-hold-support-ahead-of-the-fed-200682215"
+      "link": "https://www.investing.com/analysis/gold-iran-deal-uncertainty-keeps-bullion-at-a-crossroads-200681339"
+    },
+    {
+      "title": "Why Volato Group Stock Is Skyrocketing On Monday? - Volato Group (AMEX:SOAR)",
+      "source": "benzinga.com",
+      "cat": "both",
+      "assets": [
+        "SOAR",
+        "黄金"
+      ],
+      "dir": "up",
+      "link": "https://www.benzinga.com/trading-ideas/movers/26/06/52912175/why-volato-group-stock-is-skyrocketing-on-monday"
     }
   ],
   "models": [
@@ -1832,135 +1833,98 @@
   "views": {
     "deepseek": {
       "tone": "risk-off",
-      "headline": "美股大跌, 美债利率飙升, 黄金重挫, 实际利率上行与美元走强构成双重压制",
+      "headline": "美债利率与美元同步上行压制风险资产, 纳指与黄金承压, 市场处于 risk-off 模式",
       "facts": [
         {
           "tag": "股市",
-          "text": "标普 500 跌 91.25 点至 7420.10, 纳指跌 354.68 点至 26021.66, VIX 升 2.03 至 18.44.",
+          "text": "纳指跌 239.92 点至 26,853.98, 跌幅 0.89%; 标普 500 跌 56.10 点至 7,553.68, 跌幅 0.74%.",
           "figures": [
             {
-              "t": "91.25",
+              "t": "239.92",
               "dir": "down"
             },
             {
-              "t": "354.68",
+              "t": "56.10",
               "dir": "down"
-            },
-            {
-              "t": "2.03",
-              "dir": "up"
             }
           ]
         },
         {
           "tag": "利率",
-          "text": "US2Y 升 15bp 至 4.20%, US10Y 升 6bp 至 4.49%, 实际 10Y 升 9bp 至 2.23%.",
+          "text": "US2Y 升 3bp 至 4.08%, US10Y 升 3bp 至 4.49%, 实际 10Y 升 4bp 至 2.11%.",
           "figures": [
             {
-              "t": "15bp",
+              "t": "3bp",
               "dir": "up"
             },
             {
-              "t": "6bp",
+              "t": "3bp",
               "dir": "up"
             },
             {
-              "t": "9bp",
+              "t": "4bp",
               "dir": "up"
-            }
-          ]
-        },
-        {
-          "tag": "曲线",
-          "text": "2s10s 收窄 9bp 至 0.29%, 曲线进一步平坦化.",
-          "figures": [
-            {
-              "t": "9bp",
-              "dir": "down"
-            }
-          ]
-        },
-        {
-          "tag": "黄金",
-          "text": "黄金跌 73.30 至 4258.1, 较 MA200 下方 4.8%.",
-          "figures": [
-            {
-              "t": "73.30",
-              "dir": "down"
             }
           ]
         },
         {
           "tag": "美元",
-          "text": "广义美元微升 0.13 至 119.39, 较 MA200 下方 0.2%.",
+          "text": "广义美元指数涨 0.35 至 119.38, 涨幅 0.29%.",
           "figures": [
             {
-              "t": "0.13",
+              "t": "0.35",
               "dir": "up"
+            }
+          ]
+        },
+        {
+          "tag": "黄金",
+          "text": "黄金跌 54.20 至 4,434.5, 跌幅 1.21%.",
+          "figures": [
+            {
+              "t": "54.20",
+              "dir": "down"
             }
           ]
         },
         {
           "tag": "波动",
-          "text": "VIX 升至 18.44, 标普 20 日年化波动 16.0%, 处于中等偏高水平.",
-          "figures": []
+          "text": "VIX 升 0.29 至 16.06, 仍处于中等水平.",
+          "figures": [
+            {
+              "t": "0.29",
+              "dir": "up"
+            }
+          ]
         }
       ],
       "reads": [
         {
           "tag": "利率",
-          "text": "实际利率上行 9bp 至 2.23% 是今日核心压制, 名义利率上行主要由实际利率驱动, 通胀预期反而下降 3bp 至 2.26%, 反映紧缩预期而非再通胀.",
+          "text": "实际利率上行 4bp 是今日关键压制因素, 实际利率与黄金 60 日相关系数 -0.42, 与成长股估值负相关.",
           "figures": [
             {
-              "t": "9bp",
+              "t": "4bp",
               "dir": "up"
-            },
-            {
-              "t": "3bp",
-              "dir": "down"
-            }
-          ]
-        },
-        {
-          "tag": "股市",
-          "text": "纳指较 MA200 仍上方 10.4%, 但 20 日动量转负(-0.9%), VIX 升破 18, 风险偏好显著恶化. 标普与 10Y 负相关 -0.65, 利率上行直接压制估值.",
-          "figures": [
-            {
-              "t": "10.4%",
-              "dir": "up"
-            },
-            {
-              "t": "0.9%",
-              "dir": "down"
-            }
-          ]
-        },
-        {
-          "tag": "黄金",
-          "text": "黄金与实际利率负相关 -0.42, 与广义美元负相关 -0.45, 实际利率上行和美元走强形成双重压制, 黄金跌破 MA200 下方 4.8%, 趋势转空.",
-          "figures": [
-            {
-              "t": "4.8%",
-              "dir": "down"
-            }
-          ]
-        },
-        {
-          "tag": "曲线",
-          "text": "2s10s 收窄至 0.29%, 20 日累计收窄 24bp, 曲线持续平坦化, 反映市场对紧缩预期或增长放缓的定价.",
-          "figures": [
-            {
-              "t": "24bp",
-              "dir": "down"
             }
           ]
         },
         {
           "tag": "美元",
-          "text": "广义美元微升但较 MA200 仍下方 0.2%, 整体偏弱, 但今日实际利率上行支撑美元, 黄金承压.",
+          "text": "广义美元走强叠加实际利率上行, 形成对黄金和风险资产的双重压力; 黄金与实际利率和美元均负相关.",
+          "figures": []
+        },
+        {
+          "tag": "股市",
+          "text": "纳指虽较 MA200 上方 15%, 但今日下跌伴随 VIX 微升, 短期动量可能减弱; 综合因子打分 +0.56, 趋势仍偏多但需警惕利率风险.",
+          "figures": []
+        },
+        {
+          "tag": "曲线",
+          "text": "2s10s 持平于 41bp, 曲线维持正常但近 20 日走平 8bp, 反映加息预期或期限溢价上升.",
           "figures": [
             {
-              "t": "0.2%",
+              "t": "8bp",
               "dir": "down"
             }
           ]
@@ -1968,54 +1932,54 @@
       ],
       "hypotheses": [
         {
-          "ifThen": "若实际利率维持高位或继续上行, 纳指将承压下行",
-          "invalidation": "纳指 5 日内反弹收复今日跌幅并站上 26500, 则失效",
+          "ifThen": "若实际利率继续上行或美元维持强势, 纳指短期承压.",
+          "invalidation": "纳指在未来 5 个交易日内收盘价高于 27,000(今日收盘 26,853.98), 则失效.",
           "asset": "NASDAQCOM",
+          "direction": "down",
+          "horizon": "h_5d",
+          "confidence": 0.6,
+          "keyFactors": [
+            {
+              "label": "实际利率上行",
+              "detail": "实际 10Y 升 4bp 至 2.11%"
+            },
+            {
+              "label": "美元走强",
+              "detail": "广义美元涨 0.35 至 119.38"
+            },
+            {
+              "label": "VIX 上升",
+              "detail": "VIX 升 0.29 至 16.06"
+            }
+          ],
+          "actual": {
+            "status": "pending",
+            "realizedDir": null,
+            "realizedText": "",
+            "hit": null,
+            "resolvedDate": "",
+            "note": ""
+          }
+        },
+        {
+          "ifThen": "若实际利率和美元继续上行, 黄金将延续跌势.",
+          "invalidation": "黄金在未来 5 个交易日内收盘价高于 4,500(今日收盘 4,434.5), 则失效.",
+          "asset": "XAUUSD",
           "direction": "down",
           "horizon": "h_5d",
           "confidence": 0.65,
           "keyFactors": [
             {
               "label": "实际利率上行",
-              "detail": "实际 10Y 升 9bp 至 2.23%"
-            },
-            {
-              "label": "VIX 升破 18",
-              "detail": "VIX 18.44, 标普~VIX 相关 -0.80"
-            },
-            {
-              "label": "动量转负",
-              "detail": "纳指 20 日收益 -0.9%"
-            }
-          ],
-          "actual": {
-            "status": "pending",
-            "realizedDir": null,
-            "realizedText": "",
-            "hit": null,
-            "resolvedDate": "",
-            "note": ""
-          }
-        },
-        {
-          "ifThen": "若实际利率与美元继续同步上行, 黄金将进一步下跌",
-          "invalidation": "黄金 5 日内重新站上 MA200(约 4470), 则失效",
-          "asset": "XAUUSD",
-          "direction": "down",
-          "horizon": "h_5d",
-          "confidence": 0.7,
-          "keyFactors": [
-            {
-              "label": "实际利率上行",
-              "detail": "实际 10Y 升 9bp 至 2.23%"
+              "detail": "实际 10Y 升 4bp 至 2.11%"
             },
             {
               "label": "美元走强",
-              "detail": "广义美元日升 0.13 至 119.39"
+              "detail": "广义美元涨 0.35 至 119.38"
             },
             {
-              "label": "趋势转空",
-              "detail": "黄金较 MA200 下方 4.8%"
+              "label": "黄金动量转负",
+              "detail": "黄金 20 日收益 -5.5%, 动量因子 -0.55"
             }
           ],
           "actual": {
@@ -2028,24 +1992,20 @@
           }
         },
         {
-          "ifThen": "若风险偏好持续恶化, 美元可能获得避险买盘支撑",
-          "invalidation": "广义美元 5 日内跌破 119.00, 则失效",
+          "ifThen": "若美债利率继续上行或风险偏好持续恶化, 美元可能进一步走强.",
+          "invalidation": "广义美元指数在未来 5 个交易日内跌破 119.00(今日收盘 119.38), 则失效.",
           "asset": "DTWEXBGS",
           "direction": "up",
           "horizon": "h_5d",
           "confidence": 0.55,
           "keyFactors": [
             {
-              "label": "实际利率上行",
-              "detail": "实际 10Y 升 9bp 至 2.23%"
+              "label": "利率上行",
+              "detail": "US2Y 升 3bp, US10Y 升 3bp"
             },
             {
               "label": "风险偏好下降",
-              "detail": "VIX 升 2.03 至 18.44"
-            },
-            {
-              "label": "美元偏弱但背离",
-              "detail": "广义美元较 MA200 下方 0.2%, 但今日微升"
+              "detail": "VIX 上升, 股市下跌"
             }
           ],
           "actual": {
@@ -2058,24 +2018,24 @@
           }
         },
         {
-          "ifThen": "若市场继续定价紧缩预期, 2Y 收益率将维持高位或进一步上行",
-          "invalidation": "2Y 5 日内回落至 4.00% 以下, 则失效",
+          "ifThen": "若实际利率继续上行或通胀预期稳定, 2Y 收益率可能进一步走高.",
+          "invalidation": "US2Y 在未来 5 个交易日内低于 4.00%(今日收盘 4.08%), 则失效.",
           "asset": "DGS2",
           "direction": "up",
           "horizon": "h_5d",
           "confidence": 0.6,
           "keyFactors": [
             {
-              "label": "利率趋势偏强",
-              "detail": "2Y 20 日累计升 16bp"
+              "label": "实际利率上行",
+              "detail": "实际 10Y 升 4bp"
             },
             {
-              "label": "实际利率上行",
-              "detail": "实际 10Y 升 9bp 至 2.23%"
+              "label": "通胀预期下降",
+              "detail": "通胀预期降 1bp 至 2.38%"
             },
             {
               "label": "因子综合偏多",
-              "detail": "2Y 综合因子 +0.47, 趋势 +0.72"
+              "detail": "2Y 综合因子 +0.62, 趋势 +0.88"
             }
           ],
           "actual": {
@@ -2091,211 +2051,245 @@
       "impacts": [
         {
           "asset": "纳指",
-          "watch": "实际利率与 VIX 同步上行, 成长股估值承压, 关注 MA200 支撑(约 23500)",
+          "watch": "关注实际利率与美元走势, 若持续上行则纳指短期承压; 但较 MA200 上方 15% 表明中期趋势仍强.",
           "dir": "down",
           "code": ""
         },
         {
           "asset": "黄金",
-          "watch": "实际利率与美元双压, 跌破 MA200 后趋势偏空, 关注前低 4100 附近支撑",
+          "watch": "实际利率与美元同步上行构成双重逆风, 黄金 20 日跌幅 -5.5% 且动量转负, 短期偏弱.",
           "dir": "down",
           "code": ""
         },
         {
           "asset": "广义美元",
-          "watch": "避险情绪可能支撑美元, 但整体仍偏弱, 关注 MA200(约 119.6) 阻力",
+          "watch": "利率上行与 risk-off 情绪支撑美元, 但较 MA200 下方 0.3% 表明中期仍偏弱, 短期反弹持续性待观察.",
           "dir": "up",
           "code": ""
         },
         {
           "asset": "美债2Y",
-          "watch": "利率上行趋势未改, 关注 4.30% 附近阻力",
+          "watch": "实际利率上行与因子偏多支持 2Y 收益率走高, 但需关注美联储政策预期变化.",
           "dir": "up",
-          "code": ""
-        },
-        {
-          "asset": "VIX",
-          "watch": "VIX 升破 18, 若持续上行将加剧风险资产抛压",
-          "dir": "up",
-          "code": ""
-        },
-        {
-          "asset": "2s10s",
-          "watch": "曲线持续平坦化, 若倒挂加深可能引发衰退担忧",
-          "dir": "down",
           "code": ""
         }
       ]
     },
     "anthropic": {
-      "tone": "risk-off",
-      "headline": "股债同跌, 实际利率上行压制成长股与黄金, 美元小幅走强, 风险偏好回落",
+      "tone": "neutral",
+      "headline": "股指高位回落, 黄金 20 日重挫且实际利率上行, 美元偏弱中走强, 短端利率续升, 整体偏避险微调",
       "facts": [
         {
           "tag": "股市",
-          "text": "纳指收 26021.66, 下跌 354.68 点, 跌幅深于标普, 但两者仍均处于 MA200 上方 (纳指 +10.4%, 标普 +7.3%), 52 周分位偏高 (84.4%/86.6%).",
+          "text": "纳指收 26,853.98, 下跌 239.92 点, 但仍较 MA200 高出 15.0%, 处 52 周分位 96.9% 的极高位置.",
           "figures": [
             {
-              "t": "354.68",
-              "dir": "down"
-            }
-          ]
-        },
-        {
-          "tag": "波动",
-          "text": "VIX 升 2.03 至 18.44 (z=0.10), 处于 15-20 中性偏震荡区间, 标普 20 日年化波动 16.0%.",
-          "figures": [
-            {
-              "t": "2.03",
-              "dir": "up"
-            }
-          ]
-        },
-        {
-          "tag": "利率",
-          "text": "2Y 升 15bp 至 4.20%, 10Y 仅升 6bp 至 4.49%, 短端涨幅显著大于长端.",
-          "figures": [
-            {
-              "t": "15bp",
-              "dir": "up"
-            },
-            {
-              "t": "6bp",
-              "dir": "up"
-            }
-          ]
-        },
-        {
-          "tag": "曲线",
-          "text": "2s10s 收窄 9bp 至 0.29%, 20 日累计走平 24bp, 呈熊平形态.",
-          "figures": [
-            {
-              "t": "9bp",
+              "t": "239.92",
               "dir": "down"
             },
             {
-              "t": "24bp",
-              "dir": "down"
-            }
-          ]
-        },
-        {
-          "tag": "利率",
-          "text": "实际 10Y 利率升 9bp 至 2.23%, 通胀预期降 3bp 至 2.26%, 20 日累计实际利率 +10bp 而通胀预期 -18bp.",
-          "figures": [
-            {
-              "t": "9bp",
+              "t": "15.0%",
               "dir": "up"
-            },
-            {
-              "t": "3bp",
-              "dir": "down"
-            },
-            {
-              "t": "10bp",
-              "dir": "up"
-            },
-            {
-              "t": "18bp",
-              "dir": "down"
             }
           ]
         },
         {
           "tag": "黄金",
-          "text": "黄金跌 73.30 至 4258.1, 跌破 MA200 (较 MA200 -4.8%), 近 20 日累计 -6.3%, 52 周分位回落至 47.4%.",
+          "text": "黄金单日跌 54.20 至 4,434.5, 近 20 日累计 -5.5%, 较 MA200 仅持平, 52 周分位回落至 56.3%.",
           "figures": [
             {
-              "t": "73.30",
+              "t": "54.20",
               "dir": "down"
             },
             {
-              "t": "6.3%",
+              "t": "-5.5%",
+              "dir": "down"
+            }
+          ]
+        },
+        {
+          "tag": "利率",
+          "text": "2Y 升 3bp 至 4.08%, 近 20 日累计 +21bp, 升幅快于 10Y 的 +13bp.",
+          "figures": [
+            {
+              "t": "3bp",
+              "dir": "up"
+            },
+            {
+              "t": "+21bp",
+              "dir": "up"
+            },
+            {
+              "t": "+13bp",
+              "dir": "up"
+            }
+          ]
+        },
+        {
+          "tag": "利率",
+          "text": "实际 10Y 升 4bp 至 2.11%, 近 20 日累计 +17bp, 通胀预期同期 -4bp 至 2.38%.",
+          "figures": [
+            {
+              "t": "4bp",
+              "dir": "up"
+            },
+            {
+              "t": "+17bp",
+              "dir": "up"
+            },
+            {
+              "t": "-4bp",
               "dir": "down"
             }
           ]
         },
         {
           "tag": "美元",
-          "text": "广义美元升 0.13 至 119.39, 较窄口径 (UUP 代理) 20 日收益背离 -1.4%, 即广义偏弱于窄口径.",
+          "text": "广义美元升 0.35 至 119.38, 近 20 日 +1.1%, 但仍较 MA200 低 0.3%, z=-0.42.",
           "figures": [
             {
-              "t": "0.13",
+              "t": "0.35",
               "dir": "up"
             },
             {
-              "t": "1.4%",
-              "dir": "down"
+              "t": "+1.1%",
+              "dir": "up"
+            }
+          ]
+        },
+        {
+          "tag": "波动",
+          "text": "VIX 微升 0.29 至 16.06, z=-0.61, 处中性偏低区间; 标普 20 日年化波动仅 9.1%.",
+          "figures": [
+            {
+              "t": "0.29",
+              "dir": "up"
             }
           ]
         },
         {
           "tag": "事件",
-          "text": "当日事件提及 fomc 与 geo (地缘); 黄金相关新闻净情绪 -0.50, 头条提及原油下跌 5%.",
+          "text": "当日新闻提及 fomc 与 geo (地缘); 黄金相关头条聚焦伊朗协议不确定性令金价处于十字路口.",
           "figures": []
         }
       ],
       "reads": [
         {
-          "tag": "利率",
-          "text": "实际利率上行 + 通胀预期回落构成典型紧缩信号: 名义利率走高由实际利率驱动而非通胀, 对长久期资产 (成长股, 黄金, 长债) 形成压制, 这与今日纳指跌幅大于标普, 黄金破位下行一致.",
+          "tag": "宏观",
+          "text": "当前 regime 为 above_ma200 + mid/easing 波动 + normal/flattening 曲线 + real_rate rising + dollar weak: 股指趋势仍强但估值与分位极高, 实际利率上行构成对长久期资产的潜在逆风, 整体属高位震荡而非趋势反转.",
           "figures": []
         },
         {
-          "tag": "曲线",
-          "text": "2Y 大涨 15bp 主导曲线熊平, 反映市场对 higher-for-longer 政策路径的再定价; 短端急升通常对应加息预期升温或降息预期降温, 结合 fomc 事件提及, 可能与政策预期调整有关.",
+          "tag": "黄金",
+          "text": "黄金双重逆风同时出现: 实际 10Y 20 日 +17bp 且广义美元 20 日 +1.1%, 二者均为传导图中黄金主要压制项, 解释了 20 日 -5.5% 的回落; 但伊朗地缘不确定性提供避险支撑, 形成多空拉锯.",
           "figures": [
             {
-              "t": "15bp",
+              "t": "+17bp",
+              "dir": "up"
+            },
+            {
+              "t": "+1.1%",
+              "dir": "up"
+            },
+            {
+              "t": "-5.5%",
+              "dir": "down"
+            }
+          ]
+        },
+        {
+          "tag": "曲线",
+          "text": "2Y 20 日 +21bp 快于 10Y, 2s10s 走平 8bp 至 0.41%, 反映 higher-for-longer 政策路径预期升温而非衰退定价; 在通胀预期回落背景下, 短端上行更多由实际利率驱动.",
+          "figures": [
+            {
+              "t": "+21bp",
+              "dir": "up"
+            },
+            {
+              "t": "8bp",
+              "dir": "down"
+            }
+          ]
+        },
+        {
+          "tag": "股市",
+          "text": "纳指较 MA200 +15.0%, 52 周分位 96.9%, 价值因子虽偏多但分位极高使回调空间存在; 当日下跌伴随 VIX 仅微升, 暂为高位获利回吐而非系统性 risk-off.",
+          "figures": [
+            {
+              "t": "15.0%",
               "dir": "up"
             }
           ]
         },
         {
-          "tag": "黄金",
-          "text": "黄金同时承受实际利率上行 (60 日相关 -0.42) 与美元小幅走强 (相关 -0.45) 两重逆风, 且跌破 MA200, 趋势与动量因子均转负 (综合 -0.49), 短期顺风缺位.",
-          "figures": []
-        },
-        {
-          "tag": "波动",
-          "text": "VIX 升至 18.44 但仍未破 20, 标普实现波动仅 16%, 显示这是估值偏高背景下的回调而非系统性 risk-off; 股 VIX 相关 -0.80 维持, 需关注 VIX 是否上破 20.",
-          "figures": []
-        },
-        {
-          "tag": "股市",
-          "text": "纳指趋势因子满分 (+1.00) 但动量转负 (-0.09), 处于 MA200 上方 +10.4% 且分位偏高, 既有趋势支撑也有获利回吐与利率上行压力, 属高位震荡格局.",
-          "figures": []
-        },
-        {
           "tag": "美元",
-          "text": "广义美元偏弱且与窄口径背离, 在实际利率上行环境下美元未明显走强, 说明本轮压力更多来自利率端而非避险买盘主导.",
-          "figures": []
+          "text": "广义美元走强但仍处 MA200 下方且 z 为负, 与窄口径 20 日背离 -0.8%, 属弱势中的反弹; 美元边际走强叠加实际利率上行是压制黄金的组合.",
+          "figures": [
+            {
+              "t": "-0.8%",
+              "dir": "down"
+            }
+          ]
         }
       ],
       "hypotheses": [
         {
-          "ifThen": "若实际利率延续上行且 VIX 站稳 18 上方, 则成长股估值承压, 纳指偏弱震荡",
-          "invalidation": "5 个交易日内 NASDAQCOM 收盘较今日 26021.66 上涨超过 2% 则失效",
+          "ifThen": "若 VIX 维持 20 下方且纳指守住 MA200 上方, 则趋势延续偏上.",
+          "invalidation": "未来 20 日内 NASDAQCOM 跌破其 MA200 (较 MA200 转为负值), 或 VIX 升破 24, 则证伪.",
           "asset": "NASDAQCOM",
+          "direction": "up",
+          "horizon": "h_20d",
+          "confidence": 0.6,
+          "keyFactors": [
+            {
+              "label": "趋势强",
+              "detail": "纳指较 MA200 上方 15.0%"
+            },
+            {
+              "label": "因子合成",
+              "detail": "综合 +0.56 (信心 78%)"
+            },
+            {
+              "label": "低波动",
+              "detail": "VIX 16.06, z=-0.61"
+            },
+            {
+              "label": "极高分位",
+              "detail": "52 周分位 96.9% 限制上行空间"
+            }
+          ],
+          "actual": {
+            "status": "pending",
+            "realizedDir": null,
+            "realizedText": "",
+            "hit": null,
+            "resolvedDate": "",
+            "note": ""
+          }
+        },
+        {
+          "ifThen": "若实际 10Y 维持 2.0% 上方且美元不转弱, 则黄金延续回落.",
+          "invalidation": "未来 20 日内 XAUUSD 收复 20 日跌幅回到 4,650 上方, 或实际 10Y 回落至 1.95% 下方, 则证伪.",
+          "asset": "XAUUSD",
           "direction": "down",
-          "horizon": "h_5d",
+          "horizon": "h_20d",
           "confidence": 0.55,
           "keyFactors": [
             {
               "label": "实际利率上行",
-              "detail": "实际 10Y 升 9bp 至 2.23%, 20 日 +10bp"
+              "detail": "实际 10Y 20 日 +17bp"
             },
             {
-              "label": "动量转负",
-              "detail": "纳指 20 日 -0.9%, 动量因子 -0.09"
+              "label": "美元边际走强",
+              "detail": "广义美元 20 日 +1.1%"
             },
             {
-              "label": "波动升温",
-              "detail": "VIX 升 2.03 至 18.44"
+              "label": "动量转弱",
+              "detail": "黄金 20 日 -5.5%, 动量因子 -0.55"
             },
             {
-              "label": "高位分位",
-              "detail": "纳指 52 周分位 84.4%, 较 MA200 +10.4%"
+              "label": "地缘支撑",
+              "detail": "伊朗不确定性提供避险买盘"
             }
           ],
           "actual": {
@@ -2308,62 +2302,28 @@
           }
         },
         {
-          "ifThen": "若实际利率维持 2.2% 上方且黄金未收复 MA200, 则下行趋势延续",
-          "invalidation": "20 个交易日内 XAUUSD 收复 MA200 (回到 4470 附近上方) 或较今日 4258.1 上涨超过 4% 则失效",
-          "asset": "XAUUSD",
-          "direction": "down",
-          "horizon": "h_20d",
-          "confidence": 0.62,
-          "keyFactors": [
-            {
-              "label": "破位 MA200",
-              "detail": "黄金较 MA200 -4.8%, 已下穿"
-            },
-            {
-              "label": "实际利率逆风",
-              "detail": "实际 10Y 20 日 +10bp"
-            },
-            {
-              "label": "美元逆风",
-              "detail": "广义美元 z=-0.40 但日内 +0.13"
-            },
-            {
-              "label": "因子转空",
-              "detail": "综合 -0.49, 趋势 -0.48 动量 -0.63"
-            }
-          ],
-          "actual": {
-            "status": "pending",
-            "realizedDir": null,
-            "realizedText": "",
-            "hit": null,
-            "resolvedDate": "",
-            "note": ""
-          }
-        },
-        {
-          "ifThen": "若无新的避险冲击或政策超预期, 则广义美元在 MA200 附近窄幅区间内运行",
-          "invalidation": "20 个交易日内 DTWEXBGS 较今日 119.39 偏离超过 1.5% (跌破 117.6 或升破 121.2) 则失效",
+          "ifThen": "若实际利率上行与弱美元 regime 相互拉锯, 则美元区间震荡.",
+          "invalidation": "未来 20 日内 DTWEXBGS 升破 MA200 (较 MA200 转正) 或跌破 117.5, 则证伪.",
           "asset": "DTWEXBGS",
           "direction": "flat",
           "horizon": "h_20d",
-          "confidence": 0.55,
+          "confidence": 0.5,
           "keyFactors": [
             {
-              "label": "趋势中性",
-              "detail": "广义美元较 MA200 -0.2%, z=-0.40"
+              "label": "弱势区间",
+              "detail": "广义美元较 MA200 -0.3%, z=-0.42"
             },
             {
-              "label": "因子持平",
-              "detail": "综合 -0.00, 趋势 -0.02 动量 +0.02"
+              "label": "近期反弹",
+              "detail": "20 日 +1.1%"
             },
             {
-              "label": "背离信号",
-              "detail": "广义 vs 窄口径 20 日 -1.4%"
+              "label": "因子中性",
+              "detail": "综合 +0.03 (信心 51%)"
             },
             {
-              "label": "低波动预测",
-              "detail": "波动预测仅 4%"
+              "label": "口径背离",
+              "detail": "广义 vs 窄口径 20 日 -0.8%"
             }
           ],
           "actual": {
@@ -2376,28 +2336,28 @@
           }
         },
         {
-          "ifThen": "若 higher-for-longer 预期延续且无鸽派意外, 则 2Y 维持上行动能",
-          "invalidation": "5 个交易日内 DGS2 收盘较今日 4.20% 下行超过 12bp (跌破 4.08%) 则失效",
+          "ifThen": "若 higher-for-longer 预期延续且无衰退信号, 则 2Y 维持上行偏向.",
+          "invalidation": "未来 20 日内 DGS2 回落至 3.90% 下方, 或 2s10s 显著转陡至 0.60% 上方 (牛陡), 则证伪.",
           "asset": "DGS2",
           "direction": "up",
-          "horizon": "h_5d",
-          "confidence": 0.58,
+          "horizon": "h_20d",
+          "confidence": 0.65,
           "keyFactors": [
             {
-              "label": "短端急升",
-              "detail": "2Y 升 15bp 至 4.20%, 20 日 +16bp"
+              "label": "短端动量",
+              "detail": "2Y 20 日 +21bp"
             },
             {
-              "label": "曲线熊平",
-              "detail": "2s10s 收窄 9bp 至 0.29%"
+              "label": "因子合成",
+              "detail": "综合 +0.62, 趋势 +0.88"
             },
             {
-              "label": "政策再定价",
-              "detail": "fomc 事件提及, higher-for-longer"
+              "label": "实际利率上行",
+              "detail": "real_rate rising regime"
             },
             {
-              "label": "因子偏多",
-              "detail": "2Y 综合 +0.47, 趋势 +0.72 动量 +0.53"
+              "label": "曲线走平",
+              "detail": "2s10s 20 日 -8bp"
             }
           ],
           "actual": {
@@ -2413,37 +2373,31 @@
       "impacts": [
         {
           "asset": "纳指",
-          "watch": "实际利率上行与高位分位下的回调风险, 关注是否跌破 MA200 上方缓冲 (+10.4%) 及 VIX 是否上破 20",
+          "watch": "高位 (52 周分位 96.9%) 叠加实际利率上行, 关注 VIX 是否升破 20 与能否守住 MA200.",
           "dir": "watch",
           "code": ""
         },
         {
           "asset": "黄金",
-          "watch": "已破 MA200, 实际利率与美元双逆风, 关注能否止跌收复 MA200, 否则下行趋势延续",
+          "watch": "实际利率与美元双逆风 vs 地缘避险的拉锯, 关注实际 10Y 2.0% 一线与伊朗局势进展.",
           "dir": "down",
-          "code": ""
-        },
-        {
-          "asset": "美债2Y",
-          "watch": "短端急升主导熊平, 关注 fomc 政策路径预期与 2Y 是否站稳 4.20% 上方",
-          "dir": "up",
           "code": ""
         },
         {
           "asset": "广义美元",
-          "watch": "与窄口径背离, 实际利率上行下美元未明显走强, 关注背离收敛方向",
+          "watch": "弱势 regime 中的反弹能否突破 MA200, 关注与窄口径背离是否收敛.",
           "dir": "watch",
           "code": ""
         },
         {
-          "asset": "2s10s",
-          "watch": "20 日累计走平 24bp 呈熊平, 关注是否进一步压平至倒挂边缘",
-          "dir": "down",
+          "asset": "美债2Y",
+          "watch": "20 日 +21bp 的短端上行能否延续, 关注 fomc 措辞对 higher-for-longer 预期的影响.",
+          "dir": "up",
           "code": ""
         },
         {
-          "asset": "VIX",
-          "watch": "升至 18.44 但未破 20, 关注 20 关口能否守住以区分回调与系统性 risk-off",
+          "asset": "2s10s",
+          "watch": "走平至 0.41%, 关注是熊陡 (再通胀/财政) 还是进一步压平 (紧缩预期).",
           "dir": "watch",
           "code": ""
         }
@@ -2451,185 +2405,186 @@
     },
     "openai": {
       "tone": "risk-off",
-      "headline": "今日呈现 risk-off 式紧缩冲击: 股指回落, VIX 上行, 2Y 与实际利率抬升, 黄金承压, 美元小幅走强.",
+      "headline": "股指高位回落, 2Y 与实际利率继续上行, 美元反弹叠加黄金走弱, 当日宏观基调偏 risk-off.",
       "facts": [
         {
           "tag": "股市",
-          "text": "标普 500 与纳指同日回落, 日变化分别为 -91.25 点和 -354.68 点, 但仍处于 MA200 上方.",
+          "text": "标普 500 日变动 -56.10, 纳指日变动 -239.92, 两者仍处于 52 周分位 96% 以上.",
           "figures": [
             {
-              "t": "-91.25",
+              "t": "-56.10",
               "dir": "down"
             },
             {
-              "t": "-354.68",
+              "t": "-239.92",
               "dir": "down"
+            }
+          ]
+        },
+        {
+          "tag": "利率",
+          "text": "US2Y 与 US10Y 当日均升 +3bp, 近 20 日分别升 +21bp 与 +13bp.",
+          "figures": [
+            {
+              "t": "+3bp",
+              "dir": "up"
+            },
+            {
+              "t": "+21bp",
+              "dir": "up"
+            },
+            {
+              "t": "+13bp",
+              "dir": "up"
+            }
+          ]
+        },
+        {
+          "tag": "曲线",
+          "text": "2s10s 当日变动 +0bp, 近 20 日收窄 -8bp, 代码 regime 为 normal/flattening.",
+          "figures": [
+            {
+              "t": "+0bp",
+              "dir": "flat"
+            },
+            {
+              "t": "-8bp",
+              "dir": "down"
+            }
+          ]
+        },
+        {
+          "tag": "黄金",
+          "text": "黄金日变动 -54.20, 近 20 日 -5.5%, 较 MA200 为 +0.0% 上方.",
+          "figures": [
+            {
+              "t": "-54.20",
+              "dir": "down"
+            },
+            {
+              "t": "-5.5%",
+              "dir": "down"
+            }
+          ]
+        },
+        {
+          "tag": "美元",
+          "text": "广义美元日变动 +0.35, 近 20 日 +1.1%, 但较 MA200 仍为 -0.3%.",
+          "figures": [
+            {
+              "t": "+0.35",
+              "dir": "up"
+            },
+            {
+              "t": "+1.1%",
+              "dir": "up"
             }
           ]
         },
         {
           "tag": "波动",
-          "text": "VIX 升 2.03 至 18.44, 代码 regime 为 mid/elevated.",
+          "text": "VIX 日变动 +0.29 至 16.06, z-score 为 -0.61, 代码 vol_regime 为 mid/easing.",
           "figures": [
             {
-              "t": "2.03",
+              "t": "+0.29",
               "dir": "up"
-            }
-          ]
-        },
-        {
-          "tag": "利率",
-          "text": "US2Y 日升 +15bp 至 4.20%, US10Y 日升 +6bp 至 4.49%, 实际 10Y 日升 +9bp 至 2.23%.",
-          "figures": [
-            {
-              "t": "+15bp",
-              "dir": "up"
-            },
-            {
-              "t": "+6bp",
-              "dir": "up"
-            },
-            {
-              "t": "+9bp",
-              "dir": "up"
-            }
-          ]
-        },
-        {
-          "tag": "曲线",
-          "text": "2s10s 日变化 -9bp 至 0.29%, 20 日变化 -24bp, 曲线 regime 为 normal/flattening.",
-          "figures": [
-            {
-              "t": "-9bp",
-              "dir": "down"
-            },
-            {
-              "t": "-24bp",
-              "dir": "down"
-            }
-          ]
-        },
-        {
-          "tag": "黄金",
-          "text": "黄金日变化 -73.30, 近 20 日 -6.3%, 较 MA200 -4.8%.",
-          "figures": [
-            {
-              "t": "-73.30",
-              "dir": "down"
-            },
-            {
-              "t": "-6.3%",
-              "dir": "down"
-            },
-            {
-              "t": "-4.8%",
-              "dir": "down"
-            }
-          ]
-        },
-        {
-          "tag": "美元",
-          "text": "广义美元日变化 +0.13, 20 日 +0.2%, 但较 MA200 -0.2%, 且广义 vs 窄口径 20 日收益背离为 -1.4%.",
-          "figures": [
-            {
-              "t": "+0.13",
-              "dir": "up"
-            },
-            {
-              "t": "+0.2%",
-              "dir": "up"
-            },
-            {
-              "t": "-0.2%",
-              "dir": "down"
-            },
-            {
-              "t": "-1.4%",
-              "dir": "down"
             }
           ]
         },
         {
           "tag": "事件",
-          "text": "今日事件提及集中在 fomc 与 geo, 新闻方向预测力标注为弱.",
-          "figures": []
+          "text": "今日事件聚合提及 fomc 与 geo, 新闻信号中纳指净情绪 -0.33, 黄金净情绪 +0.50.",
+          "figures": [
+            {
+              "t": "-0.33",
+              "dir": "down"
+            },
+            {
+              "t": "+0.50",
+              "dir": "up"
+            }
+          ]
         }
       ],
       "reads": [
         {
-          "tag": "宏观",
-          "text": "当前组合更接近 '美元小升 + 实际利率上行 + VIX 上行' 的紧缩冲击, 对长久期权益和无息资产形成共同压力.",
-          "figures": []
-        },
-        {
           "tag": "利率",
-          "text": "2Y 单日 +15bp 且 20 日 +16bp, 指向政策路径或 higher-for-longer 定价升温, 是今日风险资产回撤的核心宏观变量.",
+          "text": "实际 10Y 近 20 日升 +17bp, 通胀预期近 20 日降 -4bp, 组合更像实际贴现率上行而非再通胀主导, 对长久期成长股与黄金形成估值压力.",
           "figures": [
             {
-              "t": "+15bp",
+              "t": "+17bp",
               "dir": "up"
             },
             {
-              "t": "+16bp",
-              "dir": "up"
-            }
-          ]
-        },
-        {
-          "tag": "曲线",
-          "text": "2s10s 20 日 -24bp 的走平, 与 2Y 上行更快相匹配, 更像前端紧缩压力主导, 而非增长乐观驱动的熊陡.",
-          "figures": [
-            {
-              "t": "-24bp",
+              "t": "-4bp",
               "dir": "down"
             }
           ]
         },
         {
           "tag": "股市",
-          "text": "纳指仍较 MA200 上方 10.4%, 趋势项支撑尚未破坏, 但近 20 日 -0.9% 与 VIX 抬升说明短线动量转弱.",
+          "text": "纳指较 MA200 上方 +15.0% 且趋势打分 +1.00, 中期趋势仍强, 但当日股跌, VIX 升, 美元升与利率升共同指向短线风险偏好降温.",
           "figures": [
             {
-              "t": "-0.9%",
-              "dir": "down"
+              "t": "+15.0%",
+              "dir": "up"
             }
           ]
         },
         {
           "tag": "黄金",
-          "text": "黄金同时面对实际利率上行和美元小幅走强, 且自身跌破 MA200, 其负趋势比避险叙事更占主导.",
-          "figures": []
+          "text": "黄金同时面对实际利率上行与广义美元反弹, 且自身近 20 日动量为 -5.5%, 这与宏观传导图中的黄金逆风组合一致.",
+          "figures": [
+            {
+              "t": "-5.5%",
+              "dir": "down"
+            }
+          ]
         },
         {
           "tag": "美元",
-          "text": "广义美元综合接近中性且 z=-0.40, 说明美元不是单边强趋势, 但若利率冲击继续, 避险与利差因素可能阶段性支撑美元.",
+          "text": "广义美元短线动量为 +1.1%, 但仍低于 MA200 -0.3% 且综合打分仅 +0.03, 更像弱趋势中的反弹, 不是已确认的上行趋势.",
+          "figures": [
+            {
+              "t": "+1.1%",
+              "dir": "up"
+            },
+            {
+              "t": "-0.3%",
+              "dir": "down"
+            }
+          ]
+        },
+        {
+          "tag": "曲线",
+          "text": "2Y 近 20 日升幅大于 10Y 且曲线收窄, 说明政策路径或 higher-for-longer 定价比期限溢价更占主导.",
           "figures": []
         }
       ],
       "hypotheses": [
         {
-          "ifThen": "若 VIX 未突破 20 且 NASDAQCOM 维持在 26,021.66 附近上方, 则 20 日内反弹延续的概率略高.",
-          "invalidation": "若 NASDAQCOM 在未来 5 个交易日内收盘低于 26,021.66, 则 h_20d 上行假设失效.",
+          "ifThen": "若 NASDAQCOM 维持高位趋势且 VIX 不显著上破 20, 则 20 日方向仍偏上.",
+          "invalidation": "若 NASDAQCOM 在未来 5 个交易日任一收盘低于 26,000, 则 h_20d 上行假设失效.",
           "asset": "NASDAQCOM",
           "direction": "up",
           "horizon": "h_20d",
-          "confidence": 0.57,
+          "confidence": 0.62,
           "keyFactors": [
-            {
-              "label": "MA200 上方",
-              "detail": "纳指较 MA200 +10.4%(上方)"
-            },
             {
               "label": "综合偏多",
-              "detail": "纳指综合 +0.39↑, 代码信心 70%"
+              "detail": "纳指综合 +0.56↑, 代码信心 78%"
             },
             {
-              "label": "短动量弱",
-              "detail": "纳指近 20 日 -0.9%"
+              "label": "趋势强",
+              "detail": "纳指趋势 +1.00, 较 MA200 上方 +15.0%"
             },
             {
-              "label": "波动中高",
-              "detail": "VIX 18.44(z=0.10), vol_regime=mid/elevated"
+              "label": "动量正",
+              "detail": "纳指近 20 日 +3.9%, 动量 +0.39"
+            },
+            {
+              "label": "波动中性",
+              "detail": "VIX 16.06, z=-0.61, vol_regime=mid/easing"
             }
           ],
           "actual": {
@@ -2642,28 +2597,28 @@
           }
         },
         {
-          "ifThen": "若实际 10Y 维持 rising regime 且 XAUUSD 仍低于 4,258.1, 则黄金下行压力仍占优.",
-          "invalidation": "若 XAUUSD 在未来 10 个交易日内连续 3 日收盘高于 4,258.1, 则 h_20d 下行假设失效.",
+          "ifThen": "若实际利率与美元继续维持上行压力, 则黄金 5 日内仍偏下.",
+          "invalidation": "若 XAUUSD 在未来 5 个交易日任一收盘高于 4,550, 则 h_5d 下行假设失效.",
           "asset": "XAUUSD",
           "direction": "down",
-          "horizon": "h_20d",
-          "confidence": 0.66,
+          "horizon": "h_5d",
+          "confidence": 0.59,
           "keyFactors": [
             {
-              "label": "MA200 下方",
-              "detail": "黄金较 MA200 -4.8%(下方)"
-            },
-            {
-              "label": "动量偏弱",
-              "detail": "黄金近 20 日 -6.3%"
-            },
-            {
               "label": "综合偏空",
-              "detail": "黄金综合 -0.49↓, 代码信心 74%"
+              "detail": "黄金综合 -0.22↓, 代码信心 61%"
             },
             {
-              "label": "实际利率升",
-              "detail": "实际 10Y 日变化 +9bp, 20 日 +10bp"
+              "label": "动量转弱",
+              "detail": "黄金近 20 日 -5.5%, 动量 -0.55"
+            },
+            {
+              "label": "贴现逆风",
+              "detail": "实际 10Y 2.11%, 近 20 日 +17bp"
+            },
+            {
+              "label": "美元逆风",
+              "detail": "广义美元近 20 日 +1.1%"
             }
           ],
           "actual": {
@@ -2676,28 +2631,28 @@
           }
         },
         {
-          "ifThen": "若 DTWEXBGS 继续围绕 119.39 波动且综合分数维持接近 0, 则 5 日内更可能横盘.",
-          "invalidation": "若 DTWEXBGS 在未来 5 个交易日内收盘高于 119.39 且 20 日变化继续为正, 或收盘低于 119.39 且 20 日变化转负, 则 h_5d 横盘假设失效.",
+          "ifThen": "若 DTWEXBGS 维持在 118.20 至 120.60 区间内, 则 5 日方向更接近横盘.",
+          "invalidation": "若 DTWEXBGS 在未来 5 个交易日任一收盘高于 120.60 或低于 118.20, 则 h_5d 横盘假设失效.",
           "asset": "DTWEXBGS",
           "direction": "flat",
           "horizon": "h_5d",
-          "confidence": 0.51,
+          "confidence": 0.52,
           "keyFactors": [
             {
               "label": "综合中性",
-              "detail": "广义美元综合 -0.00→, 代码信心 50%"
+              "detail": "广义美元综合 +0.03→, 代码信心 51%"
             },
             {
-              "label": "趋势近中性",
-              "detail": "广义美元较 MA200 -0.2%, 20 日 +0.2%"
+              "label": "趋势偏弱",
+              "detail": "广义美元较 MA200 -0.3%, dollar=weak"
             },
             {
-              "label": "z 值偏低",
-              "detail": "广义美元 z=-0.40"
+              "label": "短动量正",
+              "detail": "广义美元近 20 日 +1.1%, z=-0.42"
             },
             {
-              "label": "口径背离",
-              "detail": "广义 vs 窄口径 20 日收益背离 -1.4%"
+              "label": "背离信号",
+              "detail": "广义 vs 窄口径 20 日收益背离 -0.8%"
             }
           ],
           "actual": {
@@ -2710,28 +2665,28 @@
           }
         },
         {
-          "ifThen": "若 fomc 相关定价继续推动前端利率且 DGS2 守在 4.20% 上方, 则 5 日内上行惯性仍在.",
-          "invalidation": "若 DGS2 在未来 5 个交易日内收盘低于 4.20%, 则 h_5d 上行假设失效.",
+          "ifThen": "若 higher-for-longer 定价延续且 2Y 未快速回落, 则 5 日内 US2Y 仍偏上.",
+          "invalidation": "若 DGS2 在未来 5 个交易日任一收盘低于 3.98%, 则 h_5d 上行假设失效.",
           "asset": "DGS2",
           "direction": "up",
           "horizon": "h_5d",
-          "confidence": 0.64,
+          "confidence": 0.68,
           "keyFactors": [
             {
-              "label": "日升明显",
-              "detail": "US2Y 日变化 +15bp"
-            },
-            {
-              "label": "20 日上行",
-              "detail": "2Y 20 日 +16bp"
-            },
-            {
               "label": "综合偏多",
-              "detail": "2Y 综合 +0.47↑, 代码信心 74%"
+              "detail": "2Y 综合 +0.62↑, 代码信心 81%"
             },
             {
-              "label": "曲线走平",
-              "detail": "2s10s 20 日 -24bp"
+              "label": "趋势强",
+              "detail": "2Y 趋势 +0.88"
+            },
+            {
+              "label": "动量强",
+              "detail": "2Y 动量 +0.70, 近 20 日 +21bp"
+            },
+            {
+              "label": "政策定价",
+              "detail": "US2Y 当日 +3bp 至 4.08%"
             }
           ],
           "actual": {
@@ -2747,37 +2702,37 @@
       "impacts": [
         {
           "asset": "纳指",
-          "watch": "观察 MA200 上方趋势能否抵消 2Y 与实际利率上行带来的估值压力.",
+          "watch": "观察强趋势能否抵消 2Y 与实际利率上行带来的估值压力, 关键在 VIX 是否继续上行.",
           "dir": "watch",
           "code": ""
         },
         {
           "asset": "黄金",
-          "watch": "实际利率 rising 与美元小升仍是主要逆风, 关注是否能重新站回 4,258.1.",
+          "watch": "实际利率上行与美元反弹仍是主要逆风, 若避险叙事不能接力, 短线下行风险仍在.",
           "dir": "down",
           "code": ""
         },
         {
           "asset": "广义美元",
-          "watch": "综合分数接近 0 且口径背离扩大, 方向信号弱于利率和波动信号.",
+          "watch": "短线动量转正但中期趋势未修复, 观察能否重新站稳 MA200 上方.",
           "dir": "watch",
           "code": ""
         },
         {
           "asset": "美债2Y",
-          "watch": "2Y 的趋势和动量均偏上, 是检验 higher-for-longer 定价是否延续的关键观察点.",
+          "watch": "2Y 综合与动量信号偏强, 继续观察 FOMC 相关信息是否强化 higher-for-longer 定价.",
           "dir": "up",
           "code": ""
         },
         {
           "asset": "2s10s",
-          "watch": "前端利率上行快于长端, 曲线继续走平将强化紧缩压力叙事.",
+          "watch": "20 日收窄显示政策端利率压力更强, 若 2Y 继续上行快于 10Y, 曲线仍有走平风险.",
           "dir": "down",
           "code": ""
         },
         {
           "asset": "VIX",
-          "watch": "VIX 已进入 15-20 区间上部, 若上破 20, risk-off 信号会更清晰.",
+          "watch": "当前仍是中波动区间, 但股跌与 VIX 升同步出现, 需要观察是否从震荡转向 risk-off 扩散.",
           "dir": "up",
           "code": ""
         }
@@ -2787,15 +2742,15 @@
   "consensus": [
     {
       "asset": "NASDAQCOM",
-      "direction": "down",
+      "direction": "up",
       "votes": {
-        "up": 1,
-        "down": 2,
+        "up": 2,
+        "down": 1,
         "flat": 0
       },
       "n": 3,
       "agree": 2,
-      "meanConfidence": 0.6,
+      "meanConfidence": 0.61,
       "actual": {
         "status": "pending",
         "realizedDir": null,
@@ -2815,7 +2770,7 @@
       },
       "n": 3,
       "agree": 3,
-      "meanConfidence": 0.66,
+      "meanConfidence": 0.5967,
       "actual": {
         "status": "pending",
         "realizedDir": null,
@@ -2835,7 +2790,7 @@
       },
       "n": 3,
       "agree": 2,
-      "meanConfidence": 0.53,
+      "meanConfidence": 0.51,
       "actual": {
         "status": "pending",
         "realizedDir": null,
@@ -2855,7 +2810,7 @@
       },
       "n": 3,
       "agree": 3,
-      "meanConfidence": 0.6067,
+      "meanConfidence": 0.6433,
       "actual": {
         "status": "pending",
         "realizedDir": null,
