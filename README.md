@@ -27,6 +27,8 @@
 
 ## 架构:纯 Python 数据管线
 
+> 完整 end-to-end 数据链路图 + 逐段拆解见 [docs/architecture.md](docs/architecture.md)。
+
 强制分层,**代码算数字、LLM 只解释**;层间通过共享文件协作(git-as-database):
 
 ```
