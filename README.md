@@ -70,7 +70,8 @@ py/newsletter/             # 纯 Python 数据管线
   pipeline.py __main__.py  # 编排(target_date 贯穿)+ CLI
   framework/linkage_map.md # 核心 IP:人工维护的宏观传导图
   factors.py evaluate.py   # 量化因子层(因子打分+代码基线+波动率)+ 评估层(技能/校准/Brier)
-  tests/                   # 93 个离线单测(含特征因果性红线)
+  news/                    # 新闻多接口(RSS + TheNewsAPI)+ 抽取/分类/特征
+  tests/                   # 124 个离线单测(含特征因果性红线)
 data/                      # git-as-database
   raw/latest/*.parquet     # 原始全量快照(history/ 归档已 gitignore)
   briefs/<date>.{md,json}  # 每日简报(人读 + 单日 JSON)

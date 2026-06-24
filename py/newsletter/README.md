@@ -56,7 +56,7 @@
 | `__main__.py` | CLI:`--date` / `--no-news` / `--history-years` / `-v` |
 | `deliver/feishu.py` | 飞书机器人推送(HMAC 签名可选;失败不阻断,已存 md) |
 | `framework/linkage_map.md` | 核心 IP:人工维护的宏观传导图,运行时读入喂给 LLM |
-| `tests/` | 93 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析/补单位 + 关键因子 label/detail 拆分 + 预测账本 record/到期结算/命中 + apply_actuals 加固 + 多模型视图/共识 + 影响层 asset 规范化 + 向后兼容旧 str[] facts 与旧扁平 brief 迁移 + **因子合成/kind 分支/EWMA** + **confidence 语义钉死** + **评估层技能/校准/Brier 手算/_factor 选手/老行容错**) |
+| `tests/` | 124 个离线单测(录制响应 + 手算核对 + **特征因果性红线** + textnorm 全覆盖 + figures 解析/补单位 + 关键因子 label/detail 拆分 + 预测账本 record/到期结算/命中 + apply_actuals 加固 + 多模型视图/共识/roster 夹紧 + 影响层 asset 规范化 + 向后兼容旧 str[] facts 与旧扁平 brief 迁移 + **因子合成/kind 分支/EWMA** + **confidence 语义钉死** + **评估层技能/校准/Brier 手算/_factor 选手/老行容错** + **新闻 provider/多key/选源/去重/RSS 解析/正文抽取/死链/新闻特征/A-B 臂**) |
 
 ## 数据源分工(已接入)
 
