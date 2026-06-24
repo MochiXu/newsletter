@@ -1,5 +1,5 @@
 import { useEffect, useRef, type CSSProperties } from 'react'
-import type { Brief, Route, Tweaks } from '../../types'
+import type { Brief, Route, Scorecard, Tweaks } from '../../types'
 import { nav } from '../../lib/hooks'
 import { modelLabel, resolveModel, viewOf } from '../../lib/format'
 import { tzLabel, usCloseLocal } from '../../lib/tz'
@@ -15,6 +15,7 @@ interface Props {
   model: string // 选中的模型 id(空 = 用各日主模型)
   route: Route
   tweaks: Tweaks
+  scorecard: Scorecard | null
 }
 
 function ReturnBar({ from }: { from?: string; detail?: string }) {
@@ -67,7 +68,7 @@ const dataCol: CSSProperties = {
   gap: 18,
 }
 
-export default function BriefPage({ briefs, model, route, tweaks }: Props) {
+export default function BriefPage({ briefs, model, route, tweaks, scorecard }: Props) {
   const receiptRef = useRef<HTMLDivElement>(null)
   const isAgg = !!route.date && route.gran && route.gran !== 'day'
   const idx = route.date ? Math.max(0, briefs.findIndex((b) => b.date === route.date)) : 0
@@ -152,7 +153,13 @@ export default function BriefPage({ briefs, model, route, tweaks }: Props) {
             <MarketData metrics={b.metrics} showSparklines={tweaks.showSparklines} />
             <PriceChart priceSeries={b.priceSeries} />
             <SignalsCard signals={b.signals} regime={b.regime} />
-            <HypothesisPanel hypotheses={view.hypotheses} consensus={b.consensus} />
+            <HypothesisPanel
+              hypotheses={view.hypotheses}
+              consensus={b.consensus}
+              factors={b.factors}
+              scorecard={scorecard}
+              modelId={activeModel}
+            />
           </div>
           {/* 右列:事实 / 解读 / 影响 / 新闻(影响层下,缺失自动隐藏) / 复盘 */}
           <div style={dataCol}>

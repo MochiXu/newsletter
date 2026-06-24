@@ -1,4 +1,6 @@
-import type { Actual, ConsensusItem, Horizon, Hypothesis, Impact, KeyFactor, TaggedItem } from '../../types'
+import type {
+  Actual, ConsensusItem, FactorView, Horizon, Hypothesis, Impact, KeyFactor, PredDir, Scorecard, TaggedItem,
+} from '../../types'
 import { ASSET_CN, dirInfo, HORIZON_CN, PRED_DIR } from '../../lib/format'
 import { renderRichText } from '../../lib/highlight'
 import { Card, SectionHead } from '../../components/Card'
@@ -117,7 +119,7 @@ function ActualLine({ a, horizon }: { a?: Actual | null; horizon: Horizon }) {
 }
 
 // 跨模型共识行(代码级投票,非某模型观点)。仅在 ≥2 模型(consensus 非空)时由 BriefPage 传入。
-function ConsensusRow({ items }: { items: ConsensusItem[] }) {
+function ConsensusRow({ items, factors }: { items: ConsensusItem[]; factors?: Record<string, FactorView> }) {
   const order = ['up', 'down', 'flat'] as const
   return (
     <div
@@ -137,6 +139,8 @@ function ConsensusRow({ items }: { items: ConsensusItem[] }) {
       </div>
       {items.map((c) => {
         const d = PRED_DIR[c.direction]
+        const fv = factors?.[c.asset.toLowerCase()]
+        const bd = fv ? PRED_DIR[fv.baselineDir] : null
         return (
           <div
             key={c.asset}
@@ -150,6 +154,17 @@ function ConsensusRow({ items }: { items: ConsensusItem[] }) {
               {c.agree}/{c.n} 认同
               {c.meanConfidence > 0 && ` · 均值信心 ${Math.round(c.meanConfidence * 100)}%`}
             </span>
+            {bd && (
+              <Tooltip
+                content={`代码因子基线今日方向(趋势/动量/价值合成);与共识${fv && fv.baselineDir === c.direction ? '一致' : '分歧'}。因子是 AI 的陪练标尺。`}
+                width={220}
+                style={{ flex: '0 0 auto', cursor: 'help' }}
+              >
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--ink2)', borderBottom: '1px dotted var(--hair)' }}>
+                  基线 <span style={{ color: bd.col }}>{bd.ch}</span>
+                </span>
+              </Tooltip>
+            )}
             {c.actual &&
               (c.actual.status === 'settled' && c.actual.realizedDir ? (
                 <span style={{ fontFamily: 'var(--mono)', fontSize: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -181,7 +196,57 @@ function ConsensusRow({ items }: { items: ConsensusItem[] }) {
   )
 }
 
-function PredictionCard({ h }: { h: Hypothesis }) {
+// 信心校准提示:从 scorecard 找该模型(B 臂优先)对应信心档的历史实际命中率,挂进信心 tooltip。
+function calibHint(sc: Scorecard | null | undefined, modelId: string, conf: number): string {
+  if (!sc) return ''
+  const lane = sc.models[`${modelId}·B`] ? `${modelId}·B` : sc.models[modelId] ? modelId : ''
+  if (!lane) return ''
+  const b = sc.models[lane].calibration.find((x) => conf >= x.lo && conf < x.hi)
+  if (!b || !b.n || b.realized == null) return ''
+  const src = sc.source === 'forward' ? '前向' : 'backfill·含记忆污染仅供参考'
+  return ` ｜ 校准:该模型报此信心档,历史实际命中 ${Math.round(b.realized * 100)}%(n=${b.n}·${src})`
+}
+
+// 预测卡的「代码因子对照」条:AI 之外,代码因子模型(陪练标尺)今日怎么看 + 因子打分 + 波动率预测。
+function FactorStrip({ factor, aiDir }: { factor: FactorView; aiDir: PredDir }) {
+  const bd = PRED_DIR[factor.baselineDir]
+  const disagree = factor.baselineDir !== aiDir
+  const sc = factor.scores || {}
+  const chip = (label: string, v: number | undefined) =>
+    v == null ? null : (
+      <span key={label} style={{ border: '1px solid var(--hair)', borderRadius: 3, padding: '1px 5px', color: 'var(--ink2)' }}>
+        {label} <span style={{ color: v > 0 ? 'var(--up)' : v < 0 ? 'var(--down)' : 'var(--ink2)' }}>{v >= 0 ? '+' : ''}{v.toFixed(2)}</span>
+      </span>
+    )
+  return (
+    <div style={{ background: 'var(--paper)', border: '1px solid var(--faint)', borderRadius: 4, padding: '6px 8px', marginTop: 7 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--ink2)' }}>代码因子(陪练)</span>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: bd.col, fontWeight: 700 }}>
+          {bd.ch} {bd.lab} {factor.composite >= 0 ? '+' : ''}{factor.composite.toFixed(2)}
+        </span>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--ink2)' }}>信心 {Math.round(factor.baselineConf * 100)}%</span>
+        {disagree && (
+          <span style={{ fontSize: 9, color: 'var(--accent)', border: '1px solid var(--faint)', borderRadius: 3, padding: '0 5px' }}>
+            与 AI 分歧
+          </span>
+        )}
+      </div>
+      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', fontFamily: 'var(--mono)', fontSize: 9 }}>
+        {chip('趋势', sc.trend)}
+        {chip('动量', sc.momentum)}
+        {chip('价值', sc.value)}
+        {factor.volForecastAnn > 0 && (
+          <span style={{ border: '1px solid var(--hair)', borderRadius: 3, padding: '1px 5px', color: 'var(--ink2)' }}>
+            波动预测 <span style={{ color: 'var(--ink)' }}>{Math.round(factor.volForecastAnn * 100)}%</span>
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function PredictionCard({ h, factor, hint }: { h: Hypothesis; factor?: FactorView; hint?: string }) {
   const d = PRED_DIR[h.direction]
   return (
     <div style={{ background: 'var(--paper2)', borderRadius: 5, padding: '10px 11px', marginBottom: 7 }}>
@@ -206,7 +271,7 @@ function PredictionCard({ h }: { h: Hypothesis }) {
           <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--ink2)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               信心 {Math.round(h.confidence * 100)}%
-              <InfoHint text="AI 模型对本条预测的信心自评:它自己判断这个方向有多大把握会兑现。属模型主观估计、未经校准,不是真实概率,仅供同期横向参考。" />
+              <InfoHint text={'AI 模型对本条预测的信心自评:它自己判断这个方向有多大把握会兑现。属模型主观估计、未经校准,不是真实概率,仅供同期横向参考。' + (hint || '')} />
             </span>
             <span style={{ width: 42, height: 4, borderRadius: 3, background: 'var(--hair)', overflow: 'hidden' }}>
               <span
@@ -230,6 +295,7 @@ function PredictionCard({ h }: { h: Hypothesis }) {
           ))}
         </div>
       )}
+      {factor && <FactorStrip factor={factor} aiDir={h.direction} />}
       <ActualLine a={h.actual} horizon={h.horizon} />
     </div>
   )
@@ -282,13 +348,36 @@ export function ReadsPanel({ reads }: { reads: TaggedItem[] }) {
   )
 }
 
-/** 假设层 = 预测卡(多模型时上方先给跨模型共识)。 */
-export function HypothesisPanel({ hypotheses, consensus = [] }: { hypotheses: Hypothesis[]; consensus?: ConsensusItem[] }) {
+/** 假设层 = 预测卡(多模型时上方先给跨模型共识);带因子对照 + 信心校准提示(scorecard)。 */
+export function HypothesisPanel({
+  hypotheses,
+  consensus = [],
+  factors,
+  scorecard,
+  modelId = '',
+}: {
+  hypotheses: Hypothesis[]
+  consensus?: ConsensusItem[]
+  factors?: Record<string, FactorView>
+  scorecard?: Scorecard | null
+  modelId?: string
+}) {
   return (
     <Card punch>
       <SectionHead label="HYPOTHESIS" zh="假设层 · 预测" margin="0 0 8px" />
-      {consensus.length > 0 && <ConsensusRow items={consensus} />}
-      {hypotheses.length ? hypotheses.map((h, i) => <PredictionCard key={i} h={h} />) : <Muted />}
+      {consensus.length > 0 && <ConsensusRow items={consensus} factors={factors} />}
+      {hypotheses.length ? (
+        hypotheses.map((h, i) => (
+          <PredictionCard
+            key={i}
+            h={h}
+            factor={factors?.[h.asset.toLowerCase()]}
+            hint={calibHint(scorecard, modelId, h.confidence)}
+          />
+        ))
+      ) : (
+        <Muted />
+      )}
     </Card>
   )
 }

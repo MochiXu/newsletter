@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { BriefsPayload, ThemeMode, Tweaks } from './types'
-import { loadBriefs } from './data/load'
+import type { BriefsPayload, Scorecard, ThemeMode, Tweaks } from './types'
+import { loadBriefs, loadScorecard } from './data/load'
 import { allModels } from './lib/format'
 import { readTheme, readTweaks, useHashRoute, useIsMobile, writeTheme, writeTweaks } from './lib/hooks'
 import Header from './components/Header'
@@ -43,6 +43,7 @@ export default function App() {
   const [themeMode, setThemeMode] = useState<ThemeMode>(readTheme)
   const [tweaks, setTweaksState] = useState<Tweaks>(readTweaks)
   const [payload, setPayload] = useState<BriefsPayload | null>(null)
+  const [scorecard, setScorecard] = useState<Scorecard | null>(null)
   const [selectedModel, setSelectedModel] = useState<string>('')
   const rootRef = useRef<HTMLDivElement>(null)
   const route = useHashRoute()
@@ -50,6 +51,7 @@ export default function App() {
 
   useEffect(() => {
     loadBriefs().then(setPayload)
+    loadScorecard().then(setScorecard)
   }, [])
 
   const briefs = payload?.briefs ?? []
@@ -87,8 +89,8 @@ export default function App() {
   else if (briefs.length === 0) body = <EmptyState />
   else if (route.page === 'timeline')
     body = <TimelinePage briefs={briefs} route={route} isMobile={isMobile} model={selectedModel} />
-  else if (route.page === 'track') body = <TrackPage mode={route.mode ?? 'year'} />
-  else body = <BriefPage briefs={briefs} model={selectedModel} route={route} tweaks={tweaks} />
+  else if (route.page === 'track') body = <TrackPage mode={route.mode ?? 'year'} scorecard={scorecard} />
+  else body = <BriefPage briefs={briefs} model={selectedModel} route={route} tweaks={tweaks} scorecard={scorecard} />
 
   return (
     <div

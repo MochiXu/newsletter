@@ -54,6 +54,15 @@ export interface KeyFactor {
   detail: string
 }
 
+/** 单资产的量化因子视图(代码算,v1.6 因子层)。AI 的"陪练标尺"。 */
+export interface FactorView {
+  scores: Record<string, number> // trend / momentum / value(约 [-1,1])
+  composite: number // 方向合成分
+  baselineDir: PredDir // 代码基线方向
+  baselineConf: number // 代码基线信心(0~1,未校准)
+  volForecastAnn: number // EWMA 年化波动预测
+}
+
 /** 预测的实际结果(到 horizon 期满由后端预测账本回填:代码裁决 + LLM 复盘叙述)。 */
 export interface Actual {
   status: 'pending' | 'settled' // pending=还没到验证时刻(沙漏)
@@ -131,6 +140,7 @@ export interface Brief {
   signals: Signal[]
   regime: Record<string, string>
   priceSeries: Record<string, PricePoint[]>
+  factors?: Record<string, FactorView> // 量化因子层(key=series_id 小写;v1.6,旧数据可能无)
   reviews: Review[]
   news: News[]
   // 多模型解释层
@@ -143,6 +153,41 @@ export interface BriefsPayload {
   model: string
   generatedAt: string
   briefs: Brief[]
+}
+
+// ── 评估层 scorecard(v1.6 evaluate.py → data/scorecard.json)──────────────────
+/** 单元格:某 lane × 资产 × horizon 的技能/基线/Brier(值可能 null=样本不足)。 */
+export interface ScoreCell {
+  n: number
+  hit: number | null
+  driftBaseline: number | null
+  momentumBaseline: number | null
+  factorBaseline: number | null
+  skill: number | null
+  brier: number | null
+  brierBaseline: number | null
+}
+/** 信心校准一桶:自报 vs 实际命中频率。 */
+export interface CalibBucket {
+  lo: number
+  hi: number
+  n: number
+  stated: number | null
+  realized: number | null
+}
+/** 一个参赛 lane(= 模型·臂,如 deepseek·B,或 _factor)的打分。 */
+export interface LaneScore {
+  n: number
+  overall: { n: number; hit: number | null; brier: number | null; brierBaseline: number | null }
+  byAsset: Record<string, Record<string, ScoreCell>>
+  calibration: CalibBucket[]
+}
+/** scorecard.json:source 诚实标注(forward 干净 / backfill 含记忆污染 / mixed)。 */
+export interface Scorecard {
+  asOf: string
+  source: 'forward' | 'backfill' | 'mixed'
+  buckets: [number, number][]
+  models: Record<string, LaneScore>
 }
 
 // ── 命中率 / 区间聚合(V2 评估层产出;当前后端不产 → 前端按 null 走空态)──────────
