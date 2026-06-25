@@ -72,6 +72,26 @@ def build_feature_block(
             parts.append(f"252日最大回撤 {_pct(dd)}")
         out.append(f"- {name}:" + ";".join(parts))
 
+    # 2b) 二阶 / 轨迹(v1.7:动量在加速/熄火、趋势斜率、波动比、FIP 连续度;均代码算)
+    so_lines: list[str] = []
+    for sid, name in (("NASDAQCOM", "纳指"), ("XAUUSD", "黄金"), ("DTWEXBGS", "广义美元")):
+        mc, sl, vr, fp = g(f"{sid}_mom_chg_20"), g(f"{sid}_trend_slope_20"), g(f"{sid}_vol_ratio_20_60"), g(f"{sid}_fip_60")
+        if mc is None and sl is None and fp is None:
+            continue
+        parts: list[str] = []
+        if mc is not None:
+            parts.append(f"动量变化 {_pct(mc)}({'加速' if mc > 0 else '熄火'})")
+        if sl is not None:
+            parts.append(f"趋势斜率 {_f(sl, 4)}")
+        if vr is not None:
+            parts.append(f"波动比 {_f(vr)}")
+        if fp is not None:
+            parts.append(f"连续度 {_f(fp)}")
+        so_lines.append(f"- {name}:" + ";".join(parts))
+    if so_lines:
+        out.append("\n### 二阶 / 轨迹(动量加速度 · 趋势斜率 · 波动比 · FIP 连续度;连续度<0=连续动量易延续,>0=跳跃式易反转)")
+        out.extend(so_lines)
+
     # 3) 利率与通胀
     out.append("\n### 利率与通胀")
     out.append(
@@ -134,18 +154,42 @@ def build_feature_block(
         out.append("\n### 月频宏观(最新读数,仅背景)")
         out.append("- " + ";".join(f"{m['label']} {m['value']}({m['obs_date']})" for m in macro))
 
-    # 9) 新闻信号(仅 B 臂;代码聚合,非裸情绪散文)
+    # 9) 新闻信号(仅 B 臂;代码聚合,非裸情绪散文。v1.8:截面 + 滚动时序 + EPU/GPR/鹰鸽)
     if news_features and news_features.get("total"):
-        out.append("\n### 新闻信号(代码聚合,供参考;新闻方向预测力弱,勿据此过度自信)")
+        out.append("\n### 新闻信号(代码聚合,供参考;新闻方向力弱[反身性]→ 主用于事件/不确定性/背离,勿据此过度自信)")
         ev = [k for k, v in (news_features.get("events") or {}).items() if v]
         if ev:
-            out.append("- 今日事件提及:" + "、".join(ev))
+            out.append("- 今日事件类型:" + "、".join(ev))
+        # 全局:政策不确定性 / 地缘 / 鹰鸽语调(代码算)
+        glob: list[str] = []
+        if news_features.get("epu") is not None:
+            glob.append(f"政策不确定 EPU {news_features['epu']:.2f}")
+        if news_features.get("gpr") is not None:
+            glob.append(f"地缘 GPR {news_features['gpr']:.1f}")
+        if news_features.get("hawkishDovish") is not None:
+            hd = news_features["hawkishDovish"]
+            glob.append(f"鹰鸽 {hd:+.2f}({'偏鹰' if hd > 0 else '偏鸽'})")
+        if glob:
+            out.append("- 全局:" + " · ".join(glob))
+        trends = news_features.get("trends") or {}
         for sid, nf in (news_features.get("byAsset") or {}).items():
             head = nf.get("headlines") or []
-            out.append(
-                f"- {_FACTOR_CN.get(sid, sid)}:{nf['count']} 条,净情绪 {nf['netSentiment']:+.2f}"
-                + (f";头条「{head[0][:50]}」" if head else "")
-            )
+            ns = nf.get("netSentiment")
+            line = f"- {_FACTOR_CN.get(sid, sid)}:{nf['count']} 条,净情绪 {ns:+.2f}" if ns is not None else f"- {_FACTOR_CN.get(sid, sid)}:{nf['count']} 条"
+            if nf.get("sentimentDispersion") is not None:
+                line += f",分歧 {nf['sentimentDispersion']:.2f}"
+            tr = trends.get(sid) or {}
+            if tr.get("sentMean20") is not None:
+                line += f";20日情绪 {tr['sentMean20']:+.2f}"
+            if tr.get("sentMomentum") is not None:
+                line += f",走势 {tr['sentMomentum']:+.3f}({'转好' if tr['sentMomentum'] > 0 else '转差'})"
+            if tr.get("volumeZ") is not None:
+                line += f",量z {tr['volumeZ']:+.1f}"
+            if tr.get("divergence") is not None:
+                line += f",情绪-价格背离 {tr['divergence']:+.2f}"
+            if head:
+                line += f";头条「{head[0][:50]}」"
+            out.append(line)
 
     return "\n".join(out)
 
@@ -165,8 +209,9 @@ def build_user(feature_block: str, linkage_map: str) -> str:
         "事实层 = **精选**关键客观观察 + 当日事件(别逐条复述每个收盘价——已在数据表;挑值得注意的:"
         "异动、极值、背离、跨资产关系等),每条 {tag,text} 带主题标签;"
         "解读层 = 因果/机制判断(当前 regime、特征含义),每条 {tag,text} 标注所针对主题;"
-        "假设层 = 对固定的纳指/黄金/广义美元/2Y 四个方向**各给且只给一条由特征驱动的预测**"
-        "(写明 direction/horizon/confidence/key_factors 与可度量失效条件,低把握给低 confidence,禁止凑数);"
+        "假设层 = 对固定的纳指/黄金/广义美元/2Y **四个资产 × {5d,20d,60d} 三个期限的网格各给一条**(共 12 条)"
+        "由特征驱动的预测(每个 资产×期限 恰好一条、不重不漏;同资产不同期限可给不同方向/信心 = 期限结构;"
+        "写明 direction/horizon/confidence/key_factors 与可度量失效条件,低把握给低 confidence,禁止凑数);"
         "影响层给观察点并标注 direction;另给当日 tone。"
         "若接口不支持函数调用,直接输出符合 emit_brief 参数结构的 JSON,不要包裹多余文字。"
     )

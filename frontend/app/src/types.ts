@@ -120,6 +120,7 @@ export interface ModelView {
 /** 对固定 roster 一个资产的跨模型代码级共识(投票/认同/均值信心,平票→flat)。 */
 export interface ConsensusItem {
   asset: string
+  horizon?: Horizon // v1.7 多 horizon:共识按 (资产×期限) 各一条(旧数据可能无)
   direction: PredDir
   votes: Record<string, number> // {up,down,flat} → 票数
   n: number // 参与模型数

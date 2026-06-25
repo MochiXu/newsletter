@@ -27,7 +27,10 @@ class TestRosterConstraint(unittest.TestCase):
     def test_hypotheses_min_max_locked(self):
         h = schema.BRIEF_SCHEMA["properties"]["hypotheses"]
         self.assertEqual(h["minItems"], h["maxItems"])
-        self.assertEqual(h["minItems"], 4)
+        # v1.7 多 horizon:网格 = 资产数 × 期限数(4 × 3 = 12)
+        self.assertEqual(h["minItems"], schema._GRID_N)
+        self.assertEqual(h["minItems"], len(schema._PRED_IDS) * len(schema._HORIZONS))
+        self.assertEqual(h["items"]["properties"]["horizon"]["enum"], ["h_5d", "h_20d", "h_60d"])  # 砍 next_1d
 
 
 if __name__ == "__main__":

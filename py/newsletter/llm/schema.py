@@ -19,6 +19,10 @@ _PRED_IDS = [sid for sid, _ in _PRED]
 _PRED_N = len(_PRED_IDS)
 _PRED_DESC = "、".join(f"{lab}={sid}" for sid, lab in _PRED)
 
+# v1.7 多 horizon:对每个资产 × 固定期限网格各给一条(砍 next_1d:单日方向纯噪音)。
+_HORIZONS = ["h_5d", "h_20d", "h_60d"]
+_GRID_N = _PRED_N * len(_HORIZONS)  # 资产数 × 期限数 = 预测总条数
+
 # 主题标签受控词表单一源在 models.FACT_TAGS(coercion 落库时也按它兜底,避免越界 tag)。
 _TAG_ENUM = list(FACT_TAGS)
 
@@ -78,17 +82,18 @@ BRIEF_SCHEMA: dict = {
         },
         "hypotheses": {
             "type": "array",
-            "minItems": _PRED_N,
-            "maxItems": _PRED_N,
+            "minItems": _GRID_N,
+            "maxItems": _GRID_N,
             "description": (
-                f"假设层 = 对固定 {_PRED_N} 个方向各给且只给一条由特征驱动的预测;"
-                f"asset 必须恰好覆盖且不重复:{_PRED_DESC}。禁止凑数;低把握给低 confidence;"
+                f"假设层 = 对 {_PRED_N} 个资产 × {len(_HORIZONS)} 个期限({'/'.join(_HORIZONS)})的**网格各给一条**,"
+                f"共 {_GRID_N} 条。asset 覆盖 {_PRED_DESC};**每个 (asset, horizon) 组合恰好一条、不重复、不遗漏**。"
+                "禁止凑数;同一资产不同期限可给不同方向/信心(短中长期限结构);低把握给低 confidence;"
                 "失效条件须可度量(绑定该序列+具体阈值+期限)"
             ),
             "items": {
                 "type": "object",
                 "properties": {
-                    "asset": {"type": "string", "enum": _PRED_IDS, "description": "预测对象(固定 roster,不可重复)"},
+                    "asset": {"type": "string", "enum": _PRED_IDS, "description": "预测对象(固定 roster)"},
                     "direction": {
                         "type": "string",
                         "enum": ["up", "down", "flat"],
@@ -96,8 +101,8 @@ BRIEF_SCHEMA: dict = {
                     },
                     "horizon": {
                         "type": "string",
-                        "enum": ["next_1d", "h_5d", "h_20d", "h_60d"],
-                        "description": "预测期限(交易日):次日/5日/20日/60日",
+                        "enum": _HORIZONS,
+                        "description": "预测期限(交易日):5日/20日/60日(短/中/中长)",
                     },
                     "confidence": {
                         "type": "number",
@@ -159,11 +164,12 @@ SYSTEM = (
     "每条带主题标签 tag;解读层是因果/机制判断,每条也带 tag(从受控词表择一);"
     "事实层/解读层可为正文里**有方向含义的关键变化数字**填 figs(扁平字符串 'token|dir;...',"
     "token 是数字本身如 '+15bp'/'-7.8%'、不是资产名,dir=up/down/flat),只标变化、不标电平/相关系数;"
-    f"(3) **假设层 = 对固定 roster({_PRED_DESC})各给且只给一条由特征驱动的预测**:"
+    f"(3) **假设层 = 对 {_PRED_N} 个资产({_PRED_DESC})× {len(_HORIZONS)} 个期限({'/'.join(_HORIZONS)})的网格各给一条**,"
+    f"共 {_GRID_N} 条由特征驱动的预测(每个 资产×期限 组合恰好一条、不重复不遗漏):"
     "写明方向(up/down/flat)、期限 horizon、置信度 confidence(0~1 = 该方向在期限内成立的**主观概率**,"
     "会按真实命中率做校准对账,务必如实区分高/中/低把握、别都给同值)、驱动特征 key_factors(每条 '短标签|完整读数')、"
     "以及**可度量的失效条件**(绑定该序列+具体阈值+期限,能被未来数据客观判定);"
-    "**不要凑数、不要超出或漏掉这几个方向**,低把握就给低 confidence;"
+    "**同一资产的短/中/长期限可以给不同方向与信心(期限结构),但别凑数、别漏格**,低把握就给低 confidence;"
     "(4) 只给『观察点』,绝不给买/卖建议,不承诺收益;(5) 中文输出,简洁、有信息量;"
     "(6) 给出当日 tone,并为每条影响层资产标注 direction。通过 emit_brief 输出四层简报。"
     " " + TEXT_STYLE

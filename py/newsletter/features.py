@@ -19,7 +19,7 @@ import math
 
 import pandas as pd
 
-from . import catalog
+from . import catalog, tsfeatures as ts
 from .config import WINDOWS
 from .sources.base import DATE, VALUE
 
@@ -117,6 +117,15 @@ def compute_features(wide: pd.DataFrame) -> pd.DataFrame:
             for w in WINDOWS.drawdown:
                 cols[f"{sid}_maxdd_{w}"] = _drawdown(s, w)
             cols[f"{sid}_rangepct_{WINDOWS.range_pct}"] = _range_pct(s, WINDOWS.range_pct)
+            # 二阶 / 轨迹特征(v1.7,经共享 tsfeatures):动量在加速/熄火、趋势斜率、波动比、FIP 形状
+            cols[f"{sid}_mom_chg_20"] = ts.momentum(cols[f"{sid}_ret_20"], 20)  # 近20日动量 vs 上一段
+            cols[f"{sid}_trend_slope_20"] = ts.slope(cols[f"{sid}_px_vs_ma200"], 20)  # 相对MA200 趋势斜率
+            cols[f"{sid}_vol_ratio_20_60"] = cols[f"{sid}_vol_20"] / cols[f"{sid}_vol_60"]  # >1 波动上升
+            r = s.pct_change(fill_method=None)  # FIP 信息离散度(60d):连续小步 vs 跳空堆出来
+            upf = (r > 0).rolling(60, min_periods=_mp(60)).mean()
+            dnf = (r < 0).rolling(60, min_periods=_mp(60)).mean()
+            sgn = cols[f"{sid}_ret_60"].apply(lambda x: 0.0 if pd.isna(x) else (1.0 if x > 0 else (-1.0 if x < 0 else 0.0)))
+            cols[f"{sid}_fip_60"] = sgn * (dnf - upf)  # <0=连续动量(更易延续);>0=跳跃式(易反转)
         elif kind in (catalog.KIND_RATE, catalog.KIND_SPREAD):
             for w in WINDOWS.changes:
                 cols[f"{sid}_chg_{w}"] = _changes_bp(s, w)

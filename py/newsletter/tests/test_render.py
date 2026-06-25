@@ -190,17 +190,18 @@ class TestMultiModel(unittest.TestCase):
         return LLMBrief(hypotheses=[{"asset": asset, "direction": direction, "horizon": "h_5d",
                                      "confidence": conf, "if_then": "x", "invalidation": "z"}])
 
-    def test_build_view_clamps_one_per_asset(self):
-        # roster 纪律:LLM 超发同资产多 horizon(如中转站 Claude)→ 每资产仅留第一条
+    def test_build_view_clamps_one_per_asset_horizon(self):
+        # v1.7 多 horizon:同资产可多条不同 horizon(都保留);仅 (资产×期限) 重复才去重
         lb = LLMBrief(hypotheses=[
             {"asset": "XAUUSD", "direction": "down", "horizon": "h_5d", "confidence": 0.6, "if_then": "x", "invalidation": "z"},
             {"asset": "XAUUSD", "direction": "down", "horizon": "h_20d", "confidence": 0.5, "if_then": "x", "invalidation": "z"},
+            {"asset": "XAUUSD", "direction": "up", "horizon": "h_5d", "confidence": 0.4, "if_then": "x", "invalidation": "z"},  # 与第1条同格→去重
             {"asset": "NASDAQCOM", "direction": "up", "horizon": "h_5d", "confidence": 0.6, "if_then": "x", "invalidation": "z"},
         ])
         view = render.build_view(lb)
-        assets = [h.asset for h in view.hypotheses]
-        self.assertEqual(assets, ["XAUUSD", "NASDAQCOM"])  # XAUUSD 去重,保留首条(h_5d)
-        self.assertEqual(view.hypotheses[0].horizon.value, "h_5d")
+        keys = [(h.asset, h.horizon.value) for h in view.hypotheses]
+        # XAUUSD 的 5d/20d 都留;重复的 (XAUUSD,5d) 去掉;NASDAQCOM 5d 留
+        self.assertEqual(keys, [("XAUUSD", "h_5d"), ("XAUUSD", "h_20d"), ("NASDAQCOM", "h_5d")])
 
     def test_views_keyed_by_model_order_preserved(self):
         a = LLMBrief(headline="A", facts=["甲"])

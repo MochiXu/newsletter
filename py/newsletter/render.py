@@ -232,13 +232,14 @@ def _parse_key_factors(raw: list[str]) -> list[KeyFactor]:
 def build_view(llm: LLMBrief | None) -> ModelView:
     """单个模型的"解释层"产出 → ModelView(六层,文本经规范化)。llm 为 None 则空视图、tone 中性。"""
     b = llm or LLMBrief()
-    # roster 纪律:每资产仅留一条(防 LLM 超发同资产多 horizon,如中转站 Claude 偶发返 6 条)
-    seen_assets: set[str] = set()
+    # roster 纪律:每 (资产×期限) 仅留一条(v1.7 多 horizon:同资产可多条不同 horizon,但同格去重)
+    seen: set[tuple[str, str]] = set()
     hyps: list[Hypothesis] = []
     for h in b.hypotheses:
-        if h.asset in seen_assets:
+        key = (h.asset, h.horizon.value if hasattr(h.horizon, "value") else h.horizon)
+        if key in seen:
             continue
-        seen_assets.add(h.asset)
+        seen.add(key)
         hyps.append(
             Hypothesis(
                 if_then=normalize_text(h.if_then),
@@ -264,40 +265,45 @@ def build_view(llm: LLMBrief | None) -> ModelView:
     )
 
 
-def build_consensus(views: dict[str, ModelView]) -> list[ConsensusItem]:
-    """对固定 roster 跨模型投票出代码级共识(多数方向 + 票数 + 认同数 + 多数方向均值信心)。
+_CONSENSUS_HORIZONS = ("h_5d", "h_20d", "h_60d")  # v1.7 多 horizon 网格(与 schema 对齐)
 
-    <2 个模型则无共识可言(返回空,前端不显示共识行)。平票 → flat(分歧)。纯代码、抗污染。
+
+def build_consensus(views: dict[str, ModelView]) -> list[ConsensusItem]:
+    """对固定 roster × 期限网格跨模型投票出代码级共识(每 资产×期限 一条)。
+
+    <2 个模型则无共识(返回空)。平票 → flat(分歧)。纯代码、抗污染。
     """
     if len(views) < 2:
         return []
     out: list[ConsensusItem] = []
     for asset in catalog.PREDICTION_TARGET_IDS:
-        picks = [
-            (h.direction.value, h.confidence)
-            for v in views.values()
-            for h in v.hypotheses
-            if h.asset == asset
-        ]
-        if not picks:
-            continue
-        votes = {"up": 0, "down": 0, "flat": 0}
-        for d, _ in picks:
-            votes[d] = votes.get(d, 0) + 1
-        top = max(votes.values())
-        leaders = [d for d, c in votes.items() if c == top]
-        direction = leaders[0] if len(leaders) == 1 else "flat"  # 平票 = 分歧 → flat
-        confs = [c for d, c in picks if d == direction]
-        out.append(
-            ConsensusItem(
-                asset=asset,
-                direction=direction,
-                votes=votes,
-                n=len(picks),
-                agree=votes.get(direction, 0),
-                mean_confidence=round(sum(confs) / len(confs), 4) if confs else 0.0,
+        for hz in _CONSENSUS_HORIZONS:
+            picks = [
+                (h.direction.value, h.confidence)
+                for v in views.values()
+                for h in v.hypotheses
+                if h.asset == asset and h.horizon.value == hz
+            ]
+            if not picks:
+                continue
+            votes = {"up": 0, "down": 0, "flat": 0}
+            for d, _ in picks:
+                votes[d] = votes.get(d, 0) + 1
+            top = max(votes.values())
+            leaders = [d for d, c in votes.items() if c == top]
+            direction = leaders[0] if len(leaders) == 1 else "flat"  # 平票 = 分歧 → flat
+            confs = [c for d, c in picks if d == direction]
+            out.append(
+                ConsensusItem(
+                    asset=asset,
+                    horizon=hz,  # type: ignore[arg-type]
+                    direction=direction,
+                    votes=votes,
+                    n=len(picks),
+                    agree=votes.get(direction, 0),
+                    mean_confidence=round(sum(confs) / len(confs), 4) if confs else 0.0,
+                )
             )
-        )
     return out
 
 
@@ -398,31 +404,23 @@ def apply_actuals(brief: Brief, ledger_rows: list[dict]) -> Brief:
         for h in view.hypotheses:
             h.actual = _row_to_actual(_lookup(model_id, h.asset, h.horizon.value), h.direction.value)
 
-    # 共识行:统计该资产当日各 horizon 的票数 + 找一条已结算行(realized 模型无关)
+    # 共识行(每 资产×期限 一条):realized 与模型无关,按 (asset, horizon) 找一条已结算行
     day_rows = [r for r in ledger_rows if r.get("created_date") == brief.date]
     for c in brief.consensus:
-        hz_counts: dict[str, int] = {}
-        settled_by_hz: dict[str, dict] = {}
-        for r in day_rows:
-            if r.get("asset") != c.asset:
-                continue
-            hz = r.get("horizon", "")
-            hz_counts[hz] = hz_counts.get(hz, 0) + 1
-            if (r.get("status") == "settled") and hz not in settled_by_hz:
-                settled_by_hz[hz] = r
-        if not hz_counts:
+        hz = c.horizon.value
+        matched = [r for r in day_rows if r.get("asset") == c.asset and r.get("horizon", "") == hz]
+        if not matched:
             continue
-        modal = sorted(hz_counts.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]  # 多数 horizon,平票取较短
-        row = settled_by_hz.get(modal)
-        if row is None:
+        settled = next((r for r in matched if r.get("status") == "settled"), None)
+        if settled is None:
             c.actual = Actual(status="pending")
         else:
-            rdir = row.get("realized_dir") or None
+            rdir = settled.get("realized_dir") or None
             c.actual = Actual(
                 status="settled", realized_dir=rdir,  # type: ignore[arg-type]
-                realized_text=row.get("realized_text", ""),
+                realized_text=settled.get("realized_text", ""),
                 hit=(rdir == c.direction.value),
-                resolved_date=row.get("resolved_date", ""),
+                resolved_date=settled.get("resolved_date", ""),
             )
     return brief
 

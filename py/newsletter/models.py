@@ -437,12 +437,13 @@ class ConsensusItem(_CamelModel):
     """
 
     asset: str
+    horizon: Horizon = Horizon.H_20D  # v1.7 多 horizon:共识按 (资产×期限) 各一条
     direction: PredDir = PredDir.FLAT
     votes: dict[str, int] = Field(default_factory=dict)  # {up,down,flat} → 票数
-    n: int = 0  # 参与该资产预测的模型数
+    n: int = 0  # 参与该 (资产×期限) 预测的模型数
     agree: int = 0  # 认同多数方向的模型数
     mean_confidence: float = Field(0.0, alias="meanConfidence")  # 多数方向那批的均值信心
-    actual: Actual | None = None  # 该资产实际走势(按多数 horizon 取;hit=共识方向是否对)
+    actual: Actual | None = None  # 该 (资产×期限) 实际走势(hit=共识方向是否对)
 
 
 class Brief(_CamelModel):
