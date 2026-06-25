@@ -97,7 +97,7 @@ class TheNewsApiProvider:
         params = {
             "api_token": self._next_key(),
             "language": "en",
-            "limit": min(limit, 3),  # free 档单页最多 3 条
+            "limit": min(limit, 25),  # Basic 档单页最多 25 条(免费档曾是 3)
             "sort": "published_at",
         }
         if query:

@@ -9,14 +9,15 @@ from __future__ import annotations
 from .base import NewsItem, NewsProvider
 from .classify import NEWS_SCHEMA, NEWS_SYSTEM, classify
 from .extract import enrich  # 注:不导出函数 extract,避免遮蔽子模块 news.extract
-from .features import compute_news_features
-from .registry import ROSTER_QUERIES, build_providers, fetch_news
+from .features import build_article_records, compute_news_features, compute_news_trends
+from .registry import MACRO_QUERIES, ROSTER_QUERIES, build_providers, fetch_news
 from .rss import DEFAULT_FEEDS, RssProvider, fetch_feed, parse_feed
+from .store import NewsStore
 from .thenewsapi import SOURCE_ALLOWLIST, TheNewsApiProvider
 
 __all__ = [
     "NewsItem", "NewsProvider", "fetch_news", "classify", "NEWS_SCHEMA", "NEWS_SYSTEM",
-    "build_providers", "ROSTER_QUERIES", "RssProvider", "TheNewsApiProvider",
+    "build_providers", "ROSTER_QUERIES", "MACRO_QUERIES", "RssProvider", "TheNewsApiProvider",
     "SOURCE_ALLOWLIST", "DEFAULT_FEEDS", "parse_feed", "fetch_feed",
-    "enrich", "compute_news_features",
+    "enrich", "compute_news_features", "build_article_records", "compute_news_trends", "NewsStore",
 ]

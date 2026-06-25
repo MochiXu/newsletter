@@ -141,7 +141,9 @@ def build_report(
     metrics_prompt = [{"label": m.label, "value": m.value, "change": m.change, "kind": m.kind.value} for m in metrics]
     block_base = build_feature_block(target_date, metrics_prompt, snap, reg, macro, factors=af_by_sid)  # A 臂:纯价格因子
 
-    # 1) 新闻(live/backfill 都抓;none 不抓):抓 → 抽全文 → 分类 → 代码特征(喂 B 臂)
+    source = "forward" if target_date >= _today() else "backfill"  # 回放历史日 = backfill(含记忆污染);新闻入库也用它打标
+
+    # 1) 新闻(live/backfill 都抓;none 不抓):抓 → 抽全文 → 分类 → 入语料库 → 截面+滚动特征(喂 B 臂)
     merged: list[dict[str, Any]] = []
     news_features: dict[str, Any] = {}
     settings = get_settings()
@@ -163,10 +165,25 @@ def build_report(
             except Exception as e:  # noqa: BLE001
                 log.warning("新闻分类失败,展示未分类新闻: %s", e)
             merged = _merge_news(items, classified)
-            try:
-                news_features = news_mod.compute_news_features(items, classified)
+            try:  # 入语料库(article-level parquet,uuid 幂等;v1.8)
+                store = news_mod.NewsStore(PATHS.news)
+                n_in = store.upsert(news_mod.build_article_records(items, classified, source_tag=source))
+                log.info("新闻入库 %s 条 → %s", n_in, PATHS.news)
             except Exception as e:  # noqa: BLE001
-                log.warning("新闻特征计算失败,跳过: %s", e)
+                log.warning("新闻入库失败,跳过: %s", e)
+            try:
+                news_features = news_mod.compute_news_features(items, classified)  # 当天截面
+            except Exception as e:  # noqa: BLE001
+                log.warning("新闻截面特征失败,跳过: %s", e)
+            try:  # 滚动时序 + 情绪—价格背离(从语料库历史;P5/P4)。只读到 target_date(因果)
+                px_ret = {sid: snap.get(f"{sid}_ret_20") for sid in ("NASDAQCOM", "XAUUSD", "DTWEXBGS")
+                          if snap.get(f"{sid}_ret_20") is not None}
+                trends = news_mod.compute_news_trends(
+                    news_mod.NewsStore(PATHS.news).load(end=target_date), target_date, price_returns=px_ret)
+                if trends:
+                    news_features["trends"] = trends
+            except Exception as e:  # noqa: BLE001
+                log.warning("新闻滚动趋势失败,跳过: %s", e)
             log.info("新闻 %s 条(%s),特征资产 %s", len(items),
                      "已分类" if classified else "未分类", list(news_features.get("byAsset", {})))
 
@@ -188,8 +205,7 @@ def build_report(
         except Exception as e:  # noqa: BLE001
             log.warning("A 臂生成失败,跳过 A 臂: %s", e)
 
-    # 3) 预测账本:记 A/B(有新闻则两臂,否则单记无臂)+ 到期结算 + LLM 复盘
-    source = "forward" if target_date >= _today() else "backfill"  # 回放历史日 = backfill(含记忆污染)
+    # 3) 预测账本:记 A/B(有新闻则两臂,否则单记无臂)+ 到期结算 + LLM 复盘(source 见上,新闻入库共用)
     pred_rows = pred.load(PATHS.predictions_csv)
     try:
         if news_features:

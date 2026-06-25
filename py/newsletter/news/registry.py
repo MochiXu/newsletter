@@ -15,13 +15,22 @@ from .thenewsapi import TheNewsApiProvider
 
 log = logging.getLogger(__name__)
 
-# 每个 roster 资产的检索关键词(TheNewsAPI search 语法:| =OR,"..."=短语)。
+# 每个 roster 资产的检索关键词(TheNewsAPI search 语法:| =OR,"..."=短语)。v1.8 扩充。
 ROSTER_QUERIES: dict[str, str] = {
-    "NASDAQCOM": 'nasdaq | "stock market" | equities | "wall street"',
-    "XAUUSD": 'gold | bullion | "gold price"',
-    "DTWEXBGS": '"us dollar" | "dollar index" | forex | greenback',
-    "DGS2": '"treasury yield" | "federal reserve" | "interest rate" | "fed rate"',
+    "NASDAQCOM": 'nasdaq | "stock market" | equities | "wall street" | "tech stocks" | "S&P 500" | semiconductor',
+    "XAUUSD": 'gold | bullion | "gold price" | "safe haven" | "real yields" | "central bank gold"',
+    "DTWEXBGS": '"us dollar" | "dollar index" | forex | greenback | "dollar strength" | "currency markets"',
+    "DGS2": '"treasury yield" | "federal reserve" | "interest rate" | "fed rate" | FOMC | Powell | "rate cut" | "rate hike" | "dot plot"',
 }
+
+# 跨资产宏观主题频道(v1.8 §7):影响全体的事件/政策新闻 → 喂事件标记 + EPU/GPR/鹰鸽 + 各资产分类回填。
+# asset="" → 靠分类的 affected_assets 归属;同时贡献全局信号(政策不确定/地缘/央行语调)。
+MACRO_QUERIES: tuple[str, ...] = (
+    'federal reserve | FOMC | Powell | "monetary policy" | "rate decision"',
+    '"treasury secretary" | "fiscal policy" | tariff | Trump | "debt ceiling"',
+    'geopolitical | war | sanctions | OPEC | "oil price" | "energy crisis"',
+    '"european central bank" | ECB | "bank of japan" | "global economy"',
+)
 
 
 def build_providers(news_mode: str):
@@ -54,9 +63,10 @@ def fetch_news(
     news_mode: str = "live",
     start: str | None = None,
     end: str | None = None,
-    per_asset: int = 3,
+    per_asset: int = 15,  # Basic 档:每资产抓 ~15 条优质(免费档曾是 3);v1.8
+    macro: bool = True,  # 是否额外抓跨资产宏观主题频道(v1.8 §7)
 ) -> list[NewsItem]:
-    """拉新闻并去重。query 源对 roster 各资产分别查询(带 asset 归属);feed 源(RSS)整抓。"""
+    """拉新闻并去重。query 源:roster 各资产 + 宏观主题频道分别查询;feed 源(RSS)整抓。"""
     providers = build_providers(news_mode)
     collected: list[NewsItem] = []
     for p in providers:
@@ -68,6 +78,12 @@ def fetch_news(
                     )
                 except Exception as e:  # noqa: BLE001 — 单查询失败不阻断
                     log.warning("news provider %s asset %s failed: %s", getattr(p, "name", "?"), sid, e)
+            if macro:  # 宏观主题频道(asset="" → 靠分类回填资产 + 贡献全局事件/EPU/GPR)
+                for q in MACRO_QUERIES:
+                    try:
+                        collected.extend(p.fetch(query=q, start=start, end=end, limit=per_asset, asset=""))
+                    except Exception as e:  # noqa: BLE001
+                        log.warning("news provider %s macro query failed: %s", getattr(p, "name", "?"), e)
         else:
             try:
                 collected.extend(p.fetch(limit=per_asset * 4))

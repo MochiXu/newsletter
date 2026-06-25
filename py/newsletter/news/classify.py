@@ -37,6 +37,10 @@ NEWS_SCHEMA = {
                         "enum": ["up", "down", "watch"],
                         "description": "该新闻对主要受影响资产的方向性:up=利多/上行,down=利空/下行,watch=方向待观察",
                     },
+                    "sentiment": {
+                        "type": "number",
+                        "description": "对受影响资产的情绪强度 ∈ [-1,1]:-1=极度利空、0=中性、+1=极度利多(比 direction 更细,供量化)",
+                    },
                 },
                 "required": ["index", "title", "category", "summary", "affected_assets", "direction"],
             },
@@ -47,16 +51,17 @@ NEWS_SCHEMA = {
 
 NEWS_SYSTEM = (
     "你是宏观新闻分类助手。把每条新闻分为『事实/解读/事实+解读/噪音』,"
-    "用中文一句话概括,列出主要受影响资产,简述方向性影响,并给出方向 direction(up/down/watch)。"
+    "用中文一句话概括,列出主要受影响资产,简述方向性影响,给出方向 direction(up/down/watch)"
+    "和情绪强度 sentiment ∈ [-1,1](利空为负、利多为正、中性 0,比 direction 更细)。"
     "严格区分客观事实与主观解读;绝不给买/卖建议,不承诺收益。 " + TEXT_STYLE
 )
 
 
 def _body(it: NewsItem) -> str:
-    """喂分类的正文:优先抽取全文(截断控成本),退回 summary。"""
+    """喂分类的正文:优先抽取全文(截断控上下文),退回 summary。v1.8:Basic 后放宽到 3000 字。"""
     txt = (it.text or "").strip()
     if txt:
-        return txt[:1500]
+        return txt[:3000]
     return it.summary or ""
 
 

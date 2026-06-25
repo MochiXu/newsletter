@@ -100,6 +100,11 @@ class Paths:
         return self.data / "news_cache"
 
     @property
+    def news(self) -> Path:
+        """新闻语料库:article-level parquet(按月分区)。v1.8。"""
+        return self.data / "news"
+
+    @property
     def linkage_map(self) -> Path:
         return Path(__file__).resolve().parent / "framework" / "linkage_map.md"
 
