@@ -170,3 +170,14 @@ SOURCE_ALLOWLIST = [
 - 本文件产出"**干净、带全文、按资产归属的新闻条目**" → 喂 v1.6 §6.4 的 `news/features.py` 算**代码特征**(事件日历/量 z/惊喜)→ 仅 **B 臂**进 `build_feature_block` → A/B 消融(v1.6 §6.5)由评估层裁决"新闻值多少"。
 - 回填澄清:NewsAPI 抓 1 个月新闻 = **建管线 + 攒语料/缓存**,**不是**重生成历史预测;**A/B 打分严格前向**(回填新闻有发布滞后泄漏,见 v1.6 §6.5)。
 - 实施步骤见 v1.6 §5 **S5**。
+
+## 7. v1.8 升级(2026-06-25)
+
+- **TheNewsAPI 升级 Basic**:**单 token、25 篇/请求**(免费档是 3 key/3 篇)。`THENEWSAPI_KEYS` 现单 key;
+  代码 `thenewsapi.py` `min(limit,25)`、`registry.per_asset=15`。只用 `/v1/news/all`(不需要 `/headlines`/`/top`)。
+- **关键词分两层**:`ROSTER_QUERIES`(每资产扩充)+ `MACRO_QUERIES`(跨资产宏观主题:美联储/财政·Trump/地缘·能源/欧日央行)。
+  宏观频道 `asset=""`,靠分类 `affected_assets` 回填资产,并贡献全局 EPU/GPR/事件信号。
+- **新闻语料库**:`news/store.py` 单一 article-level parquet(`data/news/news-YYYY-MM.parquet`,月分区 + uuid 幂等 + body 列
+  + `extra`/`schema_version`),既是语料又是缓存。详见 [v1.8-progress.md](refactor/v1.8-progress.md)。
+- **逐篇正文喂 LLM 放宽到 3000 字**(`classify._body`);抽取上限 `extract._MAX_CHARS=4000`。
+- 文本信号(EPU/GPR/鹰鸽/事件分类)由 `news/textsignals.py` **代码算**(可复现、免成本),不靠 LLM。
