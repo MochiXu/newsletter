@@ -1,7 +1,26 @@
 {
   "model": "—",
-  "generatedAt": "2026-06-24",
+  "generatedAt": "2026-06-25",
   "briefs": [
+    {
+      "date": "2026-06-25",
+      "weekday": "周四",
+      "issue": 18,
+      "time": "07:00 CST",
+      "tz": "America/New_York",
+      "session": "no_data",
+      "closedReason": "",
+      "metrics": [],
+      "signals": [],
+      "regime": {},
+      "priceSeries": {},
+      "factors": {},
+      "reviews": [],
+      "news": [],
+      "models": [],
+      "views": {},
+      "consensus": []
+    },
     {
       "date": "2026-06-24",
       "weekday": "周三",
@@ -2769,6 +2788,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 1,
@@ -2789,6 +2809,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -2809,6 +2830,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 2,
@@ -2829,6 +2851,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -5562,6 +5585,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 1,
@@ -5582,6 +5606,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -5602,6 +5627,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 2,
@@ -5622,6 +5648,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 1,
@@ -8438,6 +8465,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -8458,6 +8486,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -8478,6 +8507,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 2,
@@ -8498,6 +8528,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 1,
@@ -11309,6 +11340,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 1,
@@ -11329,6 +11361,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -11349,6 +11382,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 1,
@@ -11369,6 +11403,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -14123,6 +14158,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -14143,6 +14179,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -14163,6 +14200,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -14183,6 +14221,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -16891,6 +16930,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -16911,6 +16951,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -16931,6 +16972,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 0,
@@ -16951,6 +16993,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 1,
@@ -19775,6 +19818,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -19795,6 +19839,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -19815,6 +19860,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 0,
@@ -19835,6 +19881,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 2,
@@ -22690,6 +22737,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -22710,6 +22758,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -22730,6 +22779,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 1,
@@ -22750,6 +22800,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 1,
@@ -25592,6 +25643,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 1,
@@ -25612,6 +25664,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -25632,6 +25685,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 1,
@@ -25652,6 +25706,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -28529,6 +28584,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 1,
@@ -28549,6 +28605,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -28569,6 +28626,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 1,
@@ -28589,6 +28647,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 2,
@@ -31381,6 +31440,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -31401,6 +31461,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -31421,6 +31482,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 0,
@@ -31441,6 +31503,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 2,
@@ -34225,6 +34288,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 1,
@@ -34245,6 +34309,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -34265,6 +34330,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 2,
@@ -34285,6 +34351,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -37127,6 +37194,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -37147,6 +37215,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -37167,6 +37236,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 0,
@@ -37187,6 +37257,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 2,
@@ -39953,6 +40024,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 2,
@@ -39973,6 +40045,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -39993,6 +40066,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 1,
@@ -40013,6 +40087,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -42748,6 +42823,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -42768,6 +42844,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 0,
@@ -42788,6 +42865,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -42808,6 +42886,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -45647,6 +45726,7 @@
       "consensus": [
         {
           "asset": "NASDAQCOM",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
@@ -45667,6 +45747,7 @@
         },
         {
           "asset": "XAUUSD",
+          "horizon": "h_20d",
           "direction": "down",
           "votes": {
             "up": 0,
@@ -45687,6 +45768,7 @@
         },
         {
           "asset": "DTWEXBGS",
+          "horizon": "h_20d",
           "direction": "flat",
           "votes": {
             "up": 0,
@@ -45707,6 +45789,7 @@
         },
         {
           "asset": "DGS2",
+          "horizon": "h_20d",
           "direction": "up",
           "votes": {
             "up": 3,
