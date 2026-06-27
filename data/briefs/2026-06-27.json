@@ -1,0 +1,19 @@
+{
+  "date": "2026-06-27",
+  "weekday": "周六",
+  "issue": 20,
+  "time": "07:00 CST",
+  "tz": "America/New_York",
+  "session": "closed",
+  "closedReason": "weekend",
+  "metrics": [],
+  "signals": [],
+  "regime": {},
+  "priceSeries": {},
+  "factors": {},
+  "reviews": [],
+  "news": [],
+  "models": [],
+  "views": {},
+  "consensus": []
+}
