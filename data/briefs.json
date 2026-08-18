@@ -1,7 +1,26 @@
 {
   "model": "—",
-  "generatedAt": "2026-08-17",
+  "generatedAt": "2026-08-18",
   "briefs": [
+    {
+      "date": "2026-08-18",
+      "weekday": "周二",
+      "issue": 71,
+      "time": "07:00 CST",
+      "tz": "America/New_York",
+      "session": "no_data",
+      "closedReason": "",
+      "metrics": [],
+      "signals": [],
+      "regime": {},
+      "priceSeries": {},
+      "factors": {},
+      "reviews": [],
+      "news": [],
+      "models": [],
+      "views": {},
+      "consensus": []
+    },
     {
       "date": "2026-08-17",
       "weekday": "周一",
