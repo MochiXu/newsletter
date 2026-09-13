@@ -1,0 +1,19 @@
+{
+  "date": "2026-09-13",
+  "weekday": "周日",
+  "issue": 96,
+  "time": "07:00 CST",
+  "tz": "America/New_York",
+  "session": "closed",
+  "closedReason": "weekend",
+  "metrics": [],
+  "signals": [],
+  "regime": {},
+  "priceSeries": {},
+  "factors": {},
+  "reviews": [],
+  "news": [],
+  "models": [],
+  "views": {},
+  "consensus": []
+}
