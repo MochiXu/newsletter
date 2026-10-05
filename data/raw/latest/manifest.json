@@ -1,6 +1,6 @@
 {
-  "pull_date": "2026-10-02",
-  "rows": 33431,
+  "pull_date": "2026-10-05",
+  "rows": 33426,
   "series": [
     "CPILFESL",
     "DFII10",
@@ -19,5 +19,5 @@
     "XAUUSD"
   ],
   "date_min": "2014-10-01",
-  "date_max": "2026-10-01"
+  "date_max": "2026-10-04"
 }
